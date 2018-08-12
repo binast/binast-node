@@ -32,18 +32,17 @@ export function liftWebidl(str: string,
     });
 
     const schema = lifter.makeSchema();
-    console.log("Pre-flattened schema:");
+    console.log("Schema:");
     console.log(schema.prettyString());
     console.log("\n");
-
-    /*
-    const flatSchema = schema.flatten();
-    console.log("Flattened schema:");
-    console.log(flatSchema.prettyString());
     console.log("\n");
-    */
 
-    return schema;
+    const normSchema = schema.normalize();
+    console.log("Normalized schema:");
+    console.log(normSchema.prettyString());
+    console.log("\n");
+
+    return normSchema;
 }
 
 class Lifter {

@@ -25,6 +25,68 @@ export class TreeSchema {
         return this.decls.get(tn);
     }
 
+    /**
+     * Produce a new, normalized tree schema.
+     */
+    normalize(): TreeSchema {
+        const newDecls =
+            new OrderedMap<TypeName, Declaration>();
+
+        // First, resolve all references to typenames
+        // down to primitive, enum, or iface
+        // references.
+        this.resolveNames(newDecls);
+
+        // Re-order the normalized decls by the
+        // same order they occured in the old schema.
+        const ordDecls =
+            new OrderedMap<TypeName, Declaration>();
+        for (let decl of this.decls.values()) {
+            const name = decl.name;
+            ordDecls.set(name, newDecls.get(name));
+        }
+
+        return new TreeSchema(ordDecls);
+    }
+
+    private resolveNames(
+        newDecls: OrderedMap<TypeName, Declaration>)
+    {
+        for (let decl of this.decls.values()) {
+            this.resolveDecl(decl, newDecls);
+        }
+    }
+
+    private resolveDecl(decl: Declaration,
+            newDecls: OrderedMap<TypeName, Declaration>)
+    {
+        if (!newDecls.has(decl.name)) {
+            newDecls.set(decl.name,
+                decl.resolveNames(this, newDecls));
+        }
+    }
+
+    resolveType(typeName: TypeName,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldType
+    {
+        // Look up the type.
+        const decl = this.getDecl(typeName);
+
+        // Ifaces and enums just produce named types.
+        if ((decl instanceof Iface) ||
+            (decl instanceof Enum))
+        {
+            return FieldTypeNamed.make(typeName);
+        }
+
+        assert(decl instanceof Typedef);
+        this.resolveDecl(decl, newDecls);
+
+        let newDecl = newDecls.get(typeName);
+        return (newDecl as Typedef).aliased;
+    }
+
     prettyString(): string {
         const declArray = Array.from(this.decls.values());
 
@@ -51,6 +113,10 @@ export abstract class Declaration {
 
     abstract get declKind(): DeclarationKind;
     abstract prettyString(): string;
+    abstract resolveNames(
+            treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : Declaration;
 }
 
 export class Typedef extends Declaration {
@@ -69,6 +135,16 @@ export class Typedef extends Declaration {
     prettyString(): string {
         return `typedef ${this.name.prettyString()} =` +
                ` ${this.aliased.prettyString()};`;
+    }
+
+    resolveNames(
+        treeSchema: TreeSchema,
+        newDecls: OrderedMap<TypeName, Declaration>)
+      : Typedef
+    {
+        const resolved = this.aliased.resolveNames(
+                                treeSchema, newDecls);
+        return new Typedef(this.name, resolved);
     }
 }
 
@@ -114,6 +190,14 @@ export class Enum extends Declaration {
                parts.join('\n') + '\n' +
                '};';
     }
+
+    resolveNames(
+        treeSchema: TreeSchema,
+        newDecls: OrderedMap<TypeName, Declaration>)
+      : Enum
+    {
+        return this;
+    }
 }
 
 export class Iface extends Declaration {
@@ -138,6 +222,19 @@ export class Iface extends Declaration {
                   .join('\n') + '\n' +
              '}';
     }
+
+    resolveNames(
+        treeSchema: TreeSchema,
+        newDecls: OrderedMap<TypeName, Declaration>)
+      : Iface
+    {
+        const rfs = new OrderedMap<string, IfaceField>();
+        for (let f of this.fields.values()) {
+            rfs.set(f.name,
+                f.resolveNames(treeSchema, newDecls));
+        }
+        return new Iface(this.name, rfs);
+    }
 }
 
 export class IfaceField {
@@ -160,6 +257,15 @@ export class IfaceField {
         const name = this.name;
         const tyStr = this.ty.prettyString();
         return `  ${attrPrefix}${name}: ${tyStr};`;
+    }
+
+    resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : IfaceField
+    {
+        const rty = this.ty.resolveNames(treeSchema,
+                                         newDecls);
+        return new IfaceField(this.name, rty, this.isLazy);
     }
 }
 
@@ -209,6 +315,9 @@ export abstract class FieldType {
 
     abstract prettyString(): string;
     abstract kind(): FieldTypeKind;
+    abstract resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldType;
 
     protected constructor(typeId: number) {
         this.typeId = typeId;
@@ -278,6 +387,12 @@ export class FieldTypePrimitive extends FieldType {
     prettyString(): string {
         return this.name;
     }
+    resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldTypePrimitive
+    {
+        return this;
+    }
 
     static typeKey(name: string): string {
         return `prim(${name})`;
@@ -324,6 +439,12 @@ export class FieldTypeNamed extends FieldType {
             return new FieldTypeNamed(id, name);
         });
     }
+    resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldType
+    {
+        return treeSchema.resolveType(this.name, newDecls);
+    }
 
     kind(): FieldTypeKind {
         return FieldTypeKind.Named;
@@ -361,13 +482,56 @@ export class FieldTypeUnion extends FieldType {
     }
     prettyString(): string {
         let mstr = this.variants.map(m => m.prettyString());
-        return mstr.join(' | ');
+        return `Union<${mstr.join(' | ')}>`;
     }
     static typeKey(variants: ReadonlyArray<FieldType>)
       : string
     {
         let ids = variants.map(m => m.typeId);
         return `union(${ids.join(',')})`
+    }
+
+    resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldType
+    {
+        const newVariants = new Array<FieldType>();
+        let wrapOpt: boolean = false;
+
+        for (let variant of this.variants) {
+            // resolve the variant first.
+            let rv = variant.resolveNames(treeSchema,
+                                          newDecls);
+
+            // While the inner type is an opt, set
+            // wrapOpt = true and unwrap.
+            while (rv instanceof FieldTypeOpt) {
+                wrapOpt = true;
+                rv = rv.inner;
+            }
+
+            // If the type is now a union, then
+            // fold its contents into newVariants.
+            if (rv instanceof FieldTypeUnion) {
+                for (let terminalRv of rv.variants) {
+                    newVariants.push(terminalRv);
+                }
+            } else {
+                // Must either be an array, named,
+                // or primitive.  Add it singularly.
+                assert((rv instanceof FieldTypeArray) ||
+                       (rv instanceof FieldTypeNamed) ||
+                       (rv instanceof FieldTypePrimitive));
+                newVariants.push(rv);
+            }
+        }
+
+        let ft: FieldType = FieldTypeUnion.make(
+                    Object.freeze(newVariants));
+        if (wrapOpt) {
+            ft = FieldTypeOpt.make(ft);
+        }
+        return ft;
     }
 }
 
@@ -396,6 +560,14 @@ export class FieldTypeOpt extends FieldType {
     static typeKey(inner: FieldType): string {
         return `opt(${inner.typeId})`;
     }
+
+    resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldType
+    {
+        return FieldTypeOpt.make(
+            this.inner.resolveNames(treeSchema, newDecls));
+    }
 }
 
 export class FieldTypeArray extends FieldType {
@@ -422,5 +594,13 @@ export class FieldTypeArray extends FieldType {
     }
     static typeKey(inner: FieldType): string {
         return `array(${inner.typeId})`;
+    }
+
+    resolveNames(treeSchema: TreeSchema,
+            newDecls: OrderedMap<TypeName, Declaration>)
+      : FieldType
+    {
+        return FieldTypeArray.make(
+            this.inner.resolveNames(treeSchema, newDecls));
     }
 }
