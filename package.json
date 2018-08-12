@@ -1,0 +1,20 @@
+{
+  "name": "binast-node",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "build-tsc": "tsc",
+    "build": "npm run build-tsc",
+    "encoder": "node --max_old_space_size=8192 ./dist/encoder.js"
+  },
+  "author": "",
+  "license": "GPLv3",
+  "dependencies": {
+    "shift-parser": ">=5.2.4",
+    "typescript": ">=2.8.3",
+    "webidl2": "^14.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^10.1.3"
+  }
+}
