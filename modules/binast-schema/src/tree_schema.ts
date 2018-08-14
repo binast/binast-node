@@ -496,7 +496,7 @@ export class Iface extends Declaration {
             `    get iface$(): S.Iface {`,
             `        return ReflectedSchema.typeof_${nm};`,
             `    }`,
-            `    readonly data: Ro<I_${nm}>;`,
+            `    readonly data$: Ro<I_${nm}>;`,
         ]);
 
         defns.push(...[
@@ -509,7 +509,7 @@ export class Iface extends Declaration {
         }
         const ifaceEx = `ReflectedSchema.${nm}`;
         defns.push(...[
-            `        this.data = Object.freeze(data);`,
+            `        this.data$ = Object.freeze(data);`,
             `        Object.freeze(this);`,
             `    }`,
             ``,
@@ -517,11 +517,24 @@ export class Iface extends Declaration {
 
         // Static constructor definition.
         defns.push(...[
-            ``,
             `    static make(data: Ro<I_${nm}>) {`,
             `        return new ${nm}(data);`,
             `    }`,
             ``,
+        ]);
+
+        // Accessor method definition.
+        for (let field of this.fields.values()) {
+            const fnm = field.name;
+            const tstr = field.ty.typescriptString();
+            defns.push(...[
+                `    get ${fnm}(): ${tstr} {`,
+                `       return this.data$.${fnm};`,
+                `    }`,
+                ``,
+            ]);
+        }
+        defns.push(...[
             `}`,
         ]);
     }

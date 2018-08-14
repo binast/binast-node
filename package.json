@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
-    "build-schema-module": "(cd ./modules/binast-schema/; npm run build);",
+    "build-schema-module": "(cd ./modules/binast-schema/; npm install; npm run build);",
     "generate-tsc-schema": "binast-generate-ts-schema ./spec/latest.webidl >./src/typed_schema.ts",
     "build-tsc": "tsc",
     "build": "npm run build-schema-module; npm install; npm run generate-tsc-schema; npm run build-tsc;"

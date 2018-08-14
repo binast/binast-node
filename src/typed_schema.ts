@@ -3619,16 +3619,27 @@ export class AssertedDeclaredName
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedDeclaredName;
     }
-    readonly data: Ro<I_AssertedDeclaredName>;
+    readonly data$: Ro<I_AssertedDeclaredName>;
 
     private constructor(data: Ro<I_AssertedDeclaredName>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedDeclaredName>) {
         return new AssertedDeclaredName(data);
+    }
+
+    get name(): IdentifierName {
+       return this.data$.name;
+    }
+
+    get kind(): AssertedDeclaredKind {
+       return this.data$.kind;
+    }
+
+    get isCaptured(): boolean {
+       return this.data$.isCaptured;
     }
 
 }
@@ -3645,16 +3656,23 @@ export class AssertedBoundName
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedBoundName;
     }
-    readonly data: Ro<I_AssertedBoundName>;
+    readonly data$: Ro<I_AssertedBoundName>;
 
     private constructor(data: Ro<I_AssertedBoundName>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedBoundName>) {
         return new AssertedBoundName(data);
+    }
+
+    get name(): IdentifierName {
+       return this.data$.name;
+    }
+
+    get isCaptured(): boolean {
+       return this.data$.isCaptured;
     }
 
 }
@@ -3671,16 +3689,23 @@ export class AssertedBlockScope
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedBlockScope;
     }
-    readonly data: Ro<I_AssertedBlockScope>;
+    readonly data$: Ro<I_AssertedBlockScope>;
 
     private constructor(data: Ro<I_AssertedBlockScope>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedBlockScope>) {
         return new AssertedBlockScope(data);
+    }
+
+    get declaredNames(): RoArr<AssertedDeclaredName> {
+       return this.data$.declaredNames;
+    }
+
+    get hasDirectEval(): boolean {
+       return this.data$.hasDirectEval;
     }
 
 }
@@ -3697,16 +3722,23 @@ export class AssertedScriptGlobalScope
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedScriptGlobalScope;
     }
-    readonly data: Ro<I_AssertedScriptGlobalScope>;
+    readonly data$: Ro<I_AssertedScriptGlobalScope>;
 
     private constructor(data: Ro<I_AssertedScriptGlobalScope>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedScriptGlobalScope>) {
         return new AssertedScriptGlobalScope(data);
+    }
+
+    get declaredNames(): RoArr<AssertedDeclaredName> {
+       return this.data$.declaredNames;
+    }
+
+    get hasDirectEval(): boolean {
+       return this.data$.hasDirectEval;
     }
 
 }
@@ -3723,16 +3755,23 @@ export class AssertedVarScope
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedVarScope;
     }
-    readonly data: Ro<I_AssertedVarScope>;
+    readonly data$: Ro<I_AssertedVarScope>;
 
     private constructor(data: Ro<I_AssertedVarScope>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedVarScope>) {
         return new AssertedVarScope(data);
+    }
+
+    get declaredNames(): RoArr<AssertedDeclaredName> {
+       return this.data$.declaredNames;
+    }
+
+    get hasDirectEval(): boolean {
+       return this.data$.hasDirectEval;
     }
 
 }
@@ -3750,16 +3789,27 @@ export class AssertedParameterScope
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedParameterScope;
     }
-    readonly data: Ro<I_AssertedParameterScope>;
+    readonly data$: Ro<I_AssertedParameterScope>;
 
     private constructor(data: Ro<I_AssertedParameterScope>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedParameterScope>) {
         return new AssertedParameterScope(data);
+    }
+
+    get boundNames(): RoArr<AssertedBoundName> {
+       return this.data$.boundNames;
+    }
+
+    get hasDirectEval(): boolean {
+       return this.data$.hasDirectEval;
+    }
+
+    get isSimpleParameterList(): boolean {
+       return this.data$.isSimpleParameterList;
     }
 
 }
@@ -3776,16 +3826,23 @@ export class AssertedBoundNamesScope
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssertedBoundNamesScope;
     }
-    readonly data: Ro<I_AssertedBoundNamesScope>;
+    readonly data$: Ro<I_AssertedBoundNamesScope>;
 
     private constructor(data: Ro<I_AssertedBoundNamesScope>) {
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssertedBoundNamesScope>) {
         return new AssertedBoundNamesScope(data);
+    }
+
+    get boundNames(): RoArr<AssertedBoundName> {
+       return this.data$.boundNames;
+    }
+
+    get hasDirectEval(): boolean {
+       return this.data$.hasDirectEval;
     }
 
 }
@@ -3850,17 +3907,20 @@ export class BindingIdentifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_BindingIdentifier;
     }
-    readonly data: Ro<I_BindingIdentifier>;
+    readonly data$: Ro<I_BindingIdentifier>;
 
     private constructor(data: Ro<I_BindingIdentifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_BindingIdentifier>) {
         return new BindingIdentifier(data);
+    }
+
+    get name(): Identifier {
+       return this.data$.name;
     }
 
 }
@@ -3896,17 +3956,24 @@ export class BindingWithInitializer
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_BindingWithInitializer;
     }
-    readonly data: Ro<I_BindingWithInitializer>;
+    readonly data$: Ro<I_BindingWithInitializer>;
 
     private constructor(data: Ro<I_BindingWithInitializer>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_BindingWithInitializer>) {
         return new BindingWithInitializer(data);
+    }
+
+    get binding(): Binding {
+       return this.data$.binding;
+    }
+
+    get init(): Expression {
+       return this.data$.init;
     }
 
 }
@@ -3923,17 +3990,20 @@ export class AssignmentTargetIdentifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssignmentTargetIdentifier;
     }
-    readonly data: Ro<I_AssignmentTargetIdentifier>;
+    readonly data$: Ro<I_AssignmentTargetIdentifier>;
 
     private constructor(data: Ro<I_AssignmentTargetIdentifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssignmentTargetIdentifier>) {
         return new AssignmentTargetIdentifier(data);
+    }
+
+    get name(): Identifier {
+       return this.data$.name;
     }
 
 }
@@ -3951,17 +4021,24 @@ export class ComputedMemberAssignmentTarget
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ComputedMemberAssignmentTarget;
     }
-    readonly data: Ro<I_ComputedMemberAssignmentTarget>;
+    readonly data$: Ro<I_ComputedMemberAssignmentTarget>;
 
     private constructor(data: Ro<I_ComputedMemberAssignmentTarget>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ComputedMemberAssignmentTarget>) {
         return new ComputedMemberAssignmentTarget(data);
+    }
+
+    get object(): (Expression | Super) {
+       return this.data$.object;
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -3979,17 +4056,24 @@ export class StaticMemberAssignmentTarget
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_StaticMemberAssignmentTarget;
     }
-    readonly data: Ro<I_StaticMemberAssignmentTarget>;
+    readonly data$: Ro<I_StaticMemberAssignmentTarget>;
 
     private constructor(data: Ro<I_StaticMemberAssignmentTarget>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_StaticMemberAssignmentTarget>) {
         return new StaticMemberAssignmentTarget(data);
+    }
+
+    get object(): (Expression | Super) {
+       return this.data$.object;
+    }
+
+    get property(): IdentifierName {
+       return this.data$.property;
     }
 
 }
@@ -4007,17 +4091,24 @@ export class ArrayBinding
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ArrayBinding;
     }
-    readonly data: Ro<I_ArrayBinding>;
+    readonly data$: Ro<I_ArrayBinding>;
 
     private constructor(data: Ro<I_ArrayBinding>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ArrayBinding>) {
         return new ArrayBinding(data);
+    }
+
+    get elements(): RoArr<Opt<(Binding | BindingWithInitializer)>> {
+       return this.data$.elements;
+    }
+
+    get rest(): Opt<Binding> {
+       return this.data$.rest;
     }
 
 }
@@ -4035,17 +4126,24 @@ export class BindingPropertyIdentifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_BindingPropertyIdentifier;
     }
-    readonly data: Ro<I_BindingPropertyIdentifier>;
+    readonly data$: Ro<I_BindingPropertyIdentifier>;
 
     private constructor(data: Ro<I_BindingPropertyIdentifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_BindingPropertyIdentifier>) {
         return new BindingPropertyIdentifier(data);
+    }
+
+    get binding(): BindingIdentifier {
+       return this.data$.binding;
+    }
+
+    get init(): Opt<Expression> {
+       return this.data$.init;
     }
 
 }
@@ -4063,17 +4161,24 @@ export class BindingPropertyProperty
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_BindingPropertyProperty;
     }
-    readonly data: Ro<I_BindingPropertyProperty>;
+    readonly data$: Ro<I_BindingPropertyProperty>;
 
     private constructor(data: Ro<I_BindingPropertyProperty>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_BindingPropertyProperty>) {
         return new BindingPropertyProperty(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get binding(): (Binding | BindingWithInitializer) {
+       return this.data$.binding;
     }
 
 }
@@ -4093,17 +4198,20 @@ export class ObjectBinding
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ObjectBinding;
     }
-    readonly data: Ro<I_ObjectBinding>;
+    readonly data$: Ro<I_ObjectBinding>;
 
     private constructor(data: Ro<I_ObjectBinding>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ObjectBinding>) {
         return new ObjectBinding(data);
+    }
+
+    get properties(): RoArr<BindingProperty> {
+       return this.data$.properties;
     }
 
 }
@@ -4121,17 +4229,24 @@ export class AssignmentTargetWithInitializer
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssignmentTargetWithInitializer;
     }
-    readonly data: Ro<I_AssignmentTargetWithInitializer>;
+    readonly data$: Ro<I_AssignmentTargetWithInitializer>;
 
     private constructor(data: Ro<I_AssignmentTargetWithInitializer>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssignmentTargetWithInitializer>) {
         return new AssignmentTargetWithInitializer(data);
+    }
+
+    get binding(): AssignmentTarget {
+       return this.data$.binding;
+    }
+
+    get init(): Expression {
+       return this.data$.init;
     }
 
 }
@@ -4149,17 +4264,24 @@ export class ArrayAssignmentTarget
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ArrayAssignmentTarget;
     }
-    readonly data: Ro<I_ArrayAssignmentTarget>;
+    readonly data$: Ro<I_ArrayAssignmentTarget>;
 
     private constructor(data: Ro<I_ArrayAssignmentTarget>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ArrayAssignmentTarget>) {
         return new ArrayAssignmentTarget(data);
+    }
+
+    get elements(): RoArr<Opt<(AssignmentTarget | AssignmentTargetWithInitializer)>> {
+       return this.data$.elements;
+    }
+
+    get rest(): Opt<AssignmentTarget> {
+       return this.data$.rest;
     }
 
 }
@@ -4177,17 +4299,24 @@ export class AssignmentTargetPropertyIdentifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssignmentTargetPropertyIdentifier;
     }
-    readonly data: Ro<I_AssignmentTargetPropertyIdentifier>;
+    readonly data$: Ro<I_AssignmentTargetPropertyIdentifier>;
 
     private constructor(data: Ro<I_AssignmentTargetPropertyIdentifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssignmentTargetPropertyIdentifier>) {
         return new AssignmentTargetPropertyIdentifier(data);
+    }
+
+    get binding(): AssignmentTargetIdentifier {
+       return this.data$.binding;
+    }
+
+    get init(): Opt<Expression> {
+       return this.data$.init;
     }
 
 }
@@ -4205,17 +4334,24 @@ export class AssignmentTargetPropertyProperty
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssignmentTargetPropertyProperty;
     }
-    readonly data: Ro<I_AssignmentTargetPropertyProperty>;
+    readonly data$: Ro<I_AssignmentTargetPropertyProperty>;
 
     private constructor(data: Ro<I_AssignmentTargetPropertyProperty>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssignmentTargetPropertyProperty>) {
         return new AssignmentTargetPropertyProperty(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get binding(): (AssignmentTarget | AssignmentTargetWithInitializer) {
+       return this.data$.binding;
     }
 
 }
@@ -4235,17 +4371,20 @@ export class ObjectAssignmentTarget
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ObjectAssignmentTarget;
     }
-    readonly data: Ro<I_ObjectAssignmentTarget>;
+    readonly data$: Ro<I_ObjectAssignmentTarget>;
 
     private constructor(data: Ro<I_ObjectAssignmentTarget>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ObjectAssignmentTarget>) {
         return new ObjectAssignmentTarget(data);
+    }
+
+    get properties(): RoArr<AssignmentTargetProperty> {
+       return this.data$.properties;
     }
 
 }
@@ -4264,17 +4403,28 @@ export class ClassExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ClassExpression;
     }
-    readonly data: Ro<I_ClassExpression>;
+    readonly data$: Ro<I_ClassExpression>;
 
     private constructor(data: Ro<I_ClassExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ClassExpression>) {
         return new ClassExpression(data);
+    }
+
+    get name(): Opt<BindingIdentifier> {
+       return this.data$.name;
+    }
+
+    get super(): Opt<Expression> {
+       return this.data$.super;
+    }
+
+    get elements(): RoArr<ClassElement> {
+       return this.data$.elements;
     }
 
 }
@@ -4293,17 +4443,28 @@ export class ClassDeclaration
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ClassDeclaration;
     }
-    readonly data: Ro<I_ClassDeclaration>;
+    readonly data$: Ro<I_ClassDeclaration>;
 
     private constructor(data: Ro<I_ClassDeclaration>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ClassDeclaration>) {
         return new ClassDeclaration(data);
+    }
+
+    get name(): BindingIdentifier {
+       return this.data$.name;
+    }
+
+    get super(): Opt<Expression> {
+       return this.data$.super;
+    }
+
+    get elements(): RoArr<ClassElement> {
+       return this.data$.elements;
     }
 
 }
@@ -4321,17 +4482,24 @@ export class ClassElement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ClassElement;
     }
-    readonly data: Ro<I_ClassElement>;
+    readonly data$: Ro<I_ClassElement>;
 
     private constructor(data: Ro<I_ClassElement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ClassElement>) {
         return new ClassElement(data);
+    }
+
+    get isStatic(): boolean {
+       return this.data$.isStatic;
+    }
+
+    get method(): MethodDefinition {
+       return this.data$.method;
     }
 
 }
@@ -4350,17 +4518,28 @@ export class Module
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Module;
     }
-    readonly data: Ro<I_Module>;
+    readonly data$: Ro<I_Module>;
 
     private constructor(data: Ro<I_Module>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_Module>) {
         return new Module(data);
+    }
+
+    get scope(): AssertedVarScope {
+       return this.data$.scope;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get items(): RoArr<(ImportDeclaration | ExportDeclaration | Statement)> {
+       return this.data$.items;
     }
 
 }
@@ -4379,17 +4558,28 @@ export class Import
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Import;
     }
-    readonly data: Ro<I_Import>;
+    readonly data$: Ro<I_Import>;
 
     private constructor(data: Ro<I_Import>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_Import>) {
         return new Import(data);
+    }
+
+    get moduleSpecifier(): string {
+       return this.data$.moduleSpecifier;
+    }
+
+    get defaultBinding(): Opt<BindingIdentifier> {
+       return this.data$.defaultBinding;
+    }
+
+    get namedImports(): RoArr<ImportSpecifier> {
+       return this.data$.namedImports;
     }
 
 }
@@ -4408,17 +4598,28 @@ export class ImportNamespace
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ImportNamespace;
     }
-    readonly data: Ro<I_ImportNamespace>;
+    readonly data$: Ro<I_ImportNamespace>;
 
     private constructor(data: Ro<I_ImportNamespace>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ImportNamespace>) {
         return new ImportNamespace(data);
+    }
+
+    get moduleSpecifier(): string {
+       return this.data$.moduleSpecifier;
+    }
+
+    get defaultBinding(): Opt<BindingIdentifier> {
+       return this.data$.defaultBinding;
+    }
+
+    get namespaceBinding(): BindingIdentifier {
+       return this.data$.namespaceBinding;
     }
 
 }
@@ -4436,17 +4637,24 @@ export class ImportSpecifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ImportSpecifier;
     }
-    readonly data: Ro<I_ImportSpecifier>;
+    readonly data$: Ro<I_ImportSpecifier>;
 
     private constructor(data: Ro<I_ImportSpecifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ImportSpecifier>) {
         return new ImportSpecifier(data);
+    }
+
+    get name(): Opt<IdentifierName> {
+       return this.data$.name;
+    }
+
+    get binding(): BindingIdentifier {
+       return this.data$.binding;
     }
 
 }
@@ -4463,17 +4671,20 @@ export class ExportAllFrom
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExportAllFrom;
     }
-    readonly data: Ro<I_ExportAllFrom>;
+    readonly data$: Ro<I_ExportAllFrom>;
 
     private constructor(data: Ro<I_ExportAllFrom>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExportAllFrom>) {
         return new ExportAllFrom(data);
+    }
+
+    get moduleSpecifier(): string {
+       return this.data$.moduleSpecifier;
     }
 
 }
@@ -4491,17 +4702,24 @@ export class ExportFrom
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExportFrom;
     }
-    readonly data: Ro<I_ExportFrom>;
+    readonly data$: Ro<I_ExportFrom>;
 
     private constructor(data: Ro<I_ExportFrom>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExportFrom>) {
         return new ExportFrom(data);
+    }
+
+    get namedExports(): RoArr<ExportFromSpecifier> {
+       return this.data$.namedExports;
+    }
+
+    get moduleSpecifier(): string {
+       return this.data$.moduleSpecifier;
     }
 
 }
@@ -4518,17 +4736,20 @@ export class ExportLocals
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExportLocals;
     }
-    readonly data: Ro<I_ExportLocals>;
+    readonly data$: Ro<I_ExportLocals>;
 
     private constructor(data: Ro<I_ExportLocals>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExportLocals>) {
         return new ExportLocals(data);
+    }
+
+    get namedExports(): RoArr<ExportLocalSpecifier> {
+       return this.data$.namedExports;
     }
 
 }
@@ -4545,17 +4766,20 @@ export class Export
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Export;
     }
-    readonly data: Ro<I_Export>;
+    readonly data$: Ro<I_Export>;
 
     private constructor(data: Ro<I_Export>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_Export>) {
         return new Export(data);
+    }
+
+    get declaration(): (FunctionDeclaration | ClassDeclaration | VariableDeclaration) {
+       return this.data$.declaration;
     }
 
 }
@@ -4572,17 +4796,20 @@ export class ExportDefault
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExportDefault;
     }
-    readonly data: Ro<I_ExportDefault>;
+    readonly data$: Ro<I_ExportDefault>;
 
     private constructor(data: Ro<I_ExportDefault>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExportDefault>) {
         return new ExportDefault(data);
+    }
+
+    get body(): (FunctionDeclaration | ClassDeclaration | Expression) {
+       return this.data$.body;
     }
 
 }
@@ -4600,17 +4827,24 @@ export class ExportFromSpecifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExportFromSpecifier;
     }
-    readonly data: Ro<I_ExportFromSpecifier>;
+    readonly data$: Ro<I_ExportFromSpecifier>;
 
     private constructor(data: Ro<I_ExportFromSpecifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExportFromSpecifier>) {
         return new ExportFromSpecifier(data);
+    }
+
+    get name(): IdentifierName {
+       return this.data$.name;
+    }
+
+    get exportedName(): Opt<IdentifierName> {
+       return this.data$.exportedName;
     }
 
 }
@@ -4628,17 +4862,24 @@ export class ExportLocalSpecifier
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExportLocalSpecifier;
     }
-    readonly data: Ro<I_ExportLocalSpecifier>;
+    readonly data$: Ro<I_ExportLocalSpecifier>;
 
     private constructor(data: Ro<I_ExportLocalSpecifier>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExportLocalSpecifier>) {
         return new ExportLocalSpecifier(data);
+    }
+
+    get name(): IdentifierExpression {
+       return this.data$.name;
+    }
+
+    get exportedName(): Opt<IdentifierName> {
+       return this.data$.exportedName;
     }
 
 }
@@ -4659,17 +4900,36 @@ export class EagerMethod
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EagerMethod;
     }
-    readonly data: Ro<I_EagerMethod>;
+    readonly data$: Ro<I_EagerMethod>;
 
     private constructor(data: Ro<I_EagerMethod>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_EagerMethod>) {
         return new EagerMethod(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get isGenerator(): boolean {
+       return this.data$.isGenerator;
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): FunctionOrMethodContents {
+       return this.data$.contents;
     }
 
 }
@@ -4690,17 +4950,36 @@ export class LazyMethod
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LazyMethod;
     }
-    readonly data: Ro<I_LazyMethod>;
+    readonly data$: Ro<I_LazyMethod>;
 
     private constructor(data: Ro<I_LazyMethod>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LazyMethod>) {
         return new LazyMethod(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get isGenerator(): boolean {
+       return this.data$.isGenerator;
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): FunctionOrMethodContents {
+       return this.data$.contents;
     }
 
 }
@@ -4719,17 +4998,28 @@ export class EagerGetter
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EagerGetter;
     }
-    readonly data: Ro<I_EagerGetter>;
+    readonly data$: Ro<I_EagerGetter>;
 
     private constructor(data: Ro<I_EagerGetter>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_EagerGetter>) {
         return new EagerGetter(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): GetterContents {
+       return this.data$.contents;
     }
 
 }
@@ -4748,17 +5038,28 @@ export class LazyGetter
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LazyGetter;
     }
-    readonly data: Ro<I_LazyGetter>;
+    readonly data$: Ro<I_LazyGetter>;
 
     private constructor(data: Ro<I_LazyGetter>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LazyGetter>) {
         return new LazyGetter(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): GetterContents {
+       return this.data$.contents;
     }
 
 }
@@ -4777,17 +5078,28 @@ export class GetterContents
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_GetterContents;
     }
-    readonly data: Ro<I_GetterContents>;
+    readonly data$: Ro<I_GetterContents>;
 
     private constructor(data: Ro<I_GetterContents>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_GetterContents>) {
         return new GetterContents(data);
+    }
+
+    get isThisCaptured(): boolean {
+       return this.data$.isThisCaptured;
+    }
+
+    get bodyScope(): AssertedVarScope {
+       return this.data$.bodyScope;
+    }
+
+    get body(): FunctionBody {
+       return this.data$.body;
     }
 
 }
@@ -4806,17 +5118,28 @@ export class EagerSetter
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EagerSetter;
     }
-    readonly data: Ro<I_EagerSetter>;
+    readonly data$: Ro<I_EagerSetter>;
 
     private constructor(data: Ro<I_EagerSetter>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_EagerSetter>) {
         return new EagerSetter(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): SetterContents {
+       return this.data$.contents;
     }
 
 }
@@ -4835,17 +5158,28 @@ export class LazySetter
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LazySetter;
     }
-    readonly data: Ro<I_LazySetter>;
+    readonly data$: Ro<I_LazySetter>;
 
     private constructor(data: Ro<I_LazySetter>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LazySetter>) {
         return new LazySetter(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): SetterContents {
+       return this.data$.contents;
     }
 
 }
@@ -4866,17 +5200,36 @@ export class SetterContents
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_SetterContents;
     }
-    readonly data: Ro<I_SetterContents>;
+    readonly data$: Ro<I_SetterContents>;
 
     private constructor(data: Ro<I_SetterContents>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_SetterContents>) {
         return new SetterContents(data);
+    }
+
+    get isThisCaptured(): boolean {
+       return this.data$.isThisCaptured;
+    }
+
+    get parameterScope(): AssertedParameterScope {
+       return this.data$.parameterScope;
+    }
+
+    get param(): Parameter {
+       return this.data$.param;
+    }
+
+    get bodyScope(): AssertedVarScope {
+       return this.data$.bodyScope;
+    }
+
+    get body(): FunctionBody {
+       return this.data$.body;
     }
 
 }
@@ -4894,17 +5247,24 @@ export class DataProperty
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_DataProperty;
     }
-    readonly data: Ro<I_DataProperty>;
+    readonly data$: Ro<I_DataProperty>;
 
     private constructor(data: Ro<I_DataProperty>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_DataProperty>) {
         return new DataProperty(data);
+    }
+
+    get name(): PropertyName {
+       return this.data$.name;
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -4921,17 +5281,20 @@ export class ShorthandProperty
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ShorthandProperty;
     }
-    readonly data: Ro<I_ShorthandProperty>;
+    readonly data$: Ro<I_ShorthandProperty>;
 
     private constructor(data: Ro<I_ShorthandProperty>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ShorthandProperty>) {
         return new ShorthandProperty(data);
+    }
+
+    get name(): IdentifierExpression {
+       return this.data$.name;
     }
 
 }
@@ -4948,17 +5311,20 @@ export class ComputedPropertyName
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ComputedPropertyName;
     }
-    readonly data: Ro<I_ComputedPropertyName>;
+    readonly data$: Ro<I_ComputedPropertyName>;
 
     private constructor(data: Ro<I_ComputedPropertyName>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ComputedPropertyName>) {
         return new ComputedPropertyName(data);
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -4975,17 +5341,20 @@ export class LiteralPropertyName
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralPropertyName;
     }
-    readonly data: Ro<I_LiteralPropertyName>;
+    readonly data$: Ro<I_LiteralPropertyName>;
 
     private constructor(data: Ro<I_LiteralPropertyName>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LiteralPropertyName>) {
         return new LiteralPropertyName(data);
+    }
+
+    get value(): string {
+       return this.data$.value;
     }
 
 }
@@ -5002,17 +5371,20 @@ export class LiteralBooleanExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralBooleanExpression;
     }
-    readonly data: Ro<I_LiteralBooleanExpression>;
+    readonly data$: Ro<I_LiteralBooleanExpression>;
 
     private constructor(data: Ro<I_LiteralBooleanExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LiteralBooleanExpression>) {
         return new LiteralBooleanExpression(data);
+    }
+
+    get value(): boolean {
+       return this.data$.value;
     }
 
 }
@@ -5028,14 +5400,13 @@ export class LiteralInfinityExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralInfinityExpression;
     }
-    readonly data: Ro<I_LiteralInfinityExpression>;
+    readonly data$: Ro<I_LiteralInfinityExpression>;
 
     private constructor(data: Ro<I_LiteralInfinityExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_LiteralInfinityExpression>) {
         return new LiteralInfinityExpression(data);
@@ -5054,14 +5425,13 @@ export class LiteralNullExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralNullExpression;
     }
-    readonly data: Ro<I_LiteralNullExpression>;
+    readonly data$: Ro<I_LiteralNullExpression>;
 
     private constructor(data: Ro<I_LiteralNullExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_LiteralNullExpression>) {
         return new LiteralNullExpression(data);
@@ -5081,17 +5451,20 @@ export class LiteralNumericExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralNumericExpression;
     }
-    readonly data: Ro<I_LiteralNumericExpression>;
+    readonly data$: Ro<I_LiteralNumericExpression>;
 
     private constructor(data: Ro<I_LiteralNumericExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LiteralNumericExpression>) {
         return new LiteralNumericExpression(data);
+    }
+
+    get value(): number {
+       return this.data$.value;
     }
 
 }
@@ -5109,17 +5482,24 @@ export class LiteralRegExpExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralRegExpExpression;
     }
-    readonly data: Ro<I_LiteralRegExpExpression>;
+    readonly data$: Ro<I_LiteralRegExpExpression>;
 
     private constructor(data: Ro<I_LiteralRegExpExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LiteralRegExpExpression>) {
         return new LiteralRegExpExpression(data);
+    }
+
+    get pattern(): string {
+       return this.data$.pattern;
+    }
+
+    get flags(): string {
+       return this.data$.flags;
     }
 
 }
@@ -5136,17 +5516,20 @@ export class LiteralStringExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LiteralStringExpression;
     }
-    readonly data: Ro<I_LiteralStringExpression>;
+    readonly data$: Ro<I_LiteralStringExpression>;
 
     private constructor(data: Ro<I_LiteralStringExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LiteralStringExpression>) {
         return new LiteralStringExpression(data);
+    }
+
+    get value(): string {
+       return this.data$.value;
     }
 
 }
@@ -5163,17 +5546,20 @@ export class ArrayExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ArrayExpression;
     }
-    readonly data: Ro<I_ArrayExpression>;
+    readonly data$: Ro<I_ArrayExpression>;
 
     private constructor(data: Ro<I_ArrayExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ArrayExpression>) {
         return new ArrayExpression(data);
+    }
+
+    get elements(): RoArr<Opt<(SpreadElement | Expression)>> {
+       return this.data$.elements;
     }
 
 }
@@ -5192,17 +5578,28 @@ export class EagerArrowExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EagerArrowExpression;
     }
-    readonly data: Ro<I_EagerArrowExpression>;
+    readonly data$: Ro<I_EagerArrowExpression>;
 
     private constructor(data: Ro<I_EagerArrowExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_EagerArrowExpression>) {
         return new EagerArrowExpression(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get directives(): Opt<RoArr<Directive>> {
+       return this.data$.directives;
+    }
+
+    get contents(): ArrowExpressionContents {
+       return this.data$.contents;
     }
 
 }
@@ -5221,17 +5618,28 @@ export class LazyArrowExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LazyArrowExpression;
     }
-    readonly data: Ro<I_LazyArrowExpression>;
+    readonly data$: Ro<I_LazyArrowExpression>;
 
     private constructor(data: Ro<I_LazyArrowExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LazyArrowExpression>) {
         return new LazyArrowExpression(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get directives(): Opt<RoArr<Directive>> {
+       return this.data$.directives;
+    }
+
+    get contents(): ArrowExpressionContents {
+       return this.data$.contents;
     }
 
 }
@@ -5251,17 +5659,32 @@ export class ArrowExpressionContents
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ArrowExpressionContents;
     }
-    readonly data: Ro<I_ArrowExpressionContents>;
+    readonly data$: Ro<I_ArrowExpressionContents>;
 
     private constructor(data: Ro<I_ArrowExpressionContents>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ArrowExpressionContents>) {
         return new ArrowExpressionContents(data);
+    }
+
+    get parameterScope(): AssertedParameterScope {
+       return this.data$.parameterScope;
+    }
+
+    get params(): FormalParameters {
+       return this.data$.params;
+    }
+
+    get bodyScope(): AssertedVarScope {
+       return this.data$.bodyScope;
+    }
+
+    get body(): (FunctionBody | Expression) {
+       return this.data$.body;
     }
 
 }
@@ -5279,17 +5702,24 @@ export class AssignmentExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AssignmentExpression;
     }
-    readonly data: Ro<I_AssignmentExpression>;
+    readonly data$: Ro<I_AssignmentExpression>;
 
     private constructor(data: Ro<I_AssignmentExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AssignmentExpression>) {
         return new AssignmentExpression(data);
+    }
+
+    get binding(): AssignmentTarget {
+       return this.data$.binding;
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -5308,17 +5738,28 @@ export class BinaryExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_BinaryExpression;
     }
-    readonly data: Ro<I_BinaryExpression>;
+    readonly data$: Ro<I_BinaryExpression>;
 
     private constructor(data: Ro<I_BinaryExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_BinaryExpression>) {
         return new BinaryExpression(data);
+    }
+
+    get operator(): BinaryOperator {
+       return this.data$.operator;
+    }
+
+    get left(): Expression {
+       return this.data$.left;
+    }
+
+    get right(): Expression {
+       return this.data$.right;
     }
 
 }
@@ -5336,17 +5777,24 @@ export class CallExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_CallExpression;
     }
-    readonly data: Ro<I_CallExpression>;
+    readonly data$: Ro<I_CallExpression>;
 
     private constructor(data: Ro<I_CallExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_CallExpression>) {
         return new CallExpression(data);
+    }
+
+    get callee(): (Expression | Super) {
+       return this.data$.callee;
+    }
+
+    get arguments(): Arguments {
+       return this.data$.arguments;
     }
 
 }
@@ -5365,17 +5813,28 @@ export class CompoundAssignmentExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_CompoundAssignmentExpression;
     }
-    readonly data: Ro<I_CompoundAssignmentExpression>;
+    readonly data$: Ro<I_CompoundAssignmentExpression>;
 
     private constructor(data: Ro<I_CompoundAssignmentExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_CompoundAssignmentExpression>) {
         return new CompoundAssignmentExpression(data);
+    }
+
+    get operator(): CompoundAssignmentOperator {
+       return this.data$.operator;
+    }
+
+    get binding(): SimpleAssignmentTarget {
+       return this.data$.binding;
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -5393,17 +5852,24 @@ export class ComputedMemberExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ComputedMemberExpression;
     }
-    readonly data: Ro<I_ComputedMemberExpression>;
+    readonly data$: Ro<I_ComputedMemberExpression>;
 
     private constructor(data: Ro<I_ComputedMemberExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ComputedMemberExpression>) {
         return new ComputedMemberExpression(data);
+    }
+
+    get object(): (Expression | Super) {
+       return this.data$.object;
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -5422,17 +5888,28 @@ export class ConditionalExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ConditionalExpression;
     }
-    readonly data: Ro<I_ConditionalExpression>;
+    readonly data$: Ro<I_ConditionalExpression>;
 
     private constructor(data: Ro<I_ConditionalExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ConditionalExpression>) {
         return new ConditionalExpression(data);
+    }
+
+    get test(): Expression {
+       return this.data$.test;
+    }
+
+    get consequent(): Expression {
+       return this.data$.consequent;
+    }
+
+    get alternate(): Expression {
+       return this.data$.alternate;
     }
 
 }
@@ -5453,17 +5930,36 @@ export class EagerFunctionExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EagerFunctionExpression;
     }
-    readonly data: Ro<I_EagerFunctionExpression>;
+    readonly data$: Ro<I_EagerFunctionExpression>;
 
     private constructor(data: Ro<I_EagerFunctionExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_EagerFunctionExpression>) {
         return new EagerFunctionExpression(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get isGenerator(): boolean {
+       return this.data$.isGenerator;
+    }
+
+    get name(): Opt<BindingIdentifier> {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): FunctionExpressionContents {
+       return this.data$.contents;
     }
 
 }
@@ -5484,17 +5980,36 @@ export class LazyFunctionExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LazyFunctionExpression;
     }
-    readonly data: Ro<I_LazyFunctionExpression>;
+    readonly data$: Ro<I_LazyFunctionExpression>;
 
     private constructor(data: Ro<I_LazyFunctionExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LazyFunctionExpression>) {
         return new LazyFunctionExpression(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get isGenerator(): boolean {
+       return this.data$.isGenerator;
+    }
+
+    get name(): Opt<BindingIdentifier> {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): FunctionExpressionContents {
+       return this.data$.contents;
     }
 
 }
@@ -5516,17 +6031,40 @@ export class FunctionExpressionContents
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_FunctionExpressionContents;
     }
-    readonly data: Ro<I_FunctionExpressionContents>;
+    readonly data$: Ro<I_FunctionExpressionContents>;
 
     private constructor(data: Ro<I_FunctionExpressionContents>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_FunctionExpressionContents>) {
         return new FunctionExpressionContents(data);
+    }
+
+    get isFunctionNameCaptured(): boolean {
+       return this.data$.isFunctionNameCaptured;
+    }
+
+    get isThisCaptured(): boolean {
+       return this.data$.isThisCaptured;
+    }
+
+    get parameterScope(): AssertedParameterScope {
+       return this.data$.parameterScope;
+    }
+
+    get params(): FormalParameters {
+       return this.data$.params;
+    }
+
+    get bodyScope(): AssertedVarScope {
+       return this.data$.bodyScope;
+    }
+
+    get body(): FunctionBody {
+       return this.data$.body;
     }
 
 }
@@ -5543,17 +6081,20 @@ export class IdentifierExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_IdentifierExpression;
     }
-    readonly data: Ro<I_IdentifierExpression>;
+    readonly data$: Ro<I_IdentifierExpression>;
 
     private constructor(data: Ro<I_IdentifierExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_IdentifierExpression>) {
         return new IdentifierExpression(data);
+    }
+
+    get name(): Identifier {
+       return this.data$.name;
     }
 
 }
@@ -5571,17 +6112,24 @@ export class NewExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_NewExpression;
     }
-    readonly data: Ro<I_NewExpression>;
+    readonly data$: Ro<I_NewExpression>;
 
     private constructor(data: Ro<I_NewExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_NewExpression>) {
         return new NewExpression(data);
+    }
+
+    get callee(): Expression {
+       return this.data$.callee;
+    }
+
+    get arguments(): Arguments {
+       return this.data$.arguments;
     }
 
 }
@@ -5597,14 +6145,13 @@ export class NewTargetExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_NewTargetExpression;
     }
-    readonly data: Ro<I_NewTargetExpression>;
+    readonly data$: Ro<I_NewTargetExpression>;
 
     private constructor(data: Ro<I_NewTargetExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_NewTargetExpression>) {
         return new NewTargetExpression(data);
@@ -5624,17 +6171,20 @@ export class ObjectExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ObjectExpression;
     }
-    readonly data: Ro<I_ObjectExpression>;
+    readonly data$: Ro<I_ObjectExpression>;
 
     private constructor(data: Ro<I_ObjectExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ObjectExpression>) {
         return new ObjectExpression(data);
+    }
+
+    get properties(): RoArr<ObjectProperty> {
+       return this.data$.properties;
     }
 
 }
@@ -5652,17 +6202,24 @@ export class UnaryExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_UnaryExpression;
     }
-    readonly data: Ro<I_UnaryExpression>;
+    readonly data$: Ro<I_UnaryExpression>;
 
     private constructor(data: Ro<I_UnaryExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_UnaryExpression>) {
         return new UnaryExpression(data);
+    }
+
+    get operator(): UnaryOperator {
+       return this.data$.operator;
+    }
+
+    get operand(): Expression {
+       return this.data$.operand;
     }
 
 }
@@ -5680,17 +6237,24 @@ export class StaticMemberExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_StaticMemberExpression;
     }
-    readonly data: Ro<I_StaticMemberExpression>;
+    readonly data$: Ro<I_StaticMemberExpression>;
 
     private constructor(data: Ro<I_StaticMemberExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_StaticMemberExpression>) {
         return new StaticMemberExpression(data);
+    }
+
+    get object(): (Expression | Super) {
+       return this.data$.object;
+    }
+
+    get property(): IdentifierName {
+       return this.data$.property;
     }
 
 }
@@ -5708,17 +6272,24 @@ export class TemplateExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_TemplateExpression;
     }
-    readonly data: Ro<I_TemplateExpression>;
+    readonly data$: Ro<I_TemplateExpression>;
 
     private constructor(data: Ro<I_TemplateExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_TemplateExpression>) {
         return new TemplateExpression(data);
+    }
+
+    get tag(): Opt<Expression> {
+       return this.data$.tag;
+    }
+
+    get elements(): RoArr<(Expression | TemplateElement)> {
+       return this.data$.elements;
     }
 
 }
@@ -5734,14 +6305,13 @@ export class ThisExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ThisExpression;
     }
-    readonly data: Ro<I_ThisExpression>;
+    readonly data$: Ro<I_ThisExpression>;
 
     private constructor(data: Ro<I_ThisExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_ThisExpression>) {
         return new ThisExpression(data);
@@ -5763,17 +6333,28 @@ export class UpdateExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_UpdateExpression;
     }
-    readonly data: Ro<I_UpdateExpression>;
+    readonly data$: Ro<I_UpdateExpression>;
 
     private constructor(data: Ro<I_UpdateExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_UpdateExpression>) {
         return new UpdateExpression(data);
+    }
+
+    get isPrefix(): boolean {
+       return this.data$.isPrefix;
+    }
+
+    get operator(): UpdateOperator {
+       return this.data$.operator;
+    }
+
+    get operand(): SimpleAssignmentTarget {
+       return this.data$.operand;
     }
 
 }
@@ -5790,17 +6371,20 @@ export class YieldExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_YieldExpression;
     }
-    readonly data: Ro<I_YieldExpression>;
+    readonly data$: Ro<I_YieldExpression>;
 
     private constructor(data: Ro<I_YieldExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_YieldExpression>) {
         return new YieldExpression(data);
+    }
+
+    get expression(): Opt<Expression> {
+       return this.data$.expression;
     }
 
 }
@@ -5817,17 +6401,20 @@ export class YieldStarExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_YieldStarExpression;
     }
-    readonly data: Ro<I_YieldStarExpression>;
+    readonly data$: Ro<I_YieldStarExpression>;
 
     private constructor(data: Ro<I_YieldStarExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_YieldStarExpression>) {
         return new YieldStarExpression(data);
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -5844,17 +6431,20 @@ export class AwaitExpression
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_AwaitExpression;
     }
-    readonly data: Ro<I_AwaitExpression>;
+    readonly data$: Ro<I_AwaitExpression>;
 
     private constructor(data: Ro<I_AwaitExpression>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_AwaitExpression>) {
         return new AwaitExpression(data);
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -5871,17 +6461,20 @@ export class BreakStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_BreakStatement;
     }
-    readonly data: Ro<I_BreakStatement>;
+    readonly data$: Ro<I_BreakStatement>;
 
     private constructor(data: Ro<I_BreakStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_BreakStatement>) {
         return new BreakStatement(data);
+    }
+
+    get label(): Opt<Label> {
+       return this.data$.label;
     }
 
 }
@@ -5898,17 +6491,20 @@ export class ContinueStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ContinueStatement;
     }
-    readonly data: Ro<I_ContinueStatement>;
+    readonly data$: Ro<I_ContinueStatement>;
 
     private constructor(data: Ro<I_ContinueStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ContinueStatement>) {
         return new ContinueStatement(data);
+    }
+
+    get label(): Opt<Label> {
+       return this.data$.label;
     }
 
 }
@@ -5924,14 +6520,13 @@ export class DebuggerStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_DebuggerStatement;
     }
-    readonly data: Ro<I_DebuggerStatement>;
+    readonly data$: Ro<I_DebuggerStatement>;
 
     private constructor(data: Ro<I_DebuggerStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_DebuggerStatement>) {
         return new DebuggerStatement(data);
@@ -5952,17 +6547,24 @@ export class DoWhileStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_DoWhileStatement;
     }
-    readonly data: Ro<I_DoWhileStatement>;
+    readonly data$: Ro<I_DoWhileStatement>;
 
     private constructor(data: Ro<I_DoWhileStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_DoWhileStatement>) {
         return new DoWhileStatement(data);
+    }
+
+    get test(): Expression {
+       return this.data$.test;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -5978,14 +6580,13 @@ export class EmptyStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EmptyStatement;
     }
-    readonly data: Ro<I_EmptyStatement>;
+    readonly data$: Ro<I_EmptyStatement>;
 
     private constructor(data: Ro<I_EmptyStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_EmptyStatement>) {
         return new EmptyStatement(data);
@@ -6005,17 +6606,20 @@ export class ExpressionStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ExpressionStatement;
     }
-    readonly data: Ro<I_ExpressionStatement>;
+    readonly data$: Ro<I_ExpressionStatement>;
 
     private constructor(data: Ro<I_ExpressionStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ExpressionStatement>) {
         return new ExpressionStatement(data);
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -6033,17 +6637,24 @@ export class ForInOfBinding
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ForInOfBinding;
     }
-    readonly data: Ro<I_ForInOfBinding>;
+    readonly data$: Ro<I_ForInOfBinding>;
 
     private constructor(data: Ro<I_ForInOfBinding>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ForInOfBinding>) {
         return new ForInOfBinding(data);
+    }
+
+    get kind(): VariableDeclarationKind {
+       return this.data$.kind;
+    }
+
+    get binding(): Binding {
+       return this.data$.binding;
     }
 
 }
@@ -6062,17 +6673,28 @@ export class ForInStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ForInStatement;
     }
-    readonly data: Ro<I_ForInStatement>;
+    readonly data$: Ro<I_ForInStatement>;
 
     private constructor(data: Ro<I_ForInStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ForInStatement>) {
         return new ForInStatement(data);
+    }
+
+    get left(): (ForInOfBinding | AssignmentTarget) {
+       return this.data$.left;
+    }
+
+    get right(): Expression {
+       return this.data$.right;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -6091,17 +6713,28 @@ export class ForOfStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ForOfStatement;
     }
-    readonly data: Ro<I_ForOfStatement>;
+    readonly data$: Ro<I_ForOfStatement>;
 
     private constructor(data: Ro<I_ForOfStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ForOfStatement>) {
         return new ForOfStatement(data);
+    }
+
+    get left(): (ForInOfBinding | AssignmentTarget) {
+       return this.data$.left;
+    }
+
+    get right(): Expression {
+       return this.data$.right;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -6121,17 +6754,32 @@ export class ForStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ForStatement;
     }
-    readonly data: Ro<I_ForStatement>;
+    readonly data$: Ro<I_ForStatement>;
 
     private constructor(data: Ro<I_ForStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ForStatement>) {
         return new ForStatement(data);
+    }
+
+    get init(): Opt<(VariableDeclaration | Expression)> {
+       return this.data$.init;
+    }
+
+    get test(): Opt<Expression> {
+       return this.data$.test;
+    }
+
+    get update(): Opt<Expression> {
+       return this.data$.update;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -6150,17 +6798,28 @@ export class IfStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_IfStatement;
     }
-    readonly data: Ro<I_IfStatement>;
+    readonly data$: Ro<I_IfStatement>;
 
     private constructor(data: Ro<I_IfStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_IfStatement>) {
         return new IfStatement(data);
+    }
+
+    get test(): Expression {
+       return this.data$.test;
+    }
+
+    get consequent(): Statement {
+       return this.data$.consequent;
+    }
+
+    get alternate(): Opt<Statement> {
+       return this.data$.alternate;
     }
 
 }
@@ -6178,17 +6837,24 @@ export class LabelledStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LabelledStatement;
     }
-    readonly data: Ro<I_LabelledStatement>;
+    readonly data$: Ro<I_LabelledStatement>;
 
     private constructor(data: Ro<I_LabelledStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LabelledStatement>) {
         return new LabelledStatement(data);
+    }
+
+    get label(): Label {
+       return this.data$.label;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -6205,17 +6871,20 @@ export class ReturnStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ReturnStatement;
     }
-    readonly data: Ro<I_ReturnStatement>;
+    readonly data$: Ro<I_ReturnStatement>;
 
     private constructor(data: Ro<I_ReturnStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ReturnStatement>) {
         return new ReturnStatement(data);
+    }
+
+    get expression(): Opt<Expression> {
+       return this.data$.expression;
     }
 
 }
@@ -6233,17 +6902,24 @@ export class SwitchStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_SwitchStatement;
     }
-    readonly data: Ro<I_SwitchStatement>;
+    readonly data$: Ro<I_SwitchStatement>;
 
     private constructor(data: Ro<I_SwitchStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_SwitchStatement>) {
         return new SwitchStatement(data);
+    }
+
+    get discriminant(): Expression {
+       return this.data$.discriminant;
+    }
+
+    get cases(): RoArr<SwitchCase> {
+       return this.data$.cases;
     }
 
 }
@@ -6263,17 +6939,32 @@ export class SwitchStatementWithDefault
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_SwitchStatementWithDefault;
     }
-    readonly data: Ro<I_SwitchStatementWithDefault>;
+    readonly data$: Ro<I_SwitchStatementWithDefault>;
 
     private constructor(data: Ro<I_SwitchStatementWithDefault>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_SwitchStatementWithDefault>) {
         return new SwitchStatementWithDefault(data);
+    }
+
+    get discriminant(): Expression {
+       return this.data$.discriminant;
+    }
+
+    get preDefaultCases(): RoArr<SwitchCase> {
+       return this.data$.preDefaultCases;
+    }
+
+    get defaultCase(): SwitchDefault {
+       return this.data$.defaultCase;
+    }
+
+    get postDefaultCases(): RoArr<SwitchCase> {
+       return this.data$.postDefaultCases;
     }
 
 }
@@ -6290,17 +6981,20 @@ export class ThrowStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_ThrowStatement;
     }
-    readonly data: Ro<I_ThrowStatement>;
+    readonly data$: Ro<I_ThrowStatement>;
 
     private constructor(data: Ro<I_ThrowStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_ThrowStatement>) {
         return new ThrowStatement(data);
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -6318,17 +7012,24 @@ export class TryCatchStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_TryCatchStatement;
     }
-    readonly data: Ro<I_TryCatchStatement>;
+    readonly data$: Ro<I_TryCatchStatement>;
 
     private constructor(data: Ro<I_TryCatchStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_TryCatchStatement>) {
         return new TryCatchStatement(data);
+    }
+
+    get body(): Block {
+       return this.data$.body;
+    }
+
+    get catchClause(): CatchClause {
+       return this.data$.catchClause;
     }
 
 }
@@ -6347,17 +7048,28 @@ export class TryFinallyStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_TryFinallyStatement;
     }
-    readonly data: Ro<I_TryFinallyStatement>;
+    readonly data$: Ro<I_TryFinallyStatement>;
 
     private constructor(data: Ro<I_TryFinallyStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_TryFinallyStatement>) {
         return new TryFinallyStatement(data);
+    }
+
+    get body(): Block {
+       return this.data$.body;
+    }
+
+    get catchClause(): Opt<CatchClause> {
+       return this.data$.catchClause;
+    }
+
+    get finalizer(): Block {
+       return this.data$.finalizer;
     }
 
 }
@@ -6375,17 +7087,24 @@ export class WhileStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_WhileStatement;
     }
-    readonly data: Ro<I_WhileStatement>;
+    readonly data$: Ro<I_WhileStatement>;
 
     private constructor(data: Ro<I_WhileStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_WhileStatement>) {
         return new WhileStatement(data);
+    }
+
+    get test(): Expression {
+       return this.data$.test;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -6403,17 +7122,24 @@ export class WithStatement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_WithStatement;
     }
-    readonly data: Ro<I_WithStatement>;
+    readonly data$: Ro<I_WithStatement>;
 
     private constructor(data: Ro<I_WithStatement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_WithStatement>) {
         return new WithStatement(data);
+    }
+
+    get object(): Expression {
+       return this.data$.object;
+    }
+
+    get body(): Statement {
+       return this.data$.body;
     }
 
 }
@@ -6431,17 +7157,24 @@ export class Block
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Block;
     }
-    readonly data: Ro<I_Block>;
+    readonly data$: Ro<I_Block>;
 
     private constructor(data: Ro<I_Block>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_Block>) {
         return new Block(data);
+    }
+
+    get scope(): AssertedBlockScope {
+       return this.data$.scope;
+    }
+
+    get statements(): RoArr<Statement> {
+       return this.data$.statements;
     }
 
 }
@@ -6460,17 +7193,28 @@ export class CatchClause
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_CatchClause;
     }
-    readonly data: Ro<I_CatchClause>;
+    readonly data$: Ro<I_CatchClause>;
 
     private constructor(data: Ro<I_CatchClause>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_CatchClause>) {
         return new CatchClause(data);
+    }
+
+    get bindingScope(): AssertedBoundNamesScope {
+       return this.data$.bindingScope;
+    }
+
+    get binding(): Binding {
+       return this.data$.binding;
+    }
+
+    get body(): Block {
+       return this.data$.body;
     }
 
 }
@@ -6487,17 +7231,20 @@ export class Directive
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Directive;
     }
-    readonly data: Ro<I_Directive>;
+    readonly data$: Ro<I_Directive>;
 
     private constructor(data: Ro<I_Directive>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_Directive>) {
         return new Directive(data);
+    }
+
+    get rawValue(): string {
+       return this.data$.rawValue;
     }
 
 }
@@ -6515,17 +7262,24 @@ export class FormalParameters
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_FormalParameters;
     }
-    readonly data: Ro<I_FormalParameters>;
+    readonly data$: Ro<I_FormalParameters>;
 
     private constructor(data: Ro<I_FormalParameters>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_FormalParameters>) {
         return new FormalParameters(data);
+    }
+
+    get items(): RoArr<Parameter> {
+       return this.data$.items;
+    }
+
+    get rest(): Opt<Binding> {
+       return this.data$.rest;
     }
 
 }
@@ -6549,17 +7303,36 @@ export class EagerFunctionDeclaration
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_EagerFunctionDeclaration;
     }
-    readonly data: Ro<I_EagerFunctionDeclaration>;
+    readonly data$: Ro<I_EagerFunctionDeclaration>;
 
     private constructor(data: Ro<I_EagerFunctionDeclaration>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_EagerFunctionDeclaration>) {
         return new EagerFunctionDeclaration(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get isGenerator(): boolean {
+       return this.data$.isGenerator;
+    }
+
+    get name(): BindingIdentifier {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get contents(): FunctionOrMethodContents {
+       return this.data$.contents;
     }
 
 }
@@ -6580,17 +7353,36 @@ export class LazyFunctionDeclaration
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_LazyFunctionDeclaration;
     }
-    readonly data: Ro<I_LazyFunctionDeclaration>;
+    readonly data$: Ro<I_LazyFunctionDeclaration>;
 
     private constructor(data: Ro<I_LazyFunctionDeclaration>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_LazyFunctionDeclaration>) {
         return new LazyFunctionDeclaration(data);
+    }
+
+    get isAsync(): boolean {
+       return this.data$.isAsync;
+    }
+
+    get isGenerator(): boolean {
+       return this.data$.isGenerator;
+    }
+
+    get name(): BindingIdentifier {
+       return this.data$.name;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get content(): FunctionOrMethodContents {
+       return this.data$.content;
     }
 
 }
@@ -6611,17 +7403,36 @@ export class FunctionOrMethodContents
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_FunctionOrMethodContents;
     }
-    readonly data: Ro<I_FunctionOrMethodContents>;
+    readonly data$: Ro<I_FunctionOrMethodContents>;
 
     private constructor(data: Ro<I_FunctionOrMethodContents>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_FunctionOrMethodContents>) {
         return new FunctionOrMethodContents(data);
+    }
+
+    get isThisCaptured(): boolean {
+       return this.data$.isThisCaptured;
+    }
+
+    get parameterScope(): AssertedParameterScope {
+       return this.data$.parameterScope;
+    }
+
+    get params(): FormalParameters {
+       return this.data$.params;
+    }
+
+    get bodyScope(): AssertedVarScope {
+       return this.data$.bodyScope;
+    }
+
+    get body(): FunctionBody {
+       return this.data$.body;
     }
 
 }
@@ -6640,17 +7451,28 @@ export class Script
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Script;
     }
-    readonly data: Ro<I_Script>;
+    readonly data$: Ro<I_Script>;
 
     private constructor(data: Ro<I_Script>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_Script>) {
         return new Script(data);
+    }
+
+    get scope(): AssertedScriptGlobalScope {
+       return this.data$.scope;
+    }
+
+    get directives(): RoArr<Directive> {
+       return this.data$.directives;
+    }
+
+    get statements(): RoArr<Statement> {
+       return this.data$.statements;
     }
 
 }
@@ -6667,17 +7489,20 @@ export class SpreadElement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_SpreadElement;
     }
-    readonly data: Ro<I_SpreadElement>;
+    readonly data$: Ro<I_SpreadElement>;
 
     private constructor(data: Ro<I_SpreadElement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_SpreadElement>) {
         return new SpreadElement(data);
+    }
+
+    get expression(): Expression {
+       return this.data$.expression;
     }
 
 }
@@ -6693,14 +7518,13 @@ export class Super
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_Super;
     }
-    readonly data: Ro<I_Super>;
+    readonly data$: Ro<I_Super>;
 
     private constructor(data: Ro<I_Super>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
-
 
     static make(data: Ro<I_Super>) {
         return new Super(data);
@@ -6721,17 +7545,24 @@ export class SwitchCase
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_SwitchCase;
     }
-    readonly data: Ro<I_SwitchCase>;
+    readonly data$: Ro<I_SwitchCase>;
 
     private constructor(data: Ro<I_SwitchCase>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_SwitchCase>) {
         return new SwitchCase(data);
+    }
+
+    get test(): Expression {
+       return this.data$.test;
+    }
+
+    get consequent(): RoArr<Statement> {
+       return this.data$.consequent;
     }
 
 }
@@ -6748,17 +7579,20 @@ export class SwitchDefault
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_SwitchDefault;
     }
-    readonly data: Ro<I_SwitchDefault>;
+    readonly data$: Ro<I_SwitchDefault>;
 
     private constructor(data: Ro<I_SwitchDefault>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_SwitchDefault>) {
         return new SwitchDefault(data);
+    }
+
+    get consequent(): RoArr<Statement> {
+       return this.data$.consequent;
     }
 
 }
@@ -6775,17 +7609,20 @@ export class TemplateElement
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_TemplateElement;
     }
-    readonly data: Ro<I_TemplateElement>;
+    readonly data$: Ro<I_TemplateElement>;
 
     private constructor(data: Ro<I_TemplateElement>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_TemplateElement>) {
         return new TemplateElement(data);
+    }
+
+    get rawValue(): string {
+       return this.data$.rawValue;
     }
 
 }
@@ -6803,17 +7640,24 @@ export class VariableDeclaration
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_VariableDeclaration;
     }
-    readonly data: Ro<I_VariableDeclaration>;
+    readonly data$: Ro<I_VariableDeclaration>;
 
     private constructor(data: Ro<I_VariableDeclaration>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_VariableDeclaration>) {
         return new VariableDeclaration(data);
+    }
+
+    get kind(): VariableDeclarationKind {
+       return this.data$.kind;
+    }
+
+    get declarators(): RoArr<VariableDeclarator> {
+       return this.data$.declarators;
     }
 
 }
@@ -6831,17 +7675,24 @@ export class VariableDeclarator
     get iface$(): S.Iface {
         return ReflectedSchema.typeof_VariableDeclarator;
     }
-    readonly data: Ro<I_VariableDeclarator>;
+    readonly data$: Ro<I_VariableDeclarator>;
 
     private constructor(data: Ro<I_VariableDeclarator>) {
     super();
-        this.data = Object.freeze(data);
+        this.data$ = Object.freeze(data);
         Object.freeze(this);
     }
 
-
     static make(data: Ro<I_VariableDeclarator>) {
         return new VariableDeclarator(data);
+    }
+
+    get binding(): Binding {
+       return this.data$.binding;
+    }
+
+    get init(): Opt<Expression> {
+       return this.data$.init;
     }
 
 }
