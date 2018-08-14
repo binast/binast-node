@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "",
   "scripts": {
+    "build-schema-module": "(cd ./modules/binast-schema/; npm run build);",
+    "generate-tsc-schema": "binast-generate-ts-schema ./spec/latest.webidl >./src/typed_schema.ts",
     "build-tsc": "tsc",
-    "build": "npm run build-tsc",
-    "encoder": "node --max_old_space_size=8192 ./dist/encoder.js"
+    "build": "npm run build-schema-module; npm install; npm run generate-tsc-schema; npm run build-tsc;"
   },
   "author": "",
   "license": "GPLv3",
@@ -15,6 +16,7 @@
     "webidl2": "^14.0.1"
   },
   "devDependencies": {
-    "@types/node": "^10.1.3"
+    "@types/node": "^10.1.3",
+    "binast-schema": "file:./modules/binast-schema"
   }
 }

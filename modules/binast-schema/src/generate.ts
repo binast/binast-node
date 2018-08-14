@@ -1,8 +1,10 @@
+#!/usr/bin/env node
 
 import * as assert from 'assert';
 import * as fs from 'fs';
 
 import {liftWebidl} from './lift_webidl';
+import {TreeSchema} from './tree_schema';
 import * as util from './util';
 
 function main() {
@@ -13,7 +15,22 @@ function main() {
     const idlstr = fs.readFileSync(opts.filename, "utf8");
 
     // Lift it to TreeSchema.
-    liftWebidl(idlstr, util.symbolToName);
+    const schema = liftWebidl(idlstr, util.symbolToName);
+
+    /*
+    console.log("Schema:");
+    console.log(schema.prettyString());
+    console.log("\n");
+    console.log("\n");
+
+    const normSchema = schema.normalize();
+    console.log("Normalized schema:");
+    console.log(normSchema.prettyString());
+    console.log("\n");
+    */
+
+    const typeScriptStr = schema.dumpTypescript();
+    console.log(typeScriptStr);
 }
 
 interface Options {

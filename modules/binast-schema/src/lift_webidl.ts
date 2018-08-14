@@ -3,11 +3,9 @@ import * as assert from 'assert';
 import * as webidl2 from 'webidl2';
 
 import {OrderedMap} from './ordered_map';
-import {OrderedSet} from './ordered_set';
-
 
 import {TreeSchema, Declaration,
-        FieldType, TypeName,
+        FieldType, TypeName, EnumVariantName,
         FieldTypePrimitive, FieldTypeNamed,
         FieldTypeUnion, FieldTypeArray, FieldTypeOpt,
         Typedef, Enum, Iface, IfaceField}
@@ -32,39 +30,37 @@ export function liftWebidl(str: string,
     });
 
     const schema = lifter.makeSchema();
-    console.log("Schema:");
-    console.log(schema.prettyString());
-    console.log("\n");
-    console.log("\n");
-
-    const normSchema = schema.normalize();
-    console.log("Normalized schema:");
-    console.log(normSchema.prettyString());
-    console.log("\n");
-
-    return normSchema;
+    return schema;
 }
 
 class Lifter {
     // Array of accumulated declarations.
     readonly symbolMap: (string) => string;
+    readonly variantCache: Map<string, EnumVariantName>;
     readonly decls: Array<Declaration>;
 
     constructor(symbolMap: (string) => string)
     {
         this.symbolMap = symbolMap;
+        this.variantCache = new Map();
         this.decls = new Array();
     }
 
-    private mapSymbol(enumName: string, sym: string)
-      : string
+    private mapEnumVariant(enumName: TypeName, str: string)
+      : EnumVariantName
     {
-        const name = this.symbolMap(sym);
-
+        const valName = this.symbolMap(str);
         const RE = /^([A-Z][a-z0-9]*)+$/;
-        assert(name.match(RE), `Bad symbol slug ${name}`);
+        assert(valName.match(RE),
+               `Bad symbol slug ${valName}`);
 
-        return name;
+        const key = `${enumName}::${valName}`;
+        let evn = this.variantCache.get(key);
+        if (!evn) {
+            evn = EnumVariantName.make(enumName, valName);
+            this.variantCache.set(key, evn);
+        }
+        return evn;
     }
 
     makeSchema(): TreeSchema {
@@ -133,21 +129,23 @@ class Lifter {
         assert(typeof(enumDecl.name) === 'string');
 
         const name: string = enumDecl.name as string;
-        const variants = new OrderedSet<string>();
-        const values = new OrderedSet<string>();
+        const variants = new Array<EnumVariantName>();
+        const values = new Array<string>();
+
+        const enumName = TypeName.make(name);
 
         for (let enumVal of enumDecl.values) {
             assert(enumVal.type === 'string');
             assert(typeof(enumVal.value) === 'string');
 
             const value = enumVal.value;
-            let variant = this.mapSymbol(name, value);
-            variants.add(variant);
-            values.add(value);
+            let variant = this.mapEnumVariant(enumName,
+                                              value);
+            variants.push(variant);
+            values.push(value);
         }
 
-        const typeName = TypeName.make(name);
-        const e = new Enum(typeName, variants, values);
+        const e = new Enum(enumName, variants, values);
         return e;
     }
 
@@ -179,8 +177,11 @@ class Lifter {
             members.set(memberName, field);
         }
 
+        const isNode = (ifaceDecl.inheritance !== null) &&
+                   (ifaceDecl.inheritance.name == 'Node');
+
         let typeName = TypeName.make(name);
-        const iface = new Iface(typeName, members);
+        const iface = new Iface(typeName, members, isNode);
         return iface;
     }
 

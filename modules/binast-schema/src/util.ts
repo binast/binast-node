@@ -13,6 +13,12 @@ export function shiftString(str: string,
     return shiftStr + str.replace(/\n/g, '\n' + shiftStr);
 }
 
+export function hasOwnProp(obj: object, name: string)
+  : boolean
+{
+    return Object.prototype.hasOwnProperty.call(obj, name);
+}
+
 export function symbolToName(sym: string): string {
     switch (sym) {
       // VariableDeclarationKind
