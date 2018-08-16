@@ -17,18 +17,6 @@ function main() {
     // Lift it to TreeSchema.
     const schema = liftWebidl(idlstr, util.symbolToName);
 
-    /*
-    console.log("Schema:");
-    console.log(schema.prettyString());
-    console.log("\n");
-    console.log("\n");
-
-    const normSchema = schema.normalize();
-    console.log("Normalized schema:");
-    console.log(normSchema.prettyString());
-    console.log("\n");
-    */
-
     const typeScriptStr = schema.dumpTypescript();
     console.log(typeScriptStr);
 }

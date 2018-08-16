@@ -50,70 +50,10 @@ function mkEVN(enumName: string, name: string): S.EnumVariantName {
 }
 
 export const ReflectedSchema = {
-    get Literal(): S.Typedef {
-        if (!this["c_Literal"]) {
-            const typeName = S.TypeName.make("Literal");
-            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression")]);
-            this["c_Literal"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Literal"] instanceof S.Typedef);
-        return this["c_Literal"] as S.Typedef;
-    },
-    get typeof_Literal(): S.FieldType {
-        return this.Literal.aliased;
-    },
-
-
-    get ArrowExpression(): S.Typedef {
-        if (!this["c_ArrowExpression"]) {
-            const typeName = S.TypeName.make("ArrowExpression");
-            const aliased = TUnion([TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression")]);
-            this["c_ArrowExpression"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_ArrowExpression"] instanceof S.Typedef);
-        return this["c_ArrowExpression"] as S.Typedef;
-    },
-    get typeof_ArrowExpression(): S.FieldType {
-        return this.ArrowExpression.aliased;
-    },
-
-
-    get FunctionExpression(): S.Typedef {
-        if (!this["c_FunctionExpression"]) {
-            const typeName = S.TypeName.make("FunctionExpression");
-            const aliased = TUnion([TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression")]);
-            this["c_FunctionExpression"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_FunctionExpression"] instanceof S.Typedef);
-        return this["c_FunctionExpression"] as S.Typedef;
-    },
-    get typeof_FunctionExpression(): S.FieldType {
-        return this.FunctionExpression.aliased;
-    },
-
-
-    get Expression(): S.Typedef {
-        if (!this["c_Expression"]) {
-            const typeName = S.TypeName.make("Expression");
-            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]);
-            this["c_Expression"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Expression"] instanceof S.Typedef);
-        return this["c_Expression"] as S.Typedef;
-    },
-    get typeof_Expression(): S.FieldType {
-        return this.Expression.aliased;
-    },
-
-
     get Arguments(): S.Typedef {
         if (!this["c_Arguments"]) {
             const typeName = S.TypeName.make("Arguments");
-            const aliased = TArray(TUnion([TNamed("SpreadElement"), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]));
+            const aliased = TArray(TUnion([TNamed("SpreadElement"), TNamed("Expression")]));
             this["c_Arguments"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -428,7 +368,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("IdentifierName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "kind",
@@ -456,7 +396,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("IdentifierName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "isCaptured",
@@ -628,25 +568,10 @@ export const ReflectedSchema = {
     },
 
 
-    get FunctionDeclaration(): S.Typedef {
-        if (!this["c_FunctionDeclaration"]) {
-            const typeName = S.TypeName.make("FunctionDeclaration");
-            const aliased = TUnion([TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration")]);
-            this["c_FunctionDeclaration"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_FunctionDeclaration"] instanceof S.Typedef);
-        return this["c_FunctionDeclaration"] as S.Typedef;
-    },
-    get typeof_FunctionDeclaration(): S.FieldType {
-        return this.FunctionDeclaration.aliased;
-    },
-
-
     get Statement(): S.Typedef {
         if (!this["c_Statement"]) {
             const typeName = S.TypeName.make("Statement");
-            const aliased = TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]);
+            const aliased = TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("FunctionDeclaration"), TNamed("IfStatement"), TNamed("IterationStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]);
             this["c_Statement"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -655,6 +580,36 @@ export const ReflectedSchema = {
     },
     get typeof_Statement(): S.FieldType {
         return this.Statement.aliased;
+    },
+
+
+    get Literal(): S.Typedef {
+        if (!this["c_Literal"]) {
+            const typeName = S.TypeName.make("Literal");
+            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression")]);
+            this["c_Literal"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Literal"] instanceof S.Typedef);
+        return this["c_Literal"] as S.Typedef;
+    },
+    get typeof_Literal(): S.FieldType {
+        return this.Literal.aliased;
+    },
+
+
+    get Expression(): S.Typedef {
+        if (!this["c_Expression"]) {
+            const typeName = S.TypeName.make("Expression");
+            const aliased = TUnion([TNamed("Literal"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("ArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("FunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]);
+            this["c_Expression"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Expression"] instanceof S.Typedef);
+        return this["c_Expression"] as S.Typedef;
+    },
+    get typeof_Expression(): S.FieldType {
+        return this.Expression.aliased;
     },
 
 
@@ -670,6 +625,96 @@ export const ReflectedSchema = {
     },
     get typeof_PropertyName(): S.FieldType {
         return this.PropertyName.aliased;
+    },
+
+
+    get MethodDefinition(): S.Typedef {
+        if (!this["c_MethodDefinition"]) {
+            const typeName = S.TypeName.make("MethodDefinition");
+            const aliased = TUnion([TNamed("Method"), TNamed("Getter"), TNamed("Setter")]);
+            this["c_MethodDefinition"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_MethodDefinition"] instanceof S.Typedef);
+        return this["c_MethodDefinition"] as S.Typedef;
+    },
+    get typeof_MethodDefinition(): S.FieldType {
+        return this.MethodDefinition.aliased;
+    },
+
+
+    get ObjectProperty(): S.Typedef {
+        if (!this["c_ObjectProperty"]) {
+            const typeName = S.TypeName.make("ObjectProperty");
+            const aliased = TUnion([TNamed("MethodDefinition"), TNamed("DataProperty"), TNamed("ShorthandProperty")]);
+            this["c_ObjectProperty"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_ObjectProperty"] instanceof S.Typedef);
+        return this["c_ObjectProperty"] as S.Typedef;
+    },
+    get typeof_ObjectProperty(): S.FieldType {
+        return this.ObjectProperty.aliased;
+    },
+
+
+    get ExportDeclaration(): S.Typedef {
+        if (!this["c_ExportDeclaration"]) {
+            const typeName = S.TypeName.make("ExportDeclaration");
+            const aliased = TUnion([TNamed("ExportAllFrom"), TNamed("ExportFrom"), TNamed("ExportLocals"), TNamed("ExportDefault"), TNamed("Export")]);
+            this["c_ExportDeclaration"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_ExportDeclaration"] instanceof S.Typedef);
+        return this["c_ExportDeclaration"] as S.Typedef;
+    },
+    get typeof_ExportDeclaration(): S.FieldType {
+        return this.ExportDeclaration.aliased;
+    },
+
+
+    get ImportDeclaration(): S.Typedef {
+        if (!this["c_ImportDeclaration"]) {
+            const typeName = S.TypeName.make("ImportDeclaration");
+            const aliased = TUnion([TNamed("ImportNamespace"), TNamed("Import")]);
+            this["c_ImportDeclaration"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_ImportDeclaration"] instanceof S.Typedef);
+        return this["c_ImportDeclaration"] as S.Typedef;
+    },
+    get typeof_ImportDeclaration(): S.FieldType {
+        return this.ImportDeclaration.aliased;
+    },
+
+
+    get FunctionDeclaration(): S.Typedef {
+        if (!this["c_FunctionDeclaration"]) {
+            const typeName = S.TypeName.make("FunctionDeclaration");
+            const aliased = TUnion([TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration")]);
+            this["c_FunctionDeclaration"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_FunctionDeclaration"] instanceof S.Typedef);
+        return this["c_FunctionDeclaration"] as S.Typedef;
+    },
+    get typeof_FunctionDeclaration(): S.FieldType {
+        return this.FunctionDeclaration.aliased;
+    },
+
+
+    get FunctionExpression(): S.Typedef {
+        if (!this["c_FunctionExpression"]) {
+            const typeName = S.TypeName.make("FunctionExpression");
+            const aliased = TUnion([TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression")]);
+            this["c_FunctionExpression"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_FunctionExpression"] instanceof S.Typedef);
+        return this["c_FunctionExpression"] as S.Typedef;
+    },
+    get typeof_FunctionExpression(): S.FieldType {
+        return this.FunctionExpression.aliased;
     },
 
 
@@ -718,63 +763,18 @@ export const ReflectedSchema = {
     },
 
 
-    get MethodDefinition(): S.Typedef {
-        if (!this["c_MethodDefinition"]) {
-            const typeName = S.TypeName.make("MethodDefinition");
-            const aliased = TUnion([TNamed("EagerMethod"), TNamed("LazyMethod"), TNamed("EagerGetter"), TNamed("LazyGetter"), TNamed("EagerSetter"), TNamed("LazySetter")]);
-            this["c_MethodDefinition"] = new S.Typedef(
+    get ArrowExpression(): S.Typedef {
+        if (!this["c_ArrowExpression"]) {
+            const typeName = S.TypeName.make("ArrowExpression");
+            const aliased = TUnion([TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression")]);
+            this["c_ArrowExpression"] = new S.Typedef(
                                typeName, aliased)
         }
-        assert(this["c_MethodDefinition"] instanceof S.Typedef);
-        return this["c_MethodDefinition"] as S.Typedef;
+        assert(this["c_ArrowExpression"] instanceof S.Typedef);
+        return this["c_ArrowExpression"] as S.Typedef;
     },
-    get typeof_MethodDefinition(): S.FieldType {
-        return this.MethodDefinition.aliased;
-    },
-
-
-    get ObjectProperty(): S.Typedef {
-        if (!this["c_ObjectProperty"]) {
-            const typeName = S.TypeName.make("ObjectProperty");
-            const aliased = TUnion([TNamed("EagerMethod"), TNamed("LazyMethod"), TNamed("EagerGetter"), TNamed("LazyGetter"), TNamed("EagerSetter"), TNamed("LazySetter"), TNamed("DataProperty"), TNamed("ShorthandProperty")]);
-            this["c_ObjectProperty"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_ObjectProperty"] instanceof S.Typedef);
-        return this["c_ObjectProperty"] as S.Typedef;
-    },
-    get typeof_ObjectProperty(): S.FieldType {
-        return this.ObjectProperty.aliased;
-    },
-
-
-    get ExportDeclaration(): S.Typedef {
-        if (!this["c_ExportDeclaration"]) {
-            const typeName = S.TypeName.make("ExportDeclaration");
-            const aliased = TUnion([TNamed("ExportAllFrom"), TNamed("ExportFrom"), TNamed("ExportLocals"), TNamed("ExportDefault"), TNamed("Export")]);
-            this["c_ExportDeclaration"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_ExportDeclaration"] instanceof S.Typedef);
-        return this["c_ExportDeclaration"] as S.Typedef;
-    },
-    get typeof_ExportDeclaration(): S.FieldType {
-        return this.ExportDeclaration.aliased;
-    },
-
-
-    get ImportDeclaration(): S.Typedef {
-        if (!this["c_ImportDeclaration"]) {
-            const typeName = S.TypeName.make("ImportDeclaration");
-            const aliased = TUnion([TNamed("ImportNamespace"), TNamed("Import")]);
-            this["c_ImportDeclaration"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_ImportDeclaration"] instanceof S.Typedef);
-        return this["c_ImportDeclaration"] as S.Typedef;
-    },
-    get typeof_ImportDeclaration(): S.FieldType {
-        return this.ImportDeclaration.aliased;
+    get typeof_ArrowExpression(): S.FieldType {
+        return this.ArrowExpression.aliased;
     },
 
 
@@ -784,7 +784,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("Identifier"),
                 /* isLazy = */ false),
             ];
             this["c_BindingIdentifier"] = new S.Iface(typeName, fields, true);
@@ -816,7 +816,7 @@ export const ReflectedSchema = {
     get Binding(): S.Typedef {
         if (!this["c_Binding"]) {
             const typeName = S.TypeName.make("Binding");
-            const aliased = TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")]);
+            const aliased = TUnion([TNamed("BindingPattern"), TNamed("BindingIdentifier")]);
             this["c_Binding"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -861,7 +861,7 @@ export const ReflectedSchema = {
     get AssignmentTarget(): S.Typedef {
         if (!this["c_AssignmentTarget"]) {
             const typeName = S.TypeName.make("AssignmentTarget");
-            const aliased = TUnion([TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]);
+            const aliased = TUnion([TNamed("AssignmentTargetPattern"), TNamed("SimpleAssignmentTarget")]);
             this["c_AssignmentTarget"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -876,7 +876,7 @@ export const ReflectedSchema = {
     get Parameter(): S.Typedef {
         if (!this["c_Parameter"]) {
             const typeName = S.TypeName.make("Parameter");
-            const aliased = TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier"), TNamed("BindingWithInitializer")]);
+            const aliased = TUnion([TNamed("Binding"), TNamed("BindingWithInitializer")]);
             this["c_Parameter"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -894,11 +894,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")]),
+                /* ty = */ TNamed("Binding"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_BindingWithInitializer"] = new S.Iface(typeName, fields, true);
@@ -918,7 +918,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("Identifier"),
                 /* isLazy = */ false),
             ];
             this["c_AssignmentTargetIdentifier"] = new S.Iface(typeName, fields, true);
@@ -938,11 +938,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "object",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression"), TNamed("Super")]),
+                /* ty = */ TUnion([TNamed("Expression"), TNamed("Super")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_ComputedMemberAssignmentTarget"] = new S.Iface(typeName, fields, true);
@@ -962,11 +962,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "object",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression"), TNamed("Super")]),
+                /* ty = */ TUnion([TNamed("Expression"), TNamed("Super")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "property",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("IdentifierName"),
                 /* isLazy = */ false),
             ];
             this["c_StaticMemberAssignmentTarget"] = new S.Iface(typeName, fields, true);
@@ -986,11 +986,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TOpt(TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier"), TNamed("BindingWithInitializer")]))),
+                /* ty = */ TArray(TOpt(TUnion([TNamed("Binding"), TNamed("BindingWithInitializer")]))),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "rest",
-                /* ty = */ TOpt(TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")])),
+                /* ty = */ TOpt(TNamed("Binding")),
                 /* isLazy = */ false),
             ];
             this["c_ArrayBinding"] = new S.Iface(typeName, fields, true);
@@ -1014,7 +1014,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             ];
             this["c_BindingPropertyIdentifier"] = new S.Iface(typeName, fields, true);
@@ -1034,11 +1034,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier"), TNamed("BindingWithInitializer")]),
+                /* ty = */ TUnion([TNamed("Binding"), TNamed("BindingWithInitializer")]),
                 /* isLazy = */ false),
             ];
             this["c_BindingPropertyProperty"] = new S.Iface(typeName, fields, true);
@@ -1073,7 +1073,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "properties",
-                /* ty = */ TArray(TUnion([TNamed("BindingPropertyIdentifier"), TNamed("BindingPropertyProperty")])),
+                /* ty = */ TArray(TNamed("BindingProperty")),
                 /* isLazy = */ false),
             ];
             this["c_ObjectBinding"] = new S.Iface(typeName, fields, true);
@@ -1093,11 +1093,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]),
+                /* ty = */ TNamed("AssignmentTarget"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_AssignmentTargetWithInitializer"] = new S.Iface(typeName, fields, true);
@@ -1117,11 +1117,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TOpt(TUnion([TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget"), TNamed("AssignmentTargetWithInitializer")]))),
+                /* ty = */ TArray(TOpt(TUnion([TNamed("AssignmentTarget"), TNamed("AssignmentTargetWithInitializer")]))),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "rest",
-                /* ty = */ TOpt(TUnion([TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")])),
+                /* ty = */ TOpt(TNamed("AssignmentTarget")),
                 /* isLazy = */ false),
             ];
             this["c_ArrayAssignmentTarget"] = new S.Iface(typeName, fields, true);
@@ -1145,7 +1145,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             ];
             this["c_AssignmentTargetPropertyIdentifier"] = new S.Iface(typeName, fields, true);
@@ -1165,11 +1165,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget"), TNamed("AssignmentTargetWithInitializer")]),
+                /* ty = */ TUnion([TNamed("AssignmentTarget"), TNamed("AssignmentTargetWithInitializer")]),
                 /* isLazy = */ false),
             ];
             this["c_AssignmentTargetPropertyProperty"] = new S.Iface(typeName, fields, true);
@@ -1204,7 +1204,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "properties",
-                /* ty = */ TArray(TUnion([TNamed("AssignmentTargetPropertyIdentifier"), TNamed("AssignmentTargetPropertyProperty")])),
+                /* ty = */ TArray(TNamed("AssignmentTargetProperty")),
                 /* isLazy = */ false),
             ];
             this["c_ObjectAssignmentTarget"] = new S.Iface(typeName, fields, true);
@@ -1228,7 +1228,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "super",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "elements",
@@ -1256,7 +1256,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "super",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "elements",
@@ -1284,7 +1284,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "method",
-                /* ty = */ TUnion([TNamed("EagerMethod"), TNamed("LazyMethod"), TNamed("EagerGetter"), TNamed("LazyGetter"), TNamed("EagerSetter"), TNamed("LazySetter")]),
+                /* ty = */ TNamed("MethodDefinition"),
                 /* isLazy = */ false),
             ];
             this["c_ClassElement"] = new S.Iface(typeName, fields, true);
@@ -1312,7 +1312,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "items",
-                /* ty = */ TArray(TUnion([TNamed("ImportNamespace"), TNamed("Import"), TNamed("ExportAllFrom"), TNamed("ExportFrom"), TNamed("ExportLocals"), TNamed("ExportDefault"), TNamed("Export"), TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TArray(TUnion([TNamed("ImportDeclaration"), TNamed("ExportDeclaration"), TNamed("Statement")])),
                 /* isLazy = */ false),
             ];
             this["c_Module"] = new S.Iface(typeName, fields, true);
@@ -1388,7 +1388,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TOpt(TStr),
+                /* ty = */ TOpt(TNamed("IdentifierName")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
@@ -1476,7 +1476,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "declaration",
-                /* ty = */ TUnion([TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("ClassDeclaration"), TNamed("VariableDeclaration")]),
+                /* ty = */ TUnion([TNamed("FunctionDeclaration"), TNamed("ClassDeclaration"), TNamed("VariableDeclaration")]),
                 /* isLazy = */ false),
             ];
             this["c_Export"] = new S.Iface(typeName, fields, true);
@@ -1496,7 +1496,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("ClassDeclaration"), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TUnion([TNamed("FunctionDeclaration"), TNamed("ClassDeclaration"), TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_ExportDefault"] = new S.Iface(typeName, fields, true);
@@ -1516,11 +1516,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("IdentifierName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "exportedName",
-                /* ty = */ TOpt(TStr),
+                /* ty = */ TOpt(TNamed("IdentifierName")),
                 /* isLazy = */ false),
             ];
             this["c_ExportFromSpecifier"] = new S.Iface(typeName, fields, true);
@@ -1544,7 +1544,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "exportedName",
-                /* ty = */ TOpt(TStr),
+                /* ty = */ TOpt(TNamed("IdentifierName")),
                 /* isLazy = */ false),
             ];
             this["c_ExportLocalSpecifier"] = new S.Iface(typeName, fields, true);
@@ -1572,7 +1572,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -1608,7 +1608,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -1636,7 +1636,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -1664,7 +1664,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -1686,21 +1686,6 @@ export const ReflectedSchema = {
     },
 
 
-    get FunctionBody(): S.Typedef {
-        if (!this["c_FunctionBody"]) {
-            const typeName = S.TypeName.make("FunctionBody");
-            const aliased = TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]));
-            this["c_FunctionBody"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_FunctionBody"] instanceof S.Typedef);
-        return this["c_FunctionBody"] as S.Typedef;
-    },
-    get typeof_FunctionBody(): S.FieldType {
-        return this.FunctionBody.aliased;
-    },
-
-
     get GetterContents(): S.Iface {
         if (!this["c_GetterContents"]) {
             const typeName = S.TypeName.make("GetterContents");
@@ -1715,7 +1700,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TNamed("FunctionBody"),
                 /* isLazy = */ false),
             ];
             this["c_GetterContents"] = new S.Iface(typeName, fields, true);
@@ -1735,7 +1720,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -1763,7 +1748,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -1799,7 +1784,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "param",
-                /* ty = */ TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier"), TNamed("BindingWithInitializer")]),
+                /* ty = */ TNamed("Parameter"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "bodyScope",
@@ -1807,7 +1792,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TNamed("FunctionBody"),
                 /* isLazy = */ false),
             ];
             this["c_SetterContents"] = new S.Iface(typeName, fields, true);
@@ -1827,11 +1812,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TUnion([TNamed("ComputedPropertyName"), TNamed("LiteralPropertyName")]),
+                /* ty = */ TNamed("PropertyName"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_DataProperty"] = new S.Iface(typeName, fields, true);
@@ -1871,7 +1856,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_ComputedPropertyName"] = new S.Iface(typeName, fields, true);
@@ -2027,7 +2012,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TOpt(TUnion([TNamed("SpreadElement"), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]))),
+                /* ty = */ TArray(TOpt(TUnion([TNamed("SpreadElement"), TNamed("Expression")]))),
                 /* isLazy = */ false),
             ];
             this["c_ArrayExpression"] = new S.Iface(typeName, fields, true);
@@ -2115,7 +2100,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TUnion([TNamed("FunctionBody"), TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_ArrowExpressionContents"] = new S.Iface(typeName, fields, true);
@@ -2135,11 +2120,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]),
+                /* ty = */ TNamed("AssignmentTarget"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_AssignmentExpression"] = new S.Iface(typeName, fields, true);
@@ -2163,11 +2148,11 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "left",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "right",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_BinaryExpression"] = new S.Iface(typeName, fields, true);
@@ -2187,11 +2172,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "callee",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression"), TNamed("Super")]),
+                /* ty = */ TUnion([TNamed("Expression"), TNamed("Super")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "arguments",
-                /* ty = */ TArray(TUnion([TNamed("SpreadElement"), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TNamed("Arguments"),
                 /* isLazy = */ false),
             ];
             this["c_CallExpression"] = new S.Iface(typeName, fields, true);
@@ -2215,11 +2200,11 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]),
+                /* ty = */ TNamed("SimpleAssignmentTarget"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_CompoundAssignmentExpression"] = new S.Iface(typeName, fields, true);
@@ -2239,11 +2224,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "object",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression"), TNamed("Super")]),
+                /* ty = */ TUnion([TNamed("Expression"), TNamed("Super")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_ComputedMemberExpression"] = new S.Iface(typeName, fields, true);
@@ -2263,15 +2248,15 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "consequent",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "alternate",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_ConditionalExpression"] = new S.Iface(typeName, fields, true);
@@ -2383,7 +2368,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TNamed("FunctionBody"),
                 /* isLazy = */ false),
             ];
             this["c_FunctionExpressionContents"] = new S.Iface(typeName, fields, true);
@@ -2403,7 +2388,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("Identifier"),
                 /* isLazy = */ false),
             ];
             this["c_IdentifierExpression"] = new S.Iface(typeName, fields, true);
@@ -2423,11 +2408,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "callee",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "arguments",
-                /* ty = */ TArray(TUnion([TNamed("SpreadElement"), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TNamed("Arguments"),
                 /* isLazy = */ false),
             ];
             this["c_NewExpression"] = new S.Iface(typeName, fields, true);
@@ -2463,7 +2448,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "properties",
-                /* ty = */ TArray(TUnion([TNamed("EagerMethod"), TNamed("LazyMethod"), TNamed("EagerGetter"), TNamed("LazyGetter"), TNamed("EagerSetter"), TNamed("LazySetter"), TNamed("DataProperty"), TNamed("ShorthandProperty")])),
+                /* ty = */ TArray(TNamed("ObjectProperty")),
                 /* isLazy = */ false),
             ];
             this["c_ObjectExpression"] = new S.Iface(typeName, fields, true);
@@ -2487,7 +2472,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "operand",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_UnaryExpression"] = new S.Iface(typeName, fields, true);
@@ -2507,11 +2492,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "object",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression"), TNamed("Super")]),
+                /* ty = */ TUnion([TNamed("Expression"), TNamed("Super")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "property",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("IdentifierName"),
                 /* isLazy = */ false),
             ];
             this["c_StaticMemberExpression"] = new S.Iface(typeName, fields, true);
@@ -2531,11 +2516,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "tag",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression"), TNamed("TemplateElement")])),
+                /* ty = */ TArray(TUnion([TNamed("Expression"), TNamed("TemplateElement")])),
                 /* isLazy = */ false),
             ];
             this["c_TemplateExpression"] = new S.Iface(typeName, fields, true);
@@ -2579,7 +2564,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "operand",
-                /* ty = */ TUnion([TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]),
+                /* ty = */ TNamed("SimpleAssignmentTarget"),
                 /* isLazy = */ false),
             ];
             this["c_UpdateExpression"] = new S.Iface(typeName, fields, true);
@@ -2599,7 +2584,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             ];
             this["c_YieldExpression"] = new S.Iface(typeName, fields, true);
@@ -2619,7 +2604,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_YieldStarExpression"] = new S.Iface(typeName, fields, true);
@@ -2639,7 +2624,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_AwaitExpression"] = new S.Iface(typeName, fields, true);
@@ -2659,7 +2644,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "label",
-                /* ty = */ TOpt(TStr),
+                /* ty = */ TOpt(TNamed("Label")),
                 /* isLazy = */ false),
             ];
             this["c_BreakStatement"] = new S.Iface(typeName, fields, true);
@@ -2679,7 +2664,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "label",
-                /* ty = */ TOpt(TStr),
+                /* ty = */ TOpt(TNamed("Label")),
                 /* isLazy = */ false),
             ];
             this["c_ContinueStatement"] = new S.Iface(typeName, fields, true);
@@ -2715,11 +2700,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_DoWhileStatement"] = new S.Iface(typeName, fields, true);
@@ -2755,7 +2740,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_ExpressionStatement"] = new S.Iface(typeName, fields, true);
@@ -2779,7 +2764,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")]),
+                /* ty = */ TNamed("Binding"),
                 /* isLazy = */ false),
             ];
             this["c_ForInOfBinding"] = new S.Iface(typeName, fields, true);
@@ -2799,15 +2784,15 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "left",
-                /* ty = */ TUnion([TNamed("ForInOfBinding"), TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]),
+                /* ty = */ TUnion([TNamed("ForInOfBinding"), TNamed("AssignmentTarget")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "right",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_ForInStatement"] = new S.Iface(typeName, fields, true);
@@ -2827,15 +2812,15 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "left",
-                /* ty = */ TUnion([TNamed("ForInOfBinding"), TNamed("ObjectAssignmentTarget"), TNamed("ArrayAssignmentTarget"), TNamed("AssignmentTargetIdentifier"), TNamed("ComputedMemberAssignmentTarget"), TNamed("StaticMemberAssignmentTarget")]),
+                /* ty = */ TUnion([TNamed("ForInOfBinding"), TNamed("AssignmentTarget")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "right",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_ForOfStatement"] = new S.Iface(typeName, fields, true);
@@ -2855,19 +2840,19 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TUnion([TNamed("VariableDeclaration"), TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TUnion([TNamed("VariableDeclaration"), TNamed("Expression")])),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "update",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_ForStatement"] = new S.Iface(typeName, fields, true);
@@ -2887,15 +2872,15 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "consequent",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "alternate",
-                /* ty = */ TOpt(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TOpt(TNamed("Statement")),
                 /* isLazy = */ false),
             ];
             this["c_IfStatement"] = new S.Iface(typeName, fields, true);
@@ -2915,11 +2900,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "label",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("Label"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_LabelledStatement"] = new S.Iface(typeName, fields, true);
@@ -2939,7 +2924,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             ];
             this["c_ReturnStatement"] = new S.Iface(typeName, fields, true);
@@ -2959,7 +2944,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "discriminant",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "cases",
@@ -2983,7 +2968,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "discriminant",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "preDefaultCases",
@@ -3015,7 +3000,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_ThrowStatement"] = new S.Iface(typeName, fields, true);
@@ -3087,11 +3072,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_WhileStatement"] = new S.Iface(typeName, fields, true);
@@ -3111,11 +3096,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "object",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]),
+                /* ty = */ TNamed("Statement"),
                 /* isLazy = */ false),
             ];
             this["c_WithStatement"] = new S.Iface(typeName, fields, true);
@@ -3139,7 +3124,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "statements",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TArray(TNamed("Statement")),
                 /* isLazy = */ false),
             ];
             this["c_Block"] = new S.Iface(typeName, fields, true);
@@ -3163,7 +3148,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")]),
+                /* ty = */ TNamed("Binding"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
@@ -3207,11 +3192,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "items",
-                /* ty = */ TArray(TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier"), TNamed("BindingWithInitializer")])),
+                /* ty = */ TArray(TNamed("Parameter")),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "rest",
-                /* ty = */ TOpt(TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")])),
+                /* ty = */ TOpt(TNamed("Binding")),
                 /* isLazy = */ false),
             ];
             this["c_FormalParameters"] = new S.Iface(typeName, fields, true);
@@ -3222,6 +3207,21 @@ export const ReflectedSchema = {
     get typeof_FormalParameters(): S.FieldType {
         const fieldName = this.FormalParameters.name;
         return S.FieldTypeNamed.make(fieldName);
+    },
+
+
+    get FunctionBody(): S.Typedef {
+        if (!this["c_FunctionBody"]) {
+            const typeName = S.TypeName.make("FunctionBody");
+            const aliased = TArray(TNamed("Statement"));
+            this["c_FunctionBody"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_FunctionBody"] instanceof S.Typedef);
+        return this["c_FunctionBody"] as S.Typedef;
+    },
+    get typeof_FunctionBody(): S.FieldType {
+        return this.FunctionBody.aliased;
     },
 
 
@@ -3319,7 +3319,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TNamed("FunctionBody"),
                 /* isLazy = */ false),
             ];
             this["c_FunctionOrMethodContents"] = new S.Iface(typeName, fields, true);
@@ -3347,7 +3347,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "statements",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TArray(TNamed("Statement")),
                 /* isLazy = */ false),
             ];
             this["c_Script"] = new S.Iface(typeName, fields, true);
@@ -3367,7 +3367,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             ];
             this["c_SpreadElement"] = new S.Iface(typeName, fields, true);
@@ -3403,11 +3403,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]),
+                /* ty = */ TNamed("Expression"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "consequent",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TArray(TNamed("Statement")),
                 /* isLazy = */ false),
             ];
             this["c_SwitchCase"] = new S.Iface(typeName, fields, true);
@@ -3427,7 +3427,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "consequent",
-                /* ty = */ TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")])),
+                /* ty = */ TArray(TNamed("Statement")),
                 /* isLazy = */ false),
             ];
             this["c_SwitchDefault"] = new S.Iface(typeName, fields, true);
@@ -3491,11 +3491,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "binding",
-                /* ty = */ TUnion([TNamed("ObjectBinding"), TNamed("ArrayBinding"), TNamed("BindingIdentifier")]),
+                /* ty = */ TNamed("Binding"),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")])),
+                /* ty = */ TOpt(TNamed("Expression")),
                 /* isLazy = */ false),
             ];
             this["c_VariableDeclarator"] = new S.Iface(typeName, fields, true);
@@ -3513,10 +3513,6 @@ export const ReflectedSchema = {
         if (!this['_schema']) {
             const d = 
                 new Array<S.Declaration>();
-            d.push(ReflectedSchema.Literal);
-            d.push(ReflectedSchema.ArrowExpression);
-            d.push(ReflectedSchema.FunctionExpression);
-            d.push(ReflectedSchema.Expression);
             d.push(ReflectedSchema.Arguments);
             d.push(ReflectedSchema.Identifier);
             d.push(ReflectedSchema.IdentifierName);
@@ -3536,16 +3532,20 @@ export const ReflectedSchema = {
             d.push(ReflectedSchema.AssertedBoundNamesScope);
             d.push(ReflectedSchema.Program);
             d.push(ReflectedSchema.IterationStatement);
-            d.push(ReflectedSchema.FunctionDeclaration);
             d.push(ReflectedSchema.Statement);
+            d.push(ReflectedSchema.Literal);
+            d.push(ReflectedSchema.Expression);
             d.push(ReflectedSchema.PropertyName);
-            d.push(ReflectedSchema.Method);
-            d.push(ReflectedSchema.Getter);
-            d.push(ReflectedSchema.Setter);
             d.push(ReflectedSchema.MethodDefinition);
             d.push(ReflectedSchema.ObjectProperty);
             d.push(ReflectedSchema.ExportDeclaration);
             d.push(ReflectedSchema.ImportDeclaration);
+            d.push(ReflectedSchema.FunctionDeclaration);
+            d.push(ReflectedSchema.FunctionExpression);
+            d.push(ReflectedSchema.Method);
+            d.push(ReflectedSchema.Getter);
+            d.push(ReflectedSchema.Setter);
+            d.push(ReflectedSchema.ArrowExpression);
             d.push(ReflectedSchema.BindingIdentifier);
             d.push(ReflectedSchema.BindingPattern);
             d.push(ReflectedSchema.Binding);
@@ -3586,7 +3586,6 @@ export const ReflectedSchema = {
             d.push(ReflectedSchema.LazyMethod);
             d.push(ReflectedSchema.EagerGetter);
             d.push(ReflectedSchema.LazyGetter);
-            d.push(ReflectedSchema.FunctionBody);
             d.push(ReflectedSchema.GetterContents);
             d.push(ReflectedSchema.EagerSetter);
             d.push(ReflectedSchema.LazySetter);
@@ -3650,6 +3649,7 @@ export const ReflectedSchema = {
             d.push(ReflectedSchema.CatchClause);
             d.push(ReflectedSchema.Directive);
             d.push(ReflectedSchema.FormalParameters);
+            d.push(ReflectedSchema.FunctionBody);
             d.push(ReflectedSchema.EagerFunctionDeclaration);
             d.push(ReflectedSchema.LazyFunctionDeclaration);
             d.push(ReflectedSchema.FunctionOrMethodContents);

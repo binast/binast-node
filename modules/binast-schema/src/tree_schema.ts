@@ -110,10 +110,6 @@ export class TreeSchema {
 
         // Emit builder function for reflected schema.
 
-        // Normalize the schema for the reflected
-        // schema builder.
-        const normalized = this.normalize();
-
         const builds: Array<string> = [];
         builds.push(...[
             "/*** Reflected Schema Builder ***/",
@@ -156,7 +152,7 @@ export class TreeSchema {
             "",
             "export const ReflectedSchema = {",
         ]);
-        for (let decl of normalized.decls.values()) {
+        for (let decl of this.decls.values()) {
             const buildDecl = new Array<string>();
             decl.dumpReflection(buildDecl);
             const buildDeclTabbed =
@@ -174,7 +170,7 @@ export class TreeSchema {
         `                new Array<S.Declaration>();`,
         ]);
 
-        for (let decl of normalized.decls.values()) {
+        for (let decl of this.decls.values()) {
             const nm = decl.name.name;
             builds.push(...[
             `            d.push(ReflectedSchema.${nm});`
@@ -211,69 +207,13 @@ export class TreeSchema {
         return accum.join('\n');
     }
 
-    /**
-     * Produce a new, normalized tree schema.
-     */
-    normalize(): TreeSchema {
-        const newDecls =
-            new OrderedMap<TypeName, Declaration>();
-
-        // First, resolve all references to typenames
-        // down to primitive, enum, or iface
-        // references.
-        this.resolveNames(newDecls);
-
-        // Re-order the normalized decls by the
-        // same order they occured in the old schema.
-        const ordDecls = Array.from(newDecls.values());
-        return new TreeSchema(ordDecls);
-    }
-
-    // Resolve all the names in this schema, flattening
-    // them into the given ordered map of declarations.
-    private resolveNames(
-        newDecls: OrderedMap<TypeName, Declaration>)
-    {
-        for (let decl of this.decls.values()) {
-            this.resolveDecl(decl, newDecls);
-        }
-    }
-
-    // Dynamically resolve a given declaration if
-    // it hasn't already been resolved and added to
-    // the new map.
-    private resolveDecl(decl: Declaration,
-            newDecls: OrderedMap<TypeName, Declaration>)
-    {
-        if (!newDecls.has(decl.name)) {
-            newDecls.set(decl.name,
-                decl.resolveNames(this, newDecls));
-        }
-    }
-
-    // Called by Named primitive type to resolve (flatten)
-    // named types.  For Ifaces and Enums it generates
-    // Named primitives, and for typedefs it substitutes
-    // the aliased type and continues resolving.
-    resolveType(typeName: TypeName,
-            newDecls: OrderedMap<TypeName, Declaration>)
-      : FieldType
-    {
+    // Called by Named primitive type to resolve named
+    // types.  For Ifaces and Enums it generates
+    // Named types, and for typedefs it substitutes
+    // the aliased type.
+    resolveType(typeName: TypeName): FieldType {
         // Look up the type.
-        const decl = this.getDecl(typeName);
-
-        // Ifaces and enums just produce named types.
-        if ((decl instanceof Iface) ||
-            (decl instanceof Enum))
-        {
-            return FieldTypeNamed.make(typeName);
-        }
-
-        assert(decl instanceof Typedef);
-        this.resolveDecl(decl, newDecls);
-
-        let newDecl = newDecls.get(typeName);
-        return (newDecl as Typedef).aliased;
+        return this.getDecl(typeName).intoFieldType();
     }
 
     prettyString(): string {
@@ -309,12 +249,13 @@ export abstract class Declaration {
     }
 
     abstract prettyString(): string;
-    abstract resolveNames(
-            schema: TreeSchema,
-            newDecls: OrderedMap<TypeName, Declaration>)
-      : Declaration;
+    abstract intoFieldType(): FieldType;
     abstract dumpTypescript(defns: Array<string>);
     abstract dumpReflection(defns: Array<string>);
+    abstract matchesValue(schema: TreeSchema, value: Value)
+      : boolean;
+    abstract prettyValue(schema: TreeSchema, value: Value,
+                         out: Array<string>);
 }
 
 
@@ -332,15 +273,23 @@ export class Typedef extends Declaration {
                ` ${this.aliased.prettyString()};`;
     }
 
-    resolveNames(
-        schema: TreeSchema,
-        newDecls: OrderedMap<TypeName, Declaration>)
-      : Typedef
-    {
-        const resolved = this.aliased.resolveNames(
-                                schema, newDecls);
-        return new Typedef(this.name, resolved);
+    intoFieldType(): FieldType {
+        return this.aliased;
     }
+
+    matchesValue(schema: TreeSchema, value: Value)
+      : boolean
+    {
+        return this.aliased.matchesValue(schema, value);
+    }
+
+    prettyValue(schema: TreeSchema, value: Value,
+                out: Array<string>)
+    {
+        assert(this.matchesValue(schema, value));
+        this.aliased.prettyValue(schema, value, out);
+    }
+
     dumpTypescript(defns: Array<string>) {
         const nm = this.name.name;
 
@@ -496,12 +445,22 @@ export class Enum extends Declaration {
                '};';
     }
 
-    resolveNames(
-        schema: TreeSchema,
-        newDecls: OrderedMap<TypeName, Declaration>)
-      : Enum
+    intoFieldType(): FieldType {
+        return FieldTypeNamed.make(this.name);
+    }
+
+    matchesValue(schema: TreeSchema, value: Value)
+      : boolean
     {
-        return this;
+        return (typeof(value) === 'string') &&
+               this.containsName(value);
+    }
+
+    prettyValue(schema: TreeSchema, value: Value,
+                out: Array<string>)
+    {
+        assert(this.matchesValue(schema, value));
+        out.push(value as string);
     }
 
     dumpTypescript(defns: Array<string>) {
@@ -600,6 +559,10 @@ export class Iface extends Declaration {
              `}`;
     }
 
+    intoFieldType(): FieldType {
+        return FieldTypeNamed.make(this.name);
+    }
+
     prettyInstance(schema: TreeSchema, inst: Instance,
                    out: Array<string>)
     {
@@ -642,17 +605,22 @@ export class Iface extends Declaration {
         out.push(`}${trailer}`);
     }
 
-    resolveNames(
-        schema: TreeSchema,
-        newDecls: OrderedMap<TypeName, Declaration>)
-      : Iface
+    matchesValue(schema: TreeSchema, value: Value)
+      : boolean
     {
-        const rfs = new Array<IfaceField>();
-        for (let f of this.fields) {
-            rfs.push(f.resolveNames(schema, newDecls));
-        }
-        return new Iface(this.name, rfs, this.isNode);
+        return (typeof(value) === 'object') &&
+               (value !== null) &&
+               (value['iface$'] === this);
     }
+
+    prettyValue(schema: TreeSchema, value: Value,
+                out: Array<string>)
+    {
+        assert(this.matchesValue(schema, value));
+        this.prettyInstance(schema, value as Instance, out);
+        out.push('');
+    }
+
 
     dumpTypescript(defns: Array<string>) {
         // On the interface, bind the typedef
@@ -796,14 +764,5 @@ export class IfaceField {
         const name = this.name;
         const tyStr = this.ty.prettyString();
         return `  ${attrPrefix}${name}: ${tyStr};`;
-    }
-
-    resolveNames(schema: TreeSchema,
-            newDecls: OrderedMap<TypeName, Declaration>)
-      : IfaceField
-    {
-        const rty = this.ty.resolveNames(schema,
-                                         newDecls);
-        return new IfaceField(this.name, rty, this.isLazy);
     }
 }
