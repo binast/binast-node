@@ -1,9 +1,13 @@
 
 import * as assert from 'assert';
 
-import {OrderedMap} from './ordered_map';
+import {FieldType, FieldTypeNamed}
+    from './field_types';
+
+import {OrderedMap}
+    from './ordered_map';
+
 import * as util from './util';
-import {FieldType, FieldTypeNamed} from './field_types';
 
 /**
  * Global unique wrapper object for type names.
