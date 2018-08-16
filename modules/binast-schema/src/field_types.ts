@@ -2,7 +2,8 @@
 import * as assert from 'assert';
 
 import {OrderedMap} from './ordered_map';
-import {TreeSchema, TypeName, Declaration, Iface, Enum}
+import {TreeSchema, TypeName, Declaration, Iface, Enum,
+        Value, Instance}
     from './tree_schema';
 
 // A FieldType is one of:
@@ -32,7 +33,7 @@ export abstract class FieldType {
     abstract reflectedString(): string;
     abstract matchesValue(schema: TreeSchema, value: any)
               : boolean;
-    abstract prettyValue(schema: TreeSchema, value: any,
+    abstract prettyValue(schema: TreeSchema, value: Value,
                          out: Array<string>);
 
     protected constructor(typeId: number) {
@@ -124,7 +125,7 @@ export class FieldTypePrimitive extends FieldType {
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
-    prettyValue(schema: TreeSchema, value: any,
+    prettyValue(schema: TreeSchema, value: Value,
                 out: Array<string>)
     {
         switch (this) {
@@ -229,7 +230,7 @@ export class FieldTypeNamed extends FieldType {
         }
         throw new Error(`Unknown prim ${this.name.name}`);
     }
-    prettyValue(schema: TreeSchema, value: any,
+    prettyValue(schema: TreeSchema, value: Value,
                 out: Array<string>)
     {
         const decl = schema.getDecl(this.name);
@@ -238,14 +239,15 @@ export class FieldTypeNamed extends FieldType {
                    `Iface failed matchesValue: ` +
                         JSON.stringify(value));
             (value['iface$'] as Iface).prettyInstance(
-                schema, value, out);
+                schema, value as Instance, out);
             out.push('');
             return;
         } else if (decl instanceof Enum) {
             assert(this.matchesValue(schema, value),
                    `Field ${decl.name.name} failed matchesValue: ` +
                         JSON.stringify(value));
-            out.push(value);
+            assert(typeof(value) === 'string');
+            out.push(value as string);
             return;
         }
         throw new Error(
@@ -304,7 +306,7 @@ export class FieldTypeUnion extends FieldType {
             return v.matchesValue(schema, value);
         });
     }
-    prettyValue(schema: TreeSchema, value: any,
+    prettyValue(schema: TreeSchema, value: Value,
                 out: Array<string>)
     {
         // Check every constituent type.
@@ -402,7 +404,7 @@ export class FieldTypeOpt extends FieldType {
         return (value === null) ||
                this.inner.matchesValue(schema, value);
     }
-    prettyValue(schema: TreeSchema, value: any,
+    prettyValue(schema: TreeSchema, value: Value,
                 out: Array<string>)
     {
         assert(this.matchesValue(schema, value));
@@ -461,7 +463,7 @@ export class FieldTypeArray extends FieldType {
            (value.every(
                 v => this.inner.matchesValue(schema, v)));
     }
-    prettyValue(schema: TreeSchema, value: any,
+    prettyValue(schema: TreeSchema, value: Value,
                 out: Array<string>)
     {
         assert(this.matchesValue(schema, value));

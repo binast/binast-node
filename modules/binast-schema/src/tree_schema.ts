@@ -6,6 +6,48 @@ import * as util from './util';
 import {FieldType, FieldTypeNamed} from './field_types';
 
 /**
+ * Global unique wrapper object for type names.
+ */
+const TYPE_NAMES = new Map<string, TypeName>();
+export class TypeName {
+    readonly name: string;
+
+    private constructor(name: string) {
+        this.name = name;
+        Object.freeze(this);
+    }
+
+    static make(name: string): TypeName {
+        let ftname = TYPE_NAMES.get(name);
+        if (!ftname) {
+            ftname = new TypeName(name);
+            TYPE_NAMES.set(name, ftname);
+        }
+        return ftname;
+    }
+
+    prettyString(): string {
+        return this.name;
+    }
+}
+
+export type Value = null | boolean | number | string |
+                    Instance | Array<any>;
+export interface Instance {
+    iface$: Iface;
+}
+export function isValue(x: any): boolean {
+    return (x === null) ||
+           (typeof(x) === 'boolean') ||
+           (typeof(x) === 'number') ||
+           (typeof(x) === 'string') ||
+           ((typeof(x) === 'object') &&
+                (x['iface$'] instanceof Iface)) ||
+           // Don't do a deep check here.
+           (x instanceof Array);
+}
+
+/**
  * A tree schema is specified as a collection of typedefs,
  * enums, and node declarations.
  *
@@ -183,6 +225,8 @@ export class TreeSchema {
         return new TreeSchema(ordDecls);
     }
 
+    // Resolve all the names in this schema, flattening
+    // them into the given ordered map of declarations.
     private resolveNames(
         newDecls: OrderedMap<TypeName, Declaration>)
     {
@@ -191,6 +235,9 @@ export class TreeSchema {
         }
     }
 
+    // Dynamically resolve a given declaration if
+    // it hasn't already been resolved and added to
+    // the new map.
     private resolveDecl(decl: Declaration,
             newDecls: OrderedMap<TypeName, Declaration>)
     {
@@ -200,6 +247,10 @@ export class TreeSchema {
         }
     }
 
+    // Called by Named primitive type to resolve (flatten)
+    // named types.  For Ifaces and Enums it generates
+    // Named primitives, and for typedefs it substitutes
+    // the aliased type and continues resolving.
     resolveType(typeName: TypeName,
             newDecls: OrderedMap<TypeName, Declaration>)
       : FieldType
@@ -232,6 +283,14 @@ export class TreeSchema {
     }
 }
 
+//
+// Declarations
+//
+// Declarations are either a Typedef, Enum, or Iface,
+// implemented by the respectively named concrete
+// subclasses.
+//
+
 export enum DeclarationKind {
     Typedef = 'Typedef',
     Enum    = 'Enum',
@@ -253,6 +312,7 @@ export abstract class Declaration {
     abstract dumpTypescript(defns: Array<string>);
     abstract dumpReflection(defns: Array<string>);
 }
+
 
 export class Typedef extends Declaration {
     readonly aliased: FieldType;
@@ -308,6 +368,46 @@ export class Typedef extends Declaration {
         `    return this.${nm}.aliased;`,
         `}`,
         ]);
+    }
+}
+
+
+const ENUM_VARIANT_NAMES =
+    new Map<string, EnumVariantName>();
+
+export class EnumVariantName {
+    readonly enumName: TypeName;
+    readonly name: string;
+
+    private constructor(enumName: TypeName, name: string) {
+        this.enumName = enumName;
+        this.name = name;
+        Object.freeze(this);
+    }
+
+    static make(enumName: TypeName, name: string)
+      : EnumVariantName
+    {
+        const key = EnumVariantName.makeKey(enumName.name,
+                                            name);
+        let evname = ENUM_VARIANT_NAMES.get(key);
+        if (!evname) {
+            evname = new EnumVariantName(enumName, name);
+            ENUM_VARIANT_NAMES.set(key, evname);
+        }
+        return evname;
+    }
+
+    get fullName(): string {
+        return `${this.enumName.name}_${this.name}`;
+    }
+
+    prettyString(): string {
+        return this.fullName;
+    }
+
+    static makeKey(enumName: string, name: string): string {
+        return `${enumName}_${name}`;
     }
 }
 
@@ -474,6 +574,7 @@ export class Enum extends Declaration {
     }
 }
 
+
 export class Iface extends Declaration {
     readonly fields: ReadonlyArray<IfaceField>;
     readonly isNode: boolean;
@@ -507,7 +608,8 @@ export class Iface extends Declaration {
         // Retrieve each field.
         for (let field of this.fields) {
             const fty = field.ty;
-            const fval = inst[field.name];
+            const fval = inst[field.name] as Value;
+            assert(isValue(fval));
             const fvalStrs = new Array<string>();
             fty.prettyValue(schema, fval, fvalStrs);
             assert(fvalStrs.length > 0);
@@ -699,72 +801,5 @@ export class IfaceField {
         const rty = this.ty.resolveNames(schema,
                                          newDecls);
         return new IfaceField(this.name, rty, this.isLazy);
-    }
-}
-
-export type Value = null|boolean|number|string|Instance;
-export interface Instance {
-    iface$: Iface;
-}
-
-const TYPE_NAMES = new Map<string, TypeName>();
-export class TypeName {
-    readonly name: string;
-
-    private constructor(name: string) {
-        this.name = name;
-        Object.freeze(this);
-    }
-
-    static make(name: string): TypeName {
-        let ftname = TYPE_NAMES.get(name);
-        if (!ftname) {
-            ftname = new TypeName(name);
-            TYPE_NAMES.set(name, ftname);
-        }
-        return ftname;
-    }
-
-    prettyString(): string {
-        return this.name;
-    }
-}
-
-const ENUM_VARIANT_NAMES =
-    new Map<string, EnumVariantName>();
-
-export class EnumVariantName {
-    readonly enumName: TypeName;
-    readonly name: string;
-
-    private constructor(enumName: TypeName, name: string) {
-        this.enumName = enumName;
-        this.name = name;
-        Object.freeze(this);
-    }
-
-    static make(enumName: TypeName, name: string)
-      : EnumVariantName
-    {
-        const key = EnumVariantName.makeKey(enumName.name,
-                                            name);
-        let evname = ENUM_VARIANT_NAMES.get(key);
-        if (!evname) {
-            evname = new EnumVariantName(enumName, name);
-            ENUM_VARIANT_NAMES.set(key, evname);
-        }
-        return evname;
-    }
-
-    get fullName(): string {
-        return `${this.enumName.name}_${this.name}`;
-    }
-
-    prettyString(): string {
-        return this.fullName;
-    }
-
-    static makeKey(enumName: string, name: string): string {
-        return `${enumName}_${name}`;
     }
 }
