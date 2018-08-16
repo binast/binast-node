@@ -4,12 +4,12 @@ import * as webidl2 from 'webidl2';
 
 import {OrderedMap} from './ordered_map';
 
-import {TreeSchema, Declaration,
-        FieldType, TypeName, EnumVariantName,
-        FieldTypePrimitive, FieldTypeNamed,
-        FieldTypeUnion, FieldTypeArray, FieldTypeOpt,
+import {TreeSchema, Declaration, TypeName, EnumVariantName,
         Typedef, Enum, Iface, IfaceField}
     from './tree_schema';
+import {FieldType, FieldTypePrimitive, FieldTypeNamed,
+        FieldTypeUnion, FieldTypeArray, FieldTypeOpt}
+    from './field_types';
 
 import {jsonStr} from './util';
 
