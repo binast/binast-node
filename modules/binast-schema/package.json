@@ -10,6 +10,7 @@
   "author": "",
   "license": "GPLv3",
   "main": "./dist/lib.js",
+  "types": "./dist/lib.d.ts",
   "bin": {
     "binast-generate-ts-schema": "./dist/generate.js"
   },

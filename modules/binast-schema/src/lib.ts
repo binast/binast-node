@@ -1,2 +1,2 @@
 
-import './tree_schema';
+export * from './tree_schema';

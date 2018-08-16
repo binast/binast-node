@@ -54,7 +54,8 @@ class Lifter {
         assert(valName.match(RE),
                `Bad symbol slug ${valName}`);
 
-        const key = `${enumName}::${valName}`;
+        const key = EnumVariantName.makeKey(enumName.name,
+                                            valName);
         let evn = this.variantCache.get(key);
         if (!evn) {
             evn = EnumVariantName.make(enumName, valName);
@@ -64,11 +65,7 @@ class Lifter {
     }
 
     makeSchema(): TreeSchema {
-        let decls = new OrderedMap<TypeName, Declaration>();
-        for (let d of this.decls) {
-            decls.set(d.name, d);
-        }
-        return new TreeSchema(decls);
+        return new TreeSchema(this.decls.slice());
     }
 
     addDecl(decl, idx: number) {
@@ -159,8 +156,7 @@ class Lifter {
             return 'ignore';
         }
 
-        const members: OrderedMap<string, IfaceField>
-            = new OrderedMap();
+        const members = new Array<IfaceField>();
 
         for (let memberIdl of ifaceDecl.members) {
             assert(memberIdl.type === 'attribute');
@@ -174,7 +170,7 @@ class Lifter {
             const field = new IfaceField(memberName,
                                          memberType);
 
-            members.set(memberName, field);
+            members.push(field);
         }
 
         const isNode = (ifaceDecl.inheritance !== null) &&

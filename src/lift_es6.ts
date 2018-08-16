@@ -2,7 +2,11 @@
 "use strict";
 
 import * as assert from 'assert';
-import * as S from './typed_schema';
+
+import * as S from 'binast-schema';
+import * as TS from './typed_schema';
+const RS = TS.ReflectedSchema;
+
 
 class MatchError extends Error {
     readonly matchType: string;
@@ -60,18 +64,22 @@ function nodeShortSummary(obj: any): string {
     return `${obj.type}(${propNames(obj)})`;
 }
 
-type AssertedName = S.AssertedDeclaredName |
-                    S.AssertedBoundName;
+let NEXT_SCOPE_ID: number = 1;
+
+type AssertedName = TS.AssertedDeclaredName |
+                    TS.AssertedBoundName;
 abstract class BaseScope {
+    id: number;
     names: Array<AssertedName>;
     hasDirectEval: boolean;
 
     // Maps identifier names to the index into
     // an appropriate array.
-    nameMap: Map<S.IdentifierName, number>;
-    captureSet: Set<S.IdentifierName>;
+    nameMap: Map<TS.IdentifierName, number>;
+    captureSet: Set<TS.IdentifierName>;
 
     constructor() {
+        this.id = NEXT_SCOPE_ID++;
         this.names = new Array();
         this.hasDirectEval = false;
 
@@ -82,19 +90,25 @@ abstract class BaseScope {
     addName(nameEntry: AssertedName) {
         const name = nameEntry.name;
         assert(typeof(name) == 'string')
-        assert(!this.nameMap.has(name));
+        // JS allows shadowing names
+        // TODO: Find out if this is ok in strict mode.
+        //   If it's not, then this needs to be checked
+        //   when strict mode is on.
+        if (this.nameMap.has(name)) {
+            return;
+        }
         const idx = this.names.length;
         this.names.push(nameEntry);
         this.nameMap.set(name, idx);
     }
 
-    doesBindName(name: S.IdentifierName): boolean {
+    doesBindName(name: TS.IdentifierName): boolean {
         return this.nameMap.get(name) !== undefined;
     }
 
     /** Try to capture the use of the given name with this
      * scope.  Return whether successful. */
-    findOrCaptureUse(name: S.IdentifierName,
+    findOrCaptureUse(name: TS.IdentifierName,
                      capture: boolean)
       : boolean
     {
@@ -108,17 +122,17 @@ abstract class BaseScope {
         return false;
     }
 
-    protected abstract markCaptured(name: S.IdentifierName);
+    protected abstract markCaptured(name: TS.IdentifierName);
 }
 
 abstract class DeclaredScope extends BaseScope {
-    protected markCaptured(name: S.IdentifierName) {
+    protected markCaptured(name: TS.IdentifierName) {
         const idx = this.nameMap.get(name);
         assert(this.names[idx] instanceof
-                    S.AssertedDeclaredName);
+                    TS.AssertedDeclaredName);
         const declName = this.names[idx] as
-                            S.AssertedDeclaredName;
-        const newDeclName = S.AssertedDeclaredName.make({
+                            TS.AssertedDeclaredName;
+        const newDeclName = TS.AssertedDeclaredName.make({
             name: name,
             kind: declName.kind,
             isCaptured: true
@@ -126,33 +140,41 @@ abstract class DeclaredScope extends BaseScope {
         this.names[idx] = newDeclName;
     }
 
-    protected declNames(): Array<S.AssertedDeclaredName> {
+    protected declNames()
+      : ReadonlyArray<TS.AssertedDeclaredName>
+    {
         assert(this.names.every(n => {
-            return n instanceof S.AssertedDeclaredName;
+            return n instanceof TS.AssertedDeclaredName;
         }));
-        return this.names as Array<S.AssertedDeclaredName>;
+        return Object.freeze(
+            (this.names as Array<TS.AssertedDeclaredName>)
+                .slice());
     }
 }
 
 abstract class BoundScope extends BaseScope {
-    protected markCaptured(name: S.IdentifierName) {
+    protected markCaptured(name: TS.IdentifierName) {
         const idx = this.nameMap.get(name);
         assert(this.names[idx] instanceof
-                    S.AssertedBoundName);
+                    TS.AssertedBoundName);
         const boundName = this.names[idx] as
-                                S.AssertedBoundName;
-        const newBoundName = S.AssertedBoundName.make({
+                                TS.AssertedBoundName;
+        const newBoundName = TS.AssertedBoundName.make({
             name: name,
             isCaptured: true
         });
         this.names[idx] = newBoundName;
     }
 
-    protected boundNames(): Array<S.AssertedBoundName> {
+    protected boundNames()
+      : ReadonlyArray<TS.AssertedBoundName>
+    {
         assert(this.names.every(n => {
-            return n instanceof S.AssertedBoundName;
+            return n instanceof TS.AssertedBoundName;
         }));
-        return this.names as Array<S.AssertedBoundName>;
+        return Object.freeze(
+            (this.names as Array<TS.AssertedBoundName>)
+                .slice());
     }
 }
 
@@ -161,9 +183,9 @@ class BlockScope extends DeclaredScope {
         super();
     }
 
-    extractBlockScope(): S.AssertedBlockScope {
-        return S.AssertedBlockScope.make({
-            declaredNames: Object.freeze(this.declNames()),
+    extractBlockScope(): TS.AssertedBlockScope {
+        return TS.AssertedBlockScope.make({
+            declaredNames: this.declNames(),
             hasDirectEval: this.hasDirectEval
         });
     }
@@ -174,10 +196,11 @@ class ScriptGlobalScope extends DeclaredScope {
         super();
     }
 
-    extractBlockScope(): S.AssertedScriptGlobalScope {
-        const declNames = Object.freeze(this.names);
-        return S.AssertedScriptGlobalScope.make({
-            declaredNames: Object.freeze(this.declNames()),
+    extractScriptGlobalScope()
+      : TS.AssertedScriptGlobalScope
+    {
+        return TS.AssertedScriptGlobalScope.make({
+            declaredNames: this.declNames(),
             hasDirectEval: this.hasDirectEval
         });
     }
@@ -188,9 +211,9 @@ class VarScope extends DeclaredScope {
         super();
     }
 
-    extractVarScope(): S.AssertedVarScope {
-        return S.AssertedVarScope.make({
-            declaredNames: Object.freeze(this.declNames()),
+    extractVarScope(): TS.AssertedVarScope {
+        return TS.AssertedVarScope.make({
+            declaredNames: this.declNames(),
             hasDirectEval: this.hasDirectEval
         });
     }
@@ -204,9 +227,9 @@ class ParameterScope extends BoundScope {
         this.isSimpleParameterList = false;
     }
 
-    extractParameterScope(): S.AssertedParameterScope {
-        return S.AssertedParameterScope.make({
-            boundNames: Object.freeze(this.boundNames()),
+    extractParameterScope(): TS.AssertedParameterScope {
+        return TS.AssertedParameterScope.make({
+            boundNames: this.boundNames(),
             hasDirectEval: this.hasDirectEval,
             isSimpleParameterList:
                 this.isSimpleParameterList
@@ -219,9 +242,9 @@ class BoundNamesScope extends BoundScope {
         super();
     }
 
-    extractBoundNamesScope(): S.AssertedBoundNamesScope {
-        return S.AssertedBoundNamesScope.make({
-            boundNames: Object.freeze(this.boundNames()),
+    extractBoundNamesScope(): TS.AssertedBoundNamesScope {
+        return TS.AssertedBoundNamesScope.make({
+            boundNames: this.boundNames(),
             hasDirectEval: this.hasDirectEval
         });
     }
@@ -232,7 +255,8 @@ enum ScopeBindMode {
     Var = "var",
     Let = "let",
     Const = "const",
-    Parameter = "parameter"
+    Parameter = "parameter",
+    CatchClause = "catch_clause"
 }
 
 class Context {
@@ -271,9 +295,9 @@ class Context {
         return this.enterScope<BoundNamesScope, T>(
             new BoundNamesScope(), f);
     }
-    private enterScope<S extends BaseScope, T>(
-        scope: S,
-        f: (S) => T
+    private enterScope<TS extends BaseScope, T>(
+        scope: TS,
+        f: (TS) => T
     ): T
     {
         this.scopeStack.push(scope);
@@ -282,16 +306,16 @@ class Context {
         return result;
     }
 
-    bindDeclKind<T>(kind: S.VariableDeclarationKind,
+    bindDeclKind<T>(kind: TS.VariableDeclarationKind,
                     f: () => T)
       : T
     {
         switch (kind) {
-          case S.VariableDeclarationKind.KwVar:
+          case TS.VariableDeclarationKind.KwVar:
             return this.bindVars(f);
-          case S.VariableDeclarationKind.KwLet:
+          case TS.VariableDeclarationKind.KwLet:
             return this.bindLets(f);
-          case S.VariableDeclarationKind.KwConst:
+          case TS.VariableDeclarationKind.KwConst:
             return this.bindConsts(f);
           default:
             throw new Error(
@@ -317,7 +341,7 @@ class Context {
         return result;
     }
 
-    noteBoundName(name: S.Identifier) {
+    noteBoundName(name: TS.Identifier) {
         assert(this.bindStack.length > 0);
         const bindMode = this.bindStack[
                             this.bindStack.length - 1];
@@ -334,34 +358,36 @@ class Context {
           case ScopeBindMode.Parameter:
             return this.noteBoundParameter(name);
 
+          case ScopeBindMode.CatchClause:
+            return this.noteBoundCatchClause(name);
+
           default:
             throw new Error(`Invalid scope bind mode:` +
                             ` ${bindMode}`);
         }
     }
 
-    private idToIdName(id: S.Identifier)
-      : S.IdentifierName
+    private idToIdName(id: TS.Identifier)
+      : TS.IdentifierName
     {
-        // ASSERT: S.ReflectedSchema.typeof_Identifier
-        //      == S.ReflectedSchema.typeof_IdentifierName.
-        //      == S.ReflectedSchema.TStr
-        return id as S.IdentifierName;
+        // ASSERT: RS.typeof_Identifier
+        //      == RS.typeof_IdentifierName.
+        //      == RS.TStr
+        return id as TS.IdentifierName;
     }
 
-    private noteDeclared(name: S.Identifier,
-                         kind: S.AssertedDeclaredKind,
+    private noteDeclared(name: TS.Identifier,
+                         kind: TS.AssertedDeclaredKind,
                          classes: Array<Function>)
     {
         const found = this.eachScope(scope => {
-            if (!(scope instanceof DeclaredScope)) {
+            if (! classes.some(c => scope instanceof c)) {
                 // Continue to next scope.
                 return;
             }
-            assert(classes.some(c => scope instanceof c));
 
             const declScope = scope as DeclaredScope;
-            const dn = S.AssertedDeclaredName.make({
+            const dn = TS.AssertedDeclaredName.make({
                 name: this.idToIdName(name),
                 kind: kind,
                 isCaptured: false
@@ -372,15 +398,17 @@ class Context {
         assert(found === true);
     }
 
-    private noteBound(name: S.Identifier) {
+    private noteBound(name: TS.Identifier,
+                      classes: Array<Function>)
+    {
         const found = this.eachScope(scope => {
-            if (! (scope instanceof BoundScope)) {
+            if (! classes.some(c => scope instanceof c)) {
                 // Continue to next scope.
                 return;
             }
 
             const boundScope = scope as BoundScope;
-            const bn = S.AssertedBoundName.make({
+            const bn = TS.AssertedBoundName.make({
                 name: this.idToIdName(name),
                 isCaptured: false
             });
@@ -390,26 +418,29 @@ class Context {
         assert(found === true);
     }
 
-    private noteDeclaredVar(name: S.Identifier) {
+    private noteDeclaredVar(name: TS.Identifier) {
         this.noteDeclared(name,
-            S.AssertedDeclaredKind.KwVar,
+            TS.AssertedDeclaredKind.KwVar,
             [VarScope]);
     }
 
-    private noteDeclaredLet(name: S.Identifier) {
+    private noteDeclaredLet(name: TS.Identifier) {
         this.noteDeclared(name,
-            S.AssertedDeclaredKind.NonConstLexical,
+            TS.AssertedDeclaredKind.NonConstLexical,
             [VarScope, BlockScope, ScriptGlobalScope]);
     }
 
-    private noteDeclaredConst(name: S.Identifier) {
+    private noteDeclaredConst(name: TS.Identifier) {
         this.noteDeclared(name,
-            S.AssertedDeclaredKind.ConstLexical,
+            TS.AssertedDeclaredKind.ConstLexical,
             [VarScope, BlockScope, ScriptGlobalScope]);
     }
 
-    private noteBoundParameter(name: S.Identifier) {
-        this.noteBound(name);
+    private noteBoundParameter(name: TS.Identifier) {
+        this.noteBound(name, [ParameterScope]);
+    }
+    private noteBoundCatchClause(name: TS.Identifier) {
+        this.noteBound(name, [BoundNamesScope]);
     }
 
     private eachScope<T>(f: (BaseScope) => T|undefined)
@@ -504,7 +535,7 @@ export class Importer {
     // Top level
     //
 
-    liftScript(json: any): S.Script {
+    liftScript(json: any): TS.Script {
         assertNodeType(json, 'Script');
         assert(this.cx.atTopScope());
 
@@ -512,33 +543,34 @@ export class Importer {
             (json.directives as Array<any>).map(
                 d => this.liftDirective(d));
 
-        return this.cx.enterVarScope((ss: VarScope) => {
-            const statements =
-                (json.statements as Array<any>).map(
-                    s => this.liftStatement(s));
+        return this.cx.enterScriptGlobalScope(
+            (ss: ScriptGlobalScope) => {
+                const statements =
+                    (json.statements as Array<any>).map(
+                        s => this.liftStatement(s));
 
-            const scope = ss.extractVarScope();
+                const scope = ss.extractScriptGlobalScope();
 
-            return S.Script.make({scope, directives,
-                                  statements});
-        });
+                return TS.Script.make({scope, directives,
+                                       statements});
+            });
     }
 
-    liftDirective(json: any): S.Directive {
+    liftDirective(json: any): TS.Directive {
         assertNodeType(json, 'Directive');
         assertType(json.rawValue, 'string');
 
         const rawValue = json.rawValue as string;
         this.strings.note(rawValue);
 
-        return S.Directive.make({rawValue});
+        return TS.Directive.make({rawValue});
     }
 
     //
     // Statements
     //
 
-    liftStatement(json: any): S.Statement {
+    liftStatement(json: any): TS.Statement {
         switch (json.type as string) {
           case 'ExpressionStatement':
             return this.liftExpressionStatement(json);
@@ -586,17 +618,17 @@ export class Importer {
     }
 
     liftExpressionStatement(json: any)
-      : S.ExpressionStatement
+      : TS.ExpressionStatement
     {
         assertNodeType(json, 'ExpressionStatement');
 
         const expression = this.liftExpression(
                                     json.expression);
-        return S.ExpressionStatement.make({expression});
+        return TS.ExpressionStatement.make({expression});
     }
 
     liftVariableDeclarationStatement(json: any)
-      : S.VariableDeclaration
+      : TS.VariableDeclaration
     {
         assertNodeType(json,
                 'VariableDeclarationStatement');
@@ -605,7 +637,7 @@ export class Importer {
     }
 
     liftVariableDeclaration(json: any)
-      : S.VariableDeclaration
+      : TS.VariableDeclaration
     {
         assertNodeType(json, 'VariableDeclaration');
 
@@ -615,27 +647,27 @@ export class Importer {
             return this.liftVariableDeclarator(d)
         });
 
-        return S.VariableDeclaration.make({kind,
+        return TS.VariableDeclaration.make({kind,
                                         declarators});
     }
     liftVariableDeclarationKind(kind: string)
-      : S.VariableDeclarationKind
+      : TS.VariableDeclarationKind
     {
         this.strings.note(kind);
         switch (kind) {
           case 'var':
-            return S.VariableDeclarationKind.KwVar;
+            return TS.VariableDeclarationKind.KwVar;
           case 'let':
-            return S.VariableDeclarationKind.KwLet;
+            return TS.VariableDeclarationKind.KwLet;
           case 'const':
-            return S.VariableDeclarationKind.KwConst;
+            return TS.VariableDeclarationKind.KwConst;
           default:
             throw new MatchError(
                 'VariableDeclarationKind', kind);
         }
     }
     liftVariableDeclarator(json: any)
-      : S.VariableDeclarator
+      : TS.VariableDeclarator
     {
         assertNodeType(json, 'VariableDeclarator');
 
@@ -649,16 +681,16 @@ export class Importer {
         const binding = this.cx.bindVars(() => {
             return this.liftBinding(json.binding);
         });
-        return S.VariableDeclarator.make({binding, init});
+        return TS.VariableDeclarator.make({binding, init});
     }
-    liftBinding(json: any): S.Binding {
+    liftBinding(json: any): TS.Binding {
         const binding = this.tryLiftBinding(json);
         if (binding === null) {
             throw new MatchError('Binding', json.type);
         }
         return binding;
     }
-    tryLiftBinding(json: any): S.Binding|null {
+    tryLiftBinding(json: any): TS.Binding|null {
         switch (json.type) {
           case 'BindingIdentifier':
             return this.liftBindingIdentifier(json);
@@ -669,22 +701,22 @@ export class Importer {
             return null;
         }
     }
-    liftBindingIdentifier(json: any): S.BindingIdentifier {
+    liftBindingIdentifier(json: any): TS.BindingIdentifier {
         assertNodeType(json, 'BindingIdentifier');
         assertType(json.name, 'string');
 
         const name = this.liftIdentifier(json.name);
         this.cx.noteBoundName(name);
-        return S.BindingIdentifier.make({name});
+        return TS.BindingIdentifier.make({name});
     }
 
-    liftIdentifier(name: string): S.Identifier {
+    liftIdentifier(name: string): TS.Identifier {
         this.strings.note(name);
-        return name as S.Identifier;
+        return name as TS.Identifier;
     }
 
     liftFunctionDeclaration(json: any)
-      : S.FunctionDeclaration
+      : TS.FunctionDeclaration
     {
         assertNodeType(json, 'FunctionDeclaration');
         assertType(json.isGenerator, 'boolean');
@@ -721,7 +753,7 @@ export class Importer {
                 const bodyScope = bs.extractVarScope();
 
                 const contents =
-                    S.FunctionOrMethodContents.make({
+                    TS.FunctionOrMethodContents.make({
                         isThisCaptured,
                         parameterScope, params,
                         bodyScope, body
@@ -729,7 +761,7 @@ export class Importer {
 
                 // TODO: Emit LazyFunctionDeclaration
                 // when appropriate.
-                return S.EagerFunctionDeclaration.make({
+                return TS.EagerFunctionDeclaration.make({
                     isAsync, isGenerator, name,
                     directives, contents
                 });
@@ -737,19 +769,19 @@ export class Importer {
         });
     }
 
-    liftFormalParameters(json: any): S.FormalParameters {
+    liftFormalParameters(json: any): TS.FormalParameters {
         assertNodeType(json, 'FormalParameters');
         return this.cx.bindParameters(() => {
             const items = json.items.map(
                             i => this.liftParameter(i));
-            const rest: (S.Binding | null) =
+            const rest: (TS.Binding | null) =
                 json.rest !== null ?
                     this.liftBinding(json.rest)
                   : null;
-            return S.FormalParameters.make({items, rest});
+            return TS.FormalParameters.make({items, rest});
         });
     }
-    liftParameter(json: any): S.Parameter {
+    liftParameter(json: any): TS.Parameter {
         // Try to lift a binding
         let binding = this.tryLiftBinding(json);
         if (binding !== null) {
@@ -761,7 +793,7 @@ export class Importer {
         throw new MatchError('Parameter', json.type);
     }
 
-    liftIfStatement(json: any): S.IfStatement {
+    liftIfStatement(json: any): TS.IfStatement {
         assertNodeType(json, 'IfStatement');
 
         const test = this.liftExpression(json.test);
@@ -772,41 +804,41 @@ export class Importer {
                 this.liftStatement(json.alternate)
               : null;
 
-        return S.IfStatement.make({test, consequent,
+        return TS.IfStatement.make({test, consequent,
                                    alternate});
     }
-    liftWhileStatement(json: any): S.WhileStatement {
+    liftWhileStatement(json: any): TS.WhileStatement {
         assertNodeType(json, 'WhileStatement');
 
         const test = this.liftExpression(json.test);
         const body = this.liftStatement(json.body);
 
-        return S.WhileStatement.make({test, body});
+        return TS.WhileStatement.make({test, body});
     }
-    liftDoWhileStatement(json: any): S.DoWhileStatement {
+    liftDoWhileStatement(json: any): TS.DoWhileStatement {
         assertNodeType(json, 'DoWhileStatement');
 
         const test = this.liftExpression(json.test);
         const body = this.liftStatement(json.body);
 
-        return S.DoWhileStatement.make({test, body});
+        return TS.DoWhileStatement.make({test, body});
     }
 
-    liftBlockStatement(json: any): S.Block {
+    liftBlockStatement(json: any): TS.Block {
         assertNodeType(json, 'BlockStatement');
         return this.liftBlock(json.block);
     }
-    liftBlock(json: any): S.Block {
+    liftBlock(json: any): TS.Block {
         assertNodeType(json, 'Block');
 
         return this.cx.enterBlockScope(s => {
             const statements = json.statements.map(
                                 s => this.liftStatement(s));
             const scope = s.extractBlockScope();
-            return S.Block.make({scope, statements});
+            return TS.Block.make({scope, statements});
         });
     }
-    liftReturnStatement(json: any): S.ReturnStatement {
+    liftReturnStatement(json: any): TS.ReturnStatement {
         assertNodeType(json, 'ReturnStatement');
 
         const expression =
@@ -814,9 +846,9 @@ export class Importer {
                 this.liftExpression(json.expression)
               : null;
 
-        return S.ReturnStatement.make({expression});
+        return TS.ReturnStatement.make({expression});
     }
-    liftForInStatement(json: any): S.ForInStatement {
+    liftForInStatement(json: any): TS.ForInStatement {
         assertNodeType(json, 'ForInStatement');
 
         return this.cx.enterBlockScope((vs: VarScope) => {
@@ -828,12 +860,12 @@ export class Importer {
                                                 json.left);
             const body = this.liftStatement(json.body);
 
-            return S.ForInStatement.make({left, right,
+            return TS.ForInStatement.make({left, right,
                                          body});
         });
     }
     liftForInStatementLeft(json: any)
-      : (S.ForInOfBinding | S.AssignmentTarget)
+      : (TS.ForInOfBinding | TS.AssignmentTarget)
     {
         const result = this.tryLiftAssignmentTarget(json);
         if (result !== null) {
@@ -862,14 +894,14 @@ export class Importer {
                     return this.liftBinding(decl.binding);
               });
 
-            return S.ForInOfBinding.make({kind, binding});
+            return TS.ForInOfBinding.make({kind, binding});
         }
 
         throw new MatchError('ForInStatementLeft',
                              json.type);
     }
 
-    liftForStatement(json: any): S.ForStatement {
+    liftForStatement(json: any): TS.ForStatement {
         assertNodeType(json, 'ForStatement');
 
         return this.cx.enterBlockScope(bs => {
@@ -883,13 +915,13 @@ export class Importer {
                 : null;
             const body = this.liftStatement(json.body);
 
-            return S.ForStatement.make({
+            return TS.ForStatement.make({
                 init, test, update, body
             });
         });
     }
     liftForStatementInit(json: any)
-      : (S.VariableDeclaration | S.Expression | null)
+      : (TS.VariableDeclaration | TS.Expression | null)
     {
         if (json === null) {
             return null;
@@ -906,66 +938,71 @@ export class Importer {
 
         throw new MatchError('ForStatementInit', json.type);
     }
-    liftBreakStatement(json: any): S.BreakStatement {
+    liftBreakStatement(json: any): TS.BreakStatement {
         assertNodeType(json, 'BreakStatement');
         assertType(json.label, 'string',
                    /* nullable = */ true);
 
         const label = this.liftLabel(json.label);
 
-        return S.BreakStatement.make({label});
+        return TS.BreakStatement.make({label});
     }
-    liftLabel(label: string|null): S.Label|null {
+    liftLabel(label: string|null): TS.Label|null {
         if (label !== null) {
             this.strings.note(label as string);
         }
-        return label as (S.Label|null);
+        return label as (TS.Label|null);
     }
-    liftContinueStatement(json: any): S.ContinueStatement {
+    liftContinueStatement(json: any): TS.ContinueStatement {
         assertNodeType(json, 'ContinueStatement');
         assertType(json.label, 'string',
                      /* nullable = */ true);
 
         const label = this.liftLabel(json.label);
 
-        return S.ContinueStatement.make({label});
+        return TS.ContinueStatement.make({label});
     }
-    liftTryCatchStatement(json: any): S.TryCatchStatement {
+    liftTryCatchStatement(json: any): TS.TryCatchStatement {
         assertNodeType(json, 'TryCatchStatement');
 
         const body = this.liftBlock(json.body);
         const catchClause = this.liftCatchClause(
                                     json.catchClause);
 
-        return S.TryCatchStatement.make({
+        return TS.TryCatchStatement.make({
             body, catchClause
         });
     }
-    tryLiftCatchClause(json: any): S.CatchClause | null {
+    tryLiftCatchClause(json: any): TS.CatchClause | null {
         if (json === null) {
             return null;
         } else {
             return this.liftCatchClause(json);
         }
     }
-    liftCatchClause(json: any): S.CatchClause {
+    liftCatchClause(json: any): TS.CatchClause {
         assertNodeType(json, 'CatchClause');
 
-        return this.cx.enterParameterScope(bs => {
+        return this.cx.enterBoundNamesScope(bs => {
+
             const binding = this.cx.bindParameters(() => {
                 return this.liftBindingIdentifier(
                                         json.binding);
             });
+
             const body = this.liftBlock(json.body);
-            const bindingScope = bs.extractParameterScope();
-            return S.CatchClause.make({
+
+            const bindingScope =
+                bs.extractBoundNamesScope();
+
+            return TS.CatchClause.make({
                 bindingScope, binding, body
             });
         });
     }
 
     liftTryFinallyStatement(json: any)
-      : S.TryFinallyStatement
+      : TS.TryFinallyStatement
     {
         assertNodeType(json, 'TryFinallyStatement');
 
@@ -976,31 +1013,32 @@ export class Importer {
 
         const finalizer =this.liftBlock(json.finalizer);
 
-        return S.TryFinallyStatement.make({
+        return TS.TryFinallyStatement.make({
             body, catchClause, finalizer
         });
     }
-    liftThrowStatement(json: any): S.ThrowStatement {
+
+    liftThrowStatement(json: any): TS.ThrowStatement {
         assertNodeType(json, 'ThrowStatement');
 
         const expression = this.liftExpression(
                                     json.expression);
 
-        return S.ThrowStatement.make({expression});
+        return TS.ThrowStatement.make({expression});
     }
-    liftSwitchStatement(json: any): S.SwitchStatement {
+    liftSwitchStatement(json: any): TS.SwitchStatement {
         assertNodeType(json, 'SwitchStatement');
 
         const discriminant = this.liftExpression(
                                     json.discriminant);
         const cases = json.cases.map(
                         c => this.liftSwitchCase(c));
-        return S.SwitchStatement.make({
+        return TS.SwitchStatement.make({
             discriminant, cases
         });
     }
     liftSwitchStatementWithDefault(json: any)
-      : S.SwitchStatementWithDefault
+      : TS.SwitchStatementWithDefault
     {
         assertNodeType(json, 'SwitchStatementWithDefault');
 
@@ -1020,32 +1058,32 @@ export class Importer {
             return this.liftSwitchCase(c);
           });
 
-        return S.SwitchStatementWithDefault.make({
+        return TS.SwitchStatementWithDefault.make({
             discriminant,
             preDefaultCases,
             defaultCase,
             postDefaultCases
         });
     }
-    liftSwitchCase(json: any): S.SwitchCase {
+    liftSwitchCase(json: any): TS.SwitchCase {
         assertNodeType(json, 'SwitchCase');
 
         const test = this.liftExpression(json.test);
         const consequent = json.consequent.map(
                             c => this.liftStatement(c));
 
-        return S.SwitchCase.make({test, consequent});
+        return TS.SwitchCase.make({test, consequent});
     }
-    liftSwitchDefault(json: any): S.SwitchDefault {
+    liftSwitchDefault(json: any): TS.SwitchDefault {
         assertNodeType(json, 'SwitchDefault');
 
         const consequent = json.consequent.map(
                             c => this.liftStatement(c));
 
-        return S.SwitchDefault.make({consequent});
+        return TS.SwitchDefault.make({consequent});
     }
 
-    liftLabeledStatement(json: any): S.LabelledStatement {
+    liftLabeledStatement(json: any): TS.LabelledStatement {
         assertNodeType(json, 'LabeledStatement');
         assertType(json.label, 'string');
 
@@ -1054,22 +1092,22 @@ export class Importer {
 
         const body = this.liftStatement(json.body);
 
-        return S.LabelledStatement.make({label, body});
+        return TS.LabelledStatement.make({label, body});
     }
-    liftEmptyStatement(json: any): S.EmptyStatement {
+    liftEmptyStatement(json: any): TS.EmptyStatement {
         assertNodeType(json, 'EmptyStatement');
 
-        return S.EmptyStatement.make({});
+        return TS.EmptyStatement.make({});
     }
 
-    liftExpression(json: any): S.Expression {
+    liftExpression(json: any): TS.Expression {
         const expr = this.tryLiftExpression(json);
         if (expr !== null) {
             return expr;
         }
         throw new MatchError('Expression', json.type);
     }
-    liftExpressionOrSuper(json: any): S.Expression {
+    liftExpressionOrSuper(json: any): TS.Expression {
         const expr = this.tryLiftExpression(json);
         if (expr !== null) {
             return expr;
@@ -1078,7 +1116,7 @@ export class Importer {
         throw new MatchError('ExpressionOrSuper',
                              json.type);
     }
-    tryLiftExpression(json: any): S.Expression|null {
+    tryLiftExpression(json: any): TS.Expression|null {
         switch (json.type as string) {
           case 'CallExpression':
             return this.liftCallExpression(json);
@@ -1125,7 +1163,7 @@ export class Importer {
             throw new Error("Unrecognized expression");
         }
     }
-    liftCallExpression(json: any): S.CallExpression {
+    liftCallExpression(json: any): TS.CallExpression {
         assertNodeType(json, 'CallExpression');
 
         // TODO: Check for |super| in callee.
@@ -1133,12 +1171,12 @@ export class Importer {
         const arguments_ =
           (json.arguments as Array<any>)
             .map(s => this.liftExpression(s));
-        return S.CallExpression.make({
+        return TS.CallExpression.make({
             callee, arguments: arguments_
         });
     }
     liftStaticMemberExpression(json: any)
-      : S.StaticMemberExpression
+      : TS.StaticMemberExpression
     {
         assertNodeType(json, 'StaticMemberExpression');
         assertType(json.property, 'string');
@@ -1147,12 +1185,12 @@ export class Importer {
         const object = this.liftExpression(json.object);
         const property = json.property;
         this.strings.note(property);
-        return S.StaticMemberExpression.make({
+        return TS.StaticMemberExpression.make({
             object, property
         });
     }
     liftIdentifierExpression(json: any):
-      S.IdentifierExpression
+      TS.IdentifierExpression
     {
         assertNodeType(json, 'IdentifierExpression');
         assertType(json.name, 'string');
@@ -1162,10 +1200,10 @@ export class Importer {
         // Note the use of the identifier.
         this.cx.noteUseName(name);
 
-        return S.IdentifierExpression.make({name});
+        return TS.IdentifierExpression.make({name});
     }
     liftLiteralStringExpression(json: any)
-      : S.LiteralStringExpression
+      : TS.LiteralStringExpression
     {
         assertNodeType(json, 'LiteralStringExpression');
         assertType(json.value, 'string');
@@ -1173,20 +1211,20 @@ export class Importer {
         const value = json.value as string;
         this.strings.note(value);
 
-        return S.LiteralStringExpression.make({value});
+        return TS.LiteralStringExpression.make({value});
     }
     liftLiteralBooleanExpression(json: any)
-      : S.LiteralBooleanExpression
+      : TS.LiteralBooleanExpression
     {
         assertNodeType(json, 'LiteralBooleanExpression');
         assertType(json.value, 'boolean');
 
         const value = json.value as boolean;
 
-        return S.LiteralBooleanExpression.make({value});
+        return TS.LiteralBooleanExpression.make({value});
     }
     liftObjectExpression(json: any)
-      : S.ObjectExpression
+      : TS.ObjectExpression
     {
         assertNodeType(json, 'ObjectExpression');
 
@@ -1195,10 +1233,10 @@ export class Importer {
                 return this.liftObjectProperty(p);
             });
 
-        return S.ObjectExpression.make({properties});
+        return TS.ObjectExpression.make({properties});
     }
 
-    liftObjectProperty(json: any): S.ObjectProperty {
+    liftObjectProperty(json: any): TS.ObjectProperty {
         switch (json.type as string) {
           case 'DataProperty':
             return this.liftDataProperty(json);
@@ -1210,26 +1248,26 @@ export class Importer {
         }
     }
 
-    liftDataProperty(json: any): S.DataProperty {
+    liftDataProperty(json: any): TS.DataProperty {
         assertNodeType(json, 'DataProperty');
 
         const name = this.liftPropertyName(json.name);
         const expression = this.liftExpression(
                                         json.expression);
 
-        return S.DataProperty.make({name, expression});
+        return TS.DataProperty.make({name, expression});
     }
 
-    liftArrayExpression(json: any): S.ArrayExpression {
+    liftArrayExpression(json: any): TS.ArrayExpression {
         assertNodeType(json, 'ArrayExpression');
 
         const elements = json.elements.map(
                             e => this.liftArrayElement(e));
 
-        return S.ArrayExpression.make({elements});
+        return TS.ArrayExpression.make({elements});
     }
     liftArrayElement(json: any)
-      : S.Opt<S.SpreadElement | S.Expression>
+      : TS.Opt<TS.SpreadElement | TS.Expression>
     {
         // Handle opt.
         if (json === null) {
@@ -1249,7 +1287,7 @@ export class Importer {
         throw new MatchError('ArrayElement', json.type);
     }
     liftFunctionExpression(json: any)
-      : S.FunctionExpression
+      : TS.FunctionExpression
     {
         assertNodeType(json, 'FunctionExpression');
         assertType(json.isGenerator, 'boolean');
@@ -1288,7 +1326,7 @@ export class Importer {
                 const bodyScope = bs.extractVarScope();
 
                 const contents =
-                    S.FunctionExpressionContents.make({
+                    TS.FunctionExpressionContents.make({
                         isThisCaptured,
                         isFunctionNameCaptured,
                         parameterScope, params,
@@ -1297,7 +1335,7 @@ export class Importer {
 
                 // TODO: Emit SkippableFunctionExpression
                 // when appropriate.
-                return S.EagerFunctionExpression.make({
+                return TS.EagerFunctionExpression.make({
                     isAsync, isGenerator, name,
                     directives, contents
                 });
@@ -1305,7 +1343,7 @@ export class Importer {
         });
     }
     liftAssignmentExpression(json: any)
-      : S.AssignmentExpression
+      : TS.AssignmentExpression
     {
         assertNodeType(json, 'AssignmentExpression');
 
@@ -1315,11 +1353,11 @@ export class Importer {
         const expression = this.liftExpression(
                                         json.expression);
 
-        return S.AssignmentExpression.make({
+        return TS.AssignmentExpression.make({
             binding, expression
         });
     }
-    liftAssignmentTarget(json: any): S.AssignmentTarget {
+    liftAssignmentTarget(json: any): TS.AssignmentTarget {
         const result = this.tryLiftAssignmentTarget(json);
         if (result !== null) {
             return result;
@@ -1327,7 +1365,7 @@ export class Importer {
         throw new MatchError('AssignmentTarget', json.type);
     }
     tryLiftAssignmentTarget(json: any)
-      : S.AssignmentTarget | null
+      : TS.AssignmentTarget | null
     {
         const simple =
             this.tryLiftSimpleAssignmentTarget(json);
@@ -1337,7 +1375,7 @@ export class Importer {
         return null;
     }
     liftSimpleAssignmentTarget(json: any)
-      : S.SimpleAssignmentTarget
+      : TS.SimpleAssignmentTarget
     {
         const target =
             this.tryLiftSimpleAssignmentTarget(json);
@@ -1348,7 +1386,7 @@ export class Importer {
                              json.type);
     }
     tryLiftSimpleAssignmentTarget(json: any)
-      : S.SimpleAssignmentTarget|null
+      : TS.SimpleAssignmentTarget|null
     {
         switch (json.type as string) {
           case 'AssignmentTargetIdentifier':
@@ -1365,7 +1403,7 @@ export class Importer {
         }
     }
     liftAssignmentTargetIdentifier(json: any)
-      : S.AssignmentTargetIdentifier
+      : TS.AssignmentTargetIdentifier
     {
         assertNodeType(json, 'AssignmentTargetIdentifier');
         assertType(json.name, 'string');
@@ -1375,10 +1413,10 @@ export class Importer {
         // Note the use of the identifier.
         this.cx.noteUseName(name);
 
-        return S.AssignmentTargetIdentifier.make({name});
+        return TS.AssignmentTargetIdentifier.make({name});
     }
     liftStaticMemberAssignmentTarget(json: any)
-      : S.StaticMemberAssignmentTarget
+      : TS.StaticMemberAssignmentTarget
     {
         assertNodeType(json,
                 'StaticMemberAssignmentTarget');
@@ -1391,13 +1429,13 @@ export class Importer {
         const property =
             this.liftIdentifier(json.property);
 
-        return S.StaticMemberAssignmentTarget.make({
+        return TS.StaticMemberAssignmentTarget.make({
             object: object_, property
         });
     }
 
     liftComputedMemberAssignmentTarget(json: any)
-      : S.ComputedMemberAssignmentTarget
+      : TS.ComputedMemberAssignmentTarget
     {
         assertNodeType(json,
             'ComputedMemberAssignmentTarget');
@@ -1408,44 +1446,44 @@ export class Importer {
         const expression =
             this.liftExpression(json.expression);
 
-        return S.ComputedMemberAssignmentTarget.make({
+        return TS.ComputedMemberAssignmentTarget.make({
             object: object_, expression
         });
     }
 
     liftLiteralNullExpression(json: any)
-      : S.LiteralNullExpression
+      : TS.LiteralNullExpression
     {
         assertNodeType(json, 'LiteralNullExpression');
-        return S.LiteralNullExpression.make({});
+        return TS.LiteralNullExpression.make({});
     }
-    liftUnaryExpression(json: any): S.UnaryExpression {
+    liftUnaryExpression(json: any): TS.UnaryExpression {
         assertNodeType(json, 'UnaryExpression');
         assertType(json.operator, 'string');
 
-        const operator = json.operator as S.UnaryOperator;
-        this.strings.note(operator as string);
+        const operator =
+            TS.liftUnaryOperator(json.operator as string);
 
         const operand = this.liftExpression(json.operand);
 
-        return S.UnaryExpression.make({operator, operand});
+        return TS.UnaryExpression.make({operator, operand});
     }
-    liftBinaryExpression(json: any): S.BinaryExpression {
+    liftBinaryExpression(json: any): TS.BinaryExpression {
         assertNodeType(json, 'BinaryExpression');
         assertType(json.operator, 'string');
 
-        const operator = json.operator as S.BinaryOperator;
-        this.strings.note(operator as string);
+        const operator =
+            TS.liftBinaryOperator(json.operator as string);
 
         const left = this.liftExpression(json.left);
         const right = this.liftExpression(json.right);
 
-        return S.BinaryExpression.make({
+        return TS.BinaryExpression.make({
             operator, left, right
         });
     }
     liftComputedMemberExpression(json: any)
-      : S.ComputedMemberExpression
+      : TS.ComputedMemberExpression
     {
         assertNodeType(json, 'ComputedMemberExpression');
 
@@ -1454,21 +1492,21 @@ export class Importer {
         const expression =
             this.liftExpression(json.expression);
 
-        return S.ComputedMemberExpression.make({
+        return TS.ComputedMemberExpression.make({
             object: object_, expression
         });
     }
     liftLiteralNumericExpression(json: any)
-      : S.LiteralNumericExpression
+      : TS.LiteralNumericExpression
     {
         assertNodeType(json, 'LiteralNumericExpression');
         assertType(json.value, 'number');
 
         const value = json.value as number;
-        return S.LiteralNumericExpression.make({value});
+        return TS.LiteralNumericExpression.make({value});
     }
     liftLiteralRegExpExpression(json: any)
-      : S.LiteralRegExpExpression
+      : TS.LiteralRegExpExpression
     {
         assertNodeType(json, 'LiteralRegExpExpression');
         assertType(json.pattern, 'string');
@@ -1490,12 +1528,12 @@ export class Importer {
         const flags = flagArray.join();
         this.strings.note(flags);
 
-        return S.LiteralRegExpExpression.make({
+        return TS.LiteralRegExpExpression.make({
             pattern, flags
         });
     }
     liftCompoundAssignmentExpression(json: any)
-      : S.CompoundAssignmentExpression
+      : TS.CompoundAssignmentExpression
     {
         assertNodeType(json,
             'CompoundAssignmentExpression');
@@ -1503,9 +1541,8 @@ export class Importer {
         assertType(json.operator, 'string');
 
         const operator =
-            json.operator as S.CompoundAssignmentOperator;
-
-        this.strings.note(operator as string);
+            TS.liftCompoundAssignmentOperator(
+                            json.operator as string);
 
         const binding =
             this.liftSimpleAssignmentTarget(json.binding);
@@ -1513,44 +1550,45 @@ export class Importer {
         const expression =
             this.liftExpression(json.expression);
 
-        return S.CompoundAssignmentExpression.make({
+        return TS.CompoundAssignmentExpression.make({
             operator, binding, expression
         });
     }
 
-    liftUpdateExpression(json: any): S.UpdateExpression {
+    liftUpdateExpression(json: any): TS.UpdateExpression {
         assertNodeType(json, 'UpdateExpression');
         assertType(json.isPrefix, 'boolean');
         assertType(json.operator, 'string');
 
         const isPrefix = json.isPrefix as boolean;
-        const operator = json.operator as S.UpdateOperator;
-        this.strings.note(operator as string);
+
+        const operator =
+            TS.liftUpdateOperator(json.operator as string);
 
         const operand =
             this.liftSimpleAssignmentTarget(json.operand);
 
-        return S.UpdateExpression.make({
+        return TS.UpdateExpression.make({
             isPrefix, operator, operand
         });
     }
-    liftNewExpression(json: any): S.NewExpression {
+    liftNewExpression(json: any): TS.NewExpression {
         assertNodeType(json, 'NewExpression');
 
         const callee = this.liftExpression(json.callee);
         const arguments_ =
             json.arguments.map(s => this.liftExpression(s));
 
-        return S.NewExpression.make({
+        return TS.NewExpression.make({
             callee, arguments: arguments_
         });
     }
-    liftThisExpression(json: any): S.ThisExpression {
+    liftThisExpression(json: any): TS.ThisExpression {
         assertNodeType(json, 'ThisExpression');
-        return S.ThisExpression.make({});
+        return TS.ThisExpression.make({});
     }
     liftConditionalExpression(json: any)
-      : S.ConditionalExpression
+      : TS.ConditionalExpression
     {
         assertNodeType(json, 'ConditionalExpression');
 
@@ -1562,12 +1600,12 @@ export class Importer {
         const alternate =
             this.liftExpression(json.alternate);
 
-        return S.ConditionalExpression.make({
+        return TS.ConditionalExpression.make({
             test, consequent, alternate
         });
     }
 
-    liftPropertyName(json: any): S.PropertyName {
+    liftPropertyName(json: any): TS.PropertyName {
         switch (json.type as string) {
           case 'StaticPropertyName':
             return this.liftStaticPropertyName(json);
@@ -1577,7 +1615,7 @@ export class Importer {
     }
 
     liftStaticPropertyName(json: any)
-      : S.LiteralPropertyName
+      : TS.LiteralPropertyName
     {
         assertNodeType(json, 'StaticPropertyName');
         assertType(json.value, 'string');
@@ -1585,6 +1623,6 @@ export class Importer {
         const value = json.value as string;
         this.strings.note(value);
 
-        return S.LiteralPropertyName.make({value});
+        return TS.LiteralPropertyName.make({value});
     }
 }

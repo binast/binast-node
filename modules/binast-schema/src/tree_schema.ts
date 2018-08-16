@@ -14,7 +14,12 @@ import * as util from './util';
 export class TreeSchema {
     readonly decls: OrderedMap<TypeName, Declaration>;
 
-    constructor(decls: OrderedMap<TypeName, Declaration>) {
+    constructor(declArray: Array<Declaration>) {
+        const decls = new OrderedMap<TypeName,
+                                     Declaration>();
+        for (let decl of declArray) {
+            decls.set(decl.name, decl);
+        }
         this.decls = decls;
         Object.freeze(this);
     }
@@ -90,18 +95,19 @@ export class TreeSchema {
                         "S.TypeName.make(name));",
             "}",
             "",
-            "const TBool = S.PrimitiveType.Bool;",
-            "const TUint = S.PrimitiveType.Uint;",
-            "const TInt = S.PrimitiveType.Int;",
-            "const TF64 = S.PrimitiveType.F64;",
-            "const TStr = S.PrimitiveType.Str;",
+            "const TBool = S.FieldTypePrimitive.Bool;",
+            "const TUint = S.FieldTypePrimitive.Uint;",
+            "const TInt = S.FieldTypePrimitive.Int;",
+            "const TF64 = S.FieldTypePrimitive.F64;",
+            "const TStr = S.FieldTypePrimitive.Str;",
             "",
-            "function mkEVN(name: string)"
+            "function mkEVN(enumName: string, name: string)"
               + ": S.EnumVariantName {",
-            "   return S.EnumVariantName.make(name);",
+            "   const tn = S.TypeName.make(enumName);",
+            "   return S.EnumVariantName.make(tn, name);",
             "}",
             "",
-            "const ReflectedSchema = {",
+            "export const ReflectedSchema = {",
         ]);
         for (let decl of normalized.decls.values()) {
             const buildDecl = new Array<string>();
@@ -115,7 +121,28 @@ export class TreeSchema {
             builds.push('', '');
         }
         builds.push(...[
-            "} // ReflectedSchema;"
+        `    get schema(): S.TreeSchema {`,
+        `        if (!this['_schema']) {`,
+        `            const d = `,
+        `                new Array<S.Declaration>();`,
+        ]);
+
+        for (let decl of normalized.decls.values()) {
+            const nm = decl.name.name;
+            builds.push(...[
+            `            d.push(ReflectedSchema.${nm});`
+            ]);
+        }
+
+        builds.push(...[
+        `            this['_schema'] = ` +
+                                `new S.TreeSchema(d);`,
+        `        }`,
+        `        assert(this['_schema'] ` +
+                            `instanceof S.TreeSchema);`,
+        `        return this['_schema'] as S.TreeSchema;`,
+        `    },`,
+        `} // ReflectedSchema;`,
         ]);
         accum.push(...builds);
         accum.push("", "");
@@ -151,13 +178,7 @@ export class TreeSchema {
 
         // Re-order the normalized decls by the
         // same order they occured in the old schema.
-        const ordDecls =
-            new OrderedMap<TypeName, Declaration>();
-        for (let decl of this.decls.values()) {
-            const name = decl.name;
-            ordDecls.set(name, newDecls.get(name));
-        }
-
+        const ordDecls = Array.from(newDecls.values());
         return new TreeSchema(ordDecls);
     }
 
@@ -290,22 +311,28 @@ export class Typedef extends Declaration {
 }
 
 export class EnumVariant {
+    readonly enumName: TypeName;
     readonly name: EnumVariantName;
     readonly idx: number;
     readonly value: string;
 
-    constructor(name, idx, value) {
+    constructor(enumName, name, idx, value) {
+        this.enumName = enumName;
         this.name = name;
         this.idx = idx;
         this.value = value;
         Object.freeze(this);
     }
+
+    prettyString(): string {
+        return `${this.enumName.name}.${this.name}`;
+    }
 }
 
 export class Enum extends Declaration {
     readonly variants: ReadonlyArray<EnumVariant>;
-    readonly variantIdxMap: Map<EnumVariantName, number>;
-    readonly valueMap: Map<string, EnumVariantName>;
+    readonly variantMap: Map<string, number>;
+    readonly valueMap: Map<string, number>;
 
     constructor(name: TypeName,
                 variantNames: Array<EnumVariantName>,
@@ -318,35 +345,45 @@ export class Enum extends Declaration {
         const variants: Array<EnumVariant> = new Array();
 
         this.variants = variants;
-        this.variantIdxMap = new Map();
+        this.variantMap = new Map();
         this.valueMap = new Map();
 
-        variantNames.forEach((name, i: number) => {
+        variantNames.forEach((variantName, i: number) => {
             const value = values[i];
-            const v = new EnumVariant(name, i, value);
+            const v = new EnumVariant(name, variantName,
+                                      i, value);
             variants.push(v);
         });
 
         for (let i = 0; i < values.length; i++) {
             const name = variantNames[i];
             const value = values[i];
-            this.variantIdxMap.set(name, i);
-            this.valueMap.set(value, name);
+            this.variantMap.set(name.fullName, i);
+            this.valueMap.set(value, i);
         }
         Object.freeze(variants);
-        Object.freeze(this.variantIdxMap);
+        Object.freeze(this.variantMap);
         Object.freeze(this.valueMap);
         Object.freeze(this);
     }
 
-    containsName(name: EnumVariantName): boolean {
-        return this.variantIdxMap.has(name);
+    containsName(name: string): boolean {
+        return this.variantMap.has(name);
+    }
+
+    lookupValue<E>(value: string): E {
+        assert(this.valueMap.has(value));
+        const idx = this.valueMap.get(value);
+
+        assert(idx >= 0 && idx < this.variants.length);
+        return (this.variants[idx] as any) as E;
     }
 
     prettyString(): string {
         const parts: Array<string> = [];
-        this.valueMap.forEach((variantName, value) => {
-            const variantStr = variantName.prettyString();
+        this.valueMap.forEach((idx, value) => {
+            const variant = this.variants[idx];
+            const variantStr = variant.name.name;
             parts.push(`  ${variantStr} => '${value}'`);
         });
         return `enum ${this.name.prettyString()} {\n` +
@@ -367,15 +404,34 @@ export class Enum extends Declaration {
         // name as a method yielding the Typedef
         // declaration.
         const nm = this.name.name;
+        const refl = `ReflectedSchema.${nm}`;
 
         defns.push(`export enum ${nm} {`);
         for (let variant of this.variants) {
             const vname = variant.name.name;
-            const vval = JSON.stringify(variant.value);
-            defns.push(`   ${vname} = ${vval},`);
+            const vstr = variant.name.fullName;
+            const vstrEx = JSON.stringify(vstr);
+            defns.push(`   ${vname} = ${vstrEx},`);
         }
-        defns.push(`} // enum ${nm}`);
-        defns.push("");
+        defns.push(...[
+            `} // enum ${nm}`,
+            ``,
+            `export function lift${nm}(s: string): ${nm} {`,
+            `    switch (s) {`
+        ]);
+        for (let variant of this.variants) {
+            const vvalX = JSON.stringify(variant.value);
+            const vnm = variant.name.name;
+            defns.push(...[
+                `      case ${vvalX}: return ${nm}.${vnm};`,
+            ]);
+        }
+        defns.push(...[
+            `    }`,
+            `    throw new Error("NOT ENUM!: " + s);`,
+            `}`,
+            ``,
+        ]);
     }
     dumpReflection(builds: Array<string>) {
         const nm = this.name.name;
@@ -383,13 +439,6 @@ export class Enum extends Declaration {
         const cnmStr = JSON.stringify('c_' + nm);
 
         const typeNameEx = `S.TypeName.make(${nmStr})`;
-
-        const vnameExs = new Array<string>();
-        for (let v of this.variants) {
-            const vnStr = JSON.stringify(v.name.name);
-            vnameExs.push(`        ` +
-                `EnumVariantName.make(${vnStr})`);
-        }
 
         builds.push(...[
         `get ${nm}(): S.Enum {`,
@@ -401,7 +450,7 @@ export class Enum extends Declaration {
         ]);
         for (let v of this.variants) {
             const vnStr = JSON.stringify(v.name.name);
-            const evnStr = `mkEVN(${vnStr})`;
+            const evnStr = `mkEVN(${nmStr}, ${vnStr})`;
             const vStr = JSON.stringify(v.value);
             builds.push('    '.repeat(2) +
                 `vnames.push(${evnStr})`);
@@ -425,25 +474,65 @@ export class Enum extends Declaration {
 }
 
 export class Iface extends Declaration {
-    readonly fields: OrderedMap<string, IfaceField>
+    readonly fields: ReadonlyArray<IfaceField>;
     readonly isNode: boolean;
 
     constructor(name: TypeName,
-                fields: OrderedMap<string, IfaceField>,
+                fields: Array<IfaceField>,
                 isNode: boolean)
     {
         super(name);
-        this.fields = fields;
+        this.fields = Object.freeze(fields);
         this.isNode = isNode;
         Object.freeze(this);
     }
 
     prettyString() {
         return `iface ${this.name.prettyString()} {\n` +
-             Array.from(this.fields.values())
-                  .map(f => f.prettyString())
-                  .join("\n") + "\n" +
-             "}";
+             this.fields.map(f => f.prettyString())
+                        .join("\n") + "\n" +
+             `}`;
+    }
+
+    prettyInstance(schema: TreeSchema, inst: Instance,
+                   out: Array<string>)
+    {
+        assert(inst.iface$ === this);
+
+        out.push(`${this.name.name} {`);
+
+        let npushed: number = 0;
+        
+        // Retrieve each field.
+        for (let field of this.fields) {
+            const fty = field.ty;
+            const fval = inst[field.name];
+            const fvalStrs = new Array<string>();
+            fty.prettyValue(schema, fval, fvalStrs);
+            assert(fvalStrs.length > 0);
+            if (fvalStrs.length == 1 &&
+                fvalStrs[0].length < 30)
+            {
+                out.push(`  ${field.name}: ` +
+                            fvalStrs[0]);
+                npushed++;
+            } else {
+                const first = fvalStrs.shift();
+                const tabbed = fvalStrs.map(s => {
+                    return '  ' + s;
+                });
+                const tabbedFirst =
+                    `  ${field.name}: ${first}`;
+                out.push(tabbedFirst, ...tabbed);
+                npushed += 1 + tabbed.length;
+            }
+        }
+
+        let trailer: string = '';
+        if (npushed > 10) {
+            trailer = ` // ${this.name.name}`
+        }
+        out.push(`}${trailer}`);
     }
 
     resolveNames(
@@ -451,10 +540,9 @@ export class Iface extends Declaration {
         newDecls: OrderedMap<TypeName, Declaration>)
       : Iface
     {
-        const rfs = new OrderedMap<string, IfaceField>();
-        for (let f of this.fields.values()) {
-            rfs.set(f.name,
-                f.resolveNames(schema, newDecls));
+        const rfs = new Array<IfaceField>();
+        for (let f of this.fields) {
+            rfs.push(f.resolveNames(schema, newDecls));
         }
         return new Iface(this.name, rfs, this.isNode);
     }
@@ -475,7 +563,7 @@ export class Iface extends Declaration {
         const nm = this.name.name;
 
         defns.push(`export interface I_${nm} {`);
-        for (let field of this.fields.values()) {
+        for (let field of this.fields) {
             const fnm = field.name;
             const tstr = field.ty.typescriptString();
             defns.push(`    readonly ${fnm}: ${tstr};`);
@@ -493,9 +581,6 @@ export class Iface extends Declaration {
         defns.push(...[
             `  implements S.Instance`,
             `{`,
-            `    get iface$(): S.Iface {`,
-            `        return ReflectedSchema.typeof_${nm};`,
-            `    }`,
             `    readonly data$: Ro<I_${nm}>;`,
         ]);
 
@@ -517,6 +602,9 @@ export class Iface extends Declaration {
 
         // Static constructor definition.
         defns.push(...[
+            `    get iface$(): S.Iface {`,
+            `        return ReflectedSchema.${nm};`,
+            `    }`,
             `    static make(data: Ro<I_${nm}>) {`,
             `        return new ${nm}(data);`,
             `    }`,
@@ -524,16 +612,17 @@ export class Iface extends Declaration {
         ]);
 
         // Accessor method definition.
-        for (let field of this.fields.values()) {
+        for (let field of this.fields) {
             const fnm = field.name;
             const tstr = field.ty.typescriptString();
             defns.push(...[
                 `    get ${fnm}(): ${tstr} {`,
                 `       return this.data$.${fnm};`,
                 `    }`,
-                ``,
             ]);
         }
+
+        // End.
         defns.push(...[
             `}`,
         ]);
@@ -553,7 +642,7 @@ export class Iface extends Declaration {
         `        const typeName = ${typeNameEx};`,
         `        const fields: Array<S.IfaceField> = [`,
         ]);
-        for (let f of this.fields.values()) {
+        for (let f of this.fields) {
             const ftEx = f.ty.reflectedString();
             const fnStr = JSON.stringify(f.name);
             const isLazyEx = f.isLazy ? 'true' : 'false';
@@ -613,7 +702,6 @@ export class IfaceField {
 }
 
 export type Value = null|boolean|number|string|Instance;
-
 export interface Instance {
     iface$: Iface;
 }
@@ -657,7 +745,8 @@ export class EnumVariantName {
     static make(enumName: TypeName, name: string)
       : EnumVariantName
     {
-        const key = `${enumName.name}.${name}`;
+        const key = EnumVariantName.makeKey(enumName.name,
+                                            name);
         let evname = ENUM_VARIANT_NAMES.get(key);
         if (!evname) {
             evname = new EnumVariantName(enumName, name);
@@ -666,8 +755,16 @@ export class EnumVariantName {
         return evname;
     }
 
+    get fullName(): string {
+        return `${this.enumName.name}_${this.name}`;
+    }
+
     prettyString(): string {
-        return this.name;
+        return this.fullName;
+    }
+
+    static makeKey(enumName: string, name: string): string {
+        return `${enumName}_${name}`;
     }
 }
 
@@ -696,6 +793,10 @@ export abstract class FieldType {
       : FieldType;
     abstract typescriptString(): string;
     abstract reflectedString(): string;
+    abstract matchesValue(schema: TreeSchema, value: any)
+              : boolean;
+    abstract prettyValue(schema: TreeSchema, value: any,
+                         out: Array<string>);
 
     protected constructor(typeId: number) {
         this.typeId = typeId;
@@ -771,6 +872,36 @@ export class FieldTypePrimitive extends FieldType {
     {
         return this;
     }
+    matchesValue(schema: TreeSchema, value: any): boolean {
+        switch (this) {
+          case TN_BOOL:
+            return typeof(value) === 'boolean';
+          case TN_UINT:
+            return Number.isInteger(value) && (value >= 0);
+          case TN_INT:
+            return Number.isInteger(value);
+          case TN_F64:
+            return typeof(value) === 'number';
+          case TN_STR:
+            return typeof(value) === 'string';
+        }
+        throw new Error(`Unknown primitive ${this.name}`);
+    }
+    prettyValue(schema: TreeSchema, value: any,
+                out: Array<string>)
+    {
+        switch (this) {
+          case TN_BOOL: out.push(`Bool(${value})`); return;
+          case TN_UINT: out.push(`Uint(${value})`); return;
+          case TN_INT: out.push(`Int(${value})`); return;
+          case TN_F64: out.push(`F64(${value})`); return;
+          case TN_STR:
+            out.push(`Str(${JSON.stringify(value)})`);
+            return;
+        }
+        throw new Error(`Unknown primitive ${this.name}`);
+    }
+
     typescriptString(): string {
         switch (this) {
           case TN_BOOL: return 'boolean';
@@ -849,6 +980,41 @@ export class FieldTypeNamed extends FieldType {
         const tstr = JSON.stringify(this.name.name);
         return `TNamed(${tstr})`;
     }
+    matchesValue(schema: TreeSchema, value: any): boolean {
+        const decl = schema.getDecl(this.name);
+        if (decl instanceof Iface) {
+            return (typeof(value) === 'object')
+                 && (value !== null)
+                 && (value['iface$'] === decl);
+        } else if (decl instanceof Enum) {
+            return typeof(value) == 'string' &&
+                   decl.containsName(value as string);
+        }
+        throw new Error(`Unknown prim ${this.name.name}`);
+    }
+    prettyValue(schema: TreeSchema, value: any,
+                out: Array<string>)
+    {
+        const decl = schema.getDecl(this.name);
+        if (decl instanceof Iface) {
+            assert(this.matchesValue(schema, value),
+                   `Iface failed matchesValue: ` +
+                        JSON.stringify(value));
+            (value['iface$'] as Iface).prettyInstance(
+                schema, value, out);
+            out.push('');
+            return;
+        } else if (decl instanceof Enum) {
+            assert(this.matchesValue(schema, value),
+                   `Field ${decl.name.name} failed matchesValue: ` +
+                        JSON.stringify(value));
+            out.push(value);
+            return;
+        }
+        throw new Error(
+            `Unknown named ${this.name.name}: ` +
+            JSON.stringify(value));
+    }
 
     kind(): FieldTypeKind {
         return FieldTypeKind.Named;
@@ -894,6 +1060,24 @@ export class FieldTypeUnion extends FieldType {
     {
         let ids = variants.map(m => m.typeId);
         return `union(${ids.join(',')})`
+    }
+
+    matchesValue(schema: TreeSchema, value: any): boolean {
+        return this.variants.some(v => {
+            return v.matchesValue(schema, value);
+        });
+    }
+    prettyValue(schema: TreeSchema, value: any,
+                out: Array<string>)
+    {
+        // Check every constituent type.
+        for (let v of this.variants) {
+            if (v.matchesValue(schema, value)) {
+                v.prettyValue(schema, value, out);
+                return;
+            }
+        }
+        throw new Error(`Union not matched: ${value}`);
     }
 
     resolveNames(schema: TreeSchema,
@@ -977,6 +1161,21 @@ export class FieldTypeOpt extends FieldType {
         return `opt(${inner.typeId})`;
     }
 
+    matchesValue(schema: TreeSchema, value: any): boolean {
+        return (value === null) ||
+               this.inner.matchesValue(schema, value);
+    }
+    prettyValue(schema: TreeSchema, value: any,
+                out: Array<string>)
+    {
+        assert(this.matchesValue(schema, value));
+        if (value === null) {
+            out.push('null');
+        } else {
+            this.inner.prettyValue(schema, value, out);
+        }
+    }
+
     resolveNames(schema: TreeSchema,
             newDecls: OrderedMap<TypeName, Declaration>)
       : FieldType
@@ -1018,6 +1217,37 @@ export class FieldTypeArray extends FieldType {
     }
     static typeKey(inner: FieldType): string {
         return `array(${inner.typeId})`;
+    }
+
+    matchesValue(schema: TreeSchema, value: any): boolean {
+        return (value instanceof Array) &&
+           (value.every(
+                v => this.inner.matchesValue(schema, v)));
+    }
+    prettyValue(schema: TreeSchema, value: any,
+                out: Array<string>)
+    {
+        assert(this.matchesValue(schema, value));
+        const arrays = new Array<Array<string>>();
+        for (let e of (value as Array<any>)) {
+            const arr = new Array<string>();
+            this.inner.prettyValue(schema, e, arr);
+            arrays.push(arr.map(s => ('  ' + s)));
+        }
+        // Check for small definition.
+        if (arrays.every(arr => (arr.length === 1))) {
+            const j = arrays.map(arr => arr[0]).join(', ');
+            if (j.length < 40) {
+                out.push(`[${j}]`);
+                return;
+            }
+        }
+
+        out.push('[');
+        for (let arr of arrays) {
+            out.push(...arr);
+        }
+        out.push(']');
     }
 
     resolveNames(schema: TreeSchema,

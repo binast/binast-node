@@ -38,17 +38,78 @@ function TNamed(name: string): S.FieldTypeNamed {
    return S.FieldTypeNamed.make(S.TypeName.make(name));
 }
 
-const TBool = S.PrimitiveType.Bool;
-const TUint = S.PrimitiveType.Uint;
-const TInt = S.PrimitiveType.Int;
-const TF64 = S.PrimitiveType.F64;
-const TStr = S.PrimitiveType.Str;
+const TBool = S.FieldTypePrimitive.Bool;
+const TUint = S.FieldTypePrimitive.Uint;
+const TInt = S.FieldTypePrimitive.Int;
+const TF64 = S.FieldTypePrimitive.F64;
+const TStr = S.FieldTypePrimitive.Str;
 
-function mkEVN(name: string): S.EnumVariantName {
-   return S.EnumVariantName.make(name);
+function mkEVN(enumName: string, name: string): S.EnumVariantName {
+   const tn = S.TypeName.make(enumName);
+   return S.EnumVariantName.make(tn, name);
 }
 
-const ReflectedSchema = {
+export const ReflectedSchema = {
+    get Literal(): S.Typedef {
+        if (!this["c_Literal"]) {
+            const typeName = S.TypeName.make("Literal");
+            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression")]);
+            this["c_Literal"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Literal"] instanceof S.Typedef);
+        return this["c_Literal"] as S.Typedef;
+    },
+    get typeof_Literal(): S.FieldType {
+        return this.Literal.aliased;
+    },
+
+
+    get ArrowExpression(): S.Typedef {
+        if (!this["c_ArrowExpression"]) {
+            const typeName = S.TypeName.make("ArrowExpression");
+            const aliased = TUnion([TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression")]);
+            this["c_ArrowExpression"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_ArrowExpression"] instanceof S.Typedef);
+        return this["c_ArrowExpression"] as S.Typedef;
+    },
+    get typeof_ArrowExpression(): S.FieldType {
+        return this.ArrowExpression.aliased;
+    },
+
+
+    get FunctionExpression(): S.Typedef {
+        if (!this["c_FunctionExpression"]) {
+            const typeName = S.TypeName.make("FunctionExpression");
+            const aliased = TUnion([TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression")]);
+            this["c_FunctionExpression"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_FunctionExpression"] instanceof S.Typedef);
+        return this["c_FunctionExpression"] as S.Typedef;
+    },
+    get typeof_FunctionExpression(): S.FieldType {
+        return this.FunctionExpression.aliased;
+    },
+
+
+    get Expression(): S.Typedef {
+        if (!this["c_Expression"]) {
+            const typeName = S.TypeName.make("Expression");
+            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]);
+            this["c_Expression"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Expression"] instanceof S.Typedef);
+        return this["c_Expression"] as S.Typedef;
+    },
+    get typeof_Expression(): S.FieldType {
+        return this.Expression.aliased;
+    },
+
+
     get Arguments(): S.Typedef {
         if (!this["c_Arguments"]) {
             const typeName = S.TypeName.make("Arguments");
@@ -114,13 +175,13 @@ const ReflectedSchema = {
             const typeName = S.TypeName.make("VariableDeclarationKind");
             const vnames: Array<S.EnumVariantName> = [];
             const vvals: Array<string> = [];
-            vnames.push(mkEVN("KwVar"))
+            vnames.push(mkEVN("VariableDeclarationKind", "KwVar"))
             vvals.push("var");
     
-            vnames.push(mkEVN("KwLet"))
+            vnames.push(mkEVN("VariableDeclarationKind", "KwLet"))
             vvals.push("let");
     
-            vnames.push(mkEVN("KwConst"))
+            vnames.push(mkEVN("VariableDeclarationKind", "KwConst"))
             vvals.push("const");
     
             this["c_VariableDeclarationKind"] = new S.Enum(typeName, vnames, vvals);
@@ -139,40 +200,40 @@ const ReflectedSchema = {
             const typeName = S.TypeName.make("CompoundAssignmentOperator");
             const vnames: Array<S.EnumVariantName> = [];
             const vvals: Array<string> = [];
-            vnames.push(mkEVN("PlusAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "PlusAssign"))
             vvals.push("+=");
     
-            vnames.push(mkEVN("MinusAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "MinusAssign"))
             vvals.push("-=");
     
-            vnames.push(mkEVN("MulAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "MulAssign"))
             vvals.push("*=");
     
-            vnames.push(mkEVN("DivAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "DivAssign"))
             vvals.push("/=");
     
-            vnames.push(mkEVN("ModAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "ModAssign"))
             vvals.push("%=");
     
-            vnames.push(mkEVN("PowAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "PowAssign"))
             vvals.push("**=");
     
-            vnames.push(mkEVN("LshAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "LshAssign"))
             vvals.push("<<=");
     
-            vnames.push(mkEVN("RshAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "RshAssign"))
             vvals.push(">>=");
     
-            vnames.push(mkEVN("ArshAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "ArshAssign"))
             vvals.push(">>>=");
     
-            vnames.push(mkEVN("BitorAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "BitorAssign"))
             vvals.push("|=");
     
-            vnames.push(mkEVN("BitxorAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "BitxorAssign"))
             vvals.push("^=");
     
-            vnames.push(mkEVN("BitandAssign"))
+            vnames.push(mkEVN("CompoundAssignmentOperator", "BitandAssign"))
             vvals.push("&=");
     
             this["c_CompoundAssignmentOperator"] = new S.Enum(typeName, vnames, vvals);
@@ -191,79 +252,79 @@ const ReflectedSchema = {
             const typeName = S.TypeName.make("BinaryOperator");
             const vnames: Array<S.EnumVariantName> = [];
             const vvals: Array<string> = [];
-            vnames.push(mkEVN("Comma"))
+            vnames.push(mkEVN("BinaryOperator", "Comma"))
             vvals.push(",");
     
-            vnames.push(mkEVN("LogicalOr"))
+            vnames.push(mkEVN("BinaryOperator", "LogicalOr"))
             vvals.push("||");
     
-            vnames.push(mkEVN("LogicalAnd"))
+            vnames.push(mkEVN("BinaryOperator", "LogicalAnd"))
             vvals.push("&&");
     
-            vnames.push(mkEVN("Bitor"))
+            vnames.push(mkEVN("BinaryOperator", "Bitor"))
             vvals.push("|");
     
-            vnames.push(mkEVN("Bitxor"))
+            vnames.push(mkEVN("BinaryOperator", "Bitxor"))
             vvals.push("^");
     
-            vnames.push(mkEVN("Bitand"))
+            vnames.push(mkEVN("BinaryOperator", "Bitand"))
             vvals.push("&");
     
-            vnames.push(mkEVN("Equal"))
+            vnames.push(mkEVN("BinaryOperator", "Equal"))
             vvals.push("==");
     
-            vnames.push(mkEVN("NotEqual"))
+            vnames.push(mkEVN("BinaryOperator", "NotEqual"))
             vvals.push("!=");
     
-            vnames.push(mkEVN("StrictEqual"))
+            vnames.push(mkEVN("BinaryOperator", "StrictEqual"))
             vvals.push("===");
     
-            vnames.push(mkEVN("NotStrictEqual"))
+            vnames.push(mkEVN("BinaryOperator", "NotStrictEqual"))
             vvals.push("!==");
     
-            vnames.push(mkEVN("LessThan"))
+            vnames.push(mkEVN("BinaryOperator", "LessThan"))
             vvals.push("<");
     
-            vnames.push(mkEVN("LessEqual"))
+            vnames.push(mkEVN("BinaryOperator", "LessEqual"))
             vvals.push("<=");
     
-            vnames.push(mkEVN("GreaterThan"))
+            vnames.push(mkEVN("BinaryOperator", "GreaterThan"))
             vvals.push(">");
     
-            vnames.push(mkEVN("GreaterEqual"))
+            vnames.push(mkEVN("BinaryOperator", "GreaterEqual"))
             vvals.push(">=");
     
-            vnames.push(mkEVN("KwIn"))
+            vnames.push(mkEVN("BinaryOperator", "KwIn"))
             vvals.push("in");
     
-            vnames.push(mkEVN("KwInstanceof"))
+            vnames.push(mkEVN("BinaryOperator", "KwInstanceof"))
             vvals.push("instanceof");
     
-            vnames.push(mkEVN("Lsh"))
+            vnames.push(mkEVN("BinaryOperator", "Lsh"))
             vvals.push("<<");
     
-            vnames.push(mkEVN("Rsh"))
+            vnames.push(mkEVN("BinaryOperator", "Rsh"))
             vvals.push(">>");
     
-            vnames.push(mkEVN("Arsh"))
+            vnames.push(mkEVN("BinaryOperator", "Arsh"))
             vvals.push(">>>");
     
-            vnames.push(mkEVN("Plus"))
+            vnames.push(mkEVN("BinaryOperator", "Plus"))
             vvals.push("+");
     
-            vnames.push(mkEVN("Minus"))
+            vnames.push(mkEVN("BinaryOperator", "Minus"))
             vvals.push("-");
     
-            vnames.push(mkEVN("Mul"))
+            vnames.push(mkEVN("BinaryOperator", "Mul"))
             vvals.push("*");
     
-            vnames.push(mkEVN("Div"))
+            vnames.push(mkEVN("BinaryOperator", "Div"))
             vvals.push("/");
     
-            vnames.push(mkEVN("Mod"))
+            vnames.push(mkEVN("BinaryOperator", "Mod"))
             vvals.push("%");
     
-            vnames.push(mkEVN("Pow"))
+            vnames.push(mkEVN("BinaryOperator", "Pow"))
             vvals.push("**");
     
             this["c_BinaryOperator"] = new S.Enum(typeName, vnames, vvals);
@@ -282,25 +343,25 @@ const ReflectedSchema = {
             const typeName = S.TypeName.make("UnaryOperator");
             const vnames: Array<S.EnumVariantName> = [];
             const vvals: Array<string> = [];
-            vnames.push(mkEVN("Plus"))
+            vnames.push(mkEVN("UnaryOperator", "Plus"))
             vvals.push("+");
     
-            vnames.push(mkEVN("Minus"))
+            vnames.push(mkEVN("UnaryOperator", "Minus"))
             vvals.push("-");
     
-            vnames.push(mkEVN("LogicalNot"))
+            vnames.push(mkEVN("UnaryOperator", "LogicalNot"))
             vvals.push("!");
     
-            vnames.push(mkEVN("Bitnot"))
+            vnames.push(mkEVN("UnaryOperator", "Bitnot"))
             vvals.push("~");
     
-            vnames.push(mkEVN("KwTypeof"))
+            vnames.push(mkEVN("UnaryOperator", "KwTypeof"))
             vvals.push("typeof");
     
-            vnames.push(mkEVN("KwVoid"))
+            vnames.push(mkEVN("UnaryOperator", "KwVoid"))
             vvals.push("void");
     
-            vnames.push(mkEVN("KwDelete"))
+            vnames.push(mkEVN("UnaryOperator", "KwDelete"))
             vvals.push("delete");
     
             this["c_UnaryOperator"] = new S.Enum(typeName, vnames, vvals);
@@ -319,10 +380,10 @@ const ReflectedSchema = {
             const typeName = S.TypeName.make("UpdateOperator");
             const vnames: Array<S.EnumVariantName> = [];
             const vvals: Array<string> = [];
-            vnames.push(mkEVN("PlusPlus"))
+            vnames.push(mkEVN("UpdateOperator", "PlusPlus"))
             vvals.push("++");
     
-            vnames.push(mkEVN("MinusMinus"))
+            vnames.push(mkEVN("UpdateOperator", "MinusMinus"))
             vvals.push("--");
     
             this["c_UpdateOperator"] = new S.Enum(typeName, vnames, vvals);
@@ -341,13 +402,13 @@ const ReflectedSchema = {
             const typeName = S.TypeName.make("AssertedDeclaredKind");
             const vnames: Array<S.EnumVariantName> = [];
             const vvals: Array<string> = [];
-            vnames.push(mkEVN("KwVar"))
+            vnames.push(mkEVN("AssertedDeclaredKind", "KwVar"))
             vvals.push("var");
     
-            vnames.push(mkEVN("NonConstLexical"))
+            vnames.push(mkEVN("AssertedDeclaredKind", "NonConstLexical"))
             vvals.push("non-const lexical");
     
-            vnames.push(mkEVN("ConstLexical"))
+            vnames.push(mkEVN("AssertedDeclaredKind", "ConstLexical"))
             vvals.push("const lexical");
     
             this["c_AssertedDeclaredKind"] = new S.Enum(typeName, vnames, vvals);
@@ -567,6 +628,21 @@ const ReflectedSchema = {
     },
 
 
+    get FunctionDeclaration(): S.Typedef {
+        if (!this["c_FunctionDeclaration"]) {
+            const typeName = S.TypeName.make("FunctionDeclaration");
+            const aliased = TUnion([TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration")]);
+            this["c_FunctionDeclaration"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_FunctionDeclaration"] instanceof S.Typedef);
+        return this["c_FunctionDeclaration"] as S.Typedef;
+    },
+    get typeof_FunctionDeclaration(): S.FieldType {
+        return this.FunctionDeclaration.aliased;
+    },
+
+
     get Statement(): S.Typedef {
         if (!this["c_Statement"]) {
             const typeName = S.TypeName.make("Statement");
@@ -582,36 +658,6 @@ const ReflectedSchema = {
     },
 
 
-    get Literal(): S.Typedef {
-        if (!this["c_Literal"]) {
-            const typeName = S.TypeName.make("Literal");
-            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression")]);
-            this["c_Literal"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Literal"] instanceof S.Typedef);
-        return this["c_Literal"] as S.Typedef;
-    },
-    get typeof_Literal(): S.FieldType {
-        return this.Literal.aliased;
-    },
-
-
-    get Expression(): S.Typedef {
-        if (!this["c_Expression"]) {
-            const typeName = S.TypeName.make("Expression");
-            const aliased = TUnion([TNamed("LiteralBooleanExpression"), TNamed("LiteralInfinityExpression"), TNamed("LiteralNullExpression"), TNamed("LiteralNumericExpression"), TNamed("LiteralStringExpression"), TNamed("LiteralRegExpExpression"), TNamed("ArrayExpression"), TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression"), TNamed("AssignmentExpression"), TNamed("BinaryExpression"), TNamed("CallExpression"), TNamed("CompoundAssignmentExpression"), TNamed("ComputedMemberExpression"), TNamed("ConditionalExpression"), TNamed("ClassExpression"), TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression"), TNamed("IdentifierExpression"), TNamed("NewExpression"), TNamed("NewTargetExpression"), TNamed("ObjectExpression"), TNamed("UnaryExpression"), TNamed("StaticMemberExpression"), TNamed("TemplateExpression"), TNamed("ThisExpression"), TNamed("UpdateExpression"), TNamed("YieldExpression"), TNamed("YieldStarExpression"), TNamed("AwaitExpression")]);
-            this["c_Expression"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Expression"] instanceof S.Typedef);
-        return this["c_Expression"] as S.Typedef;
-    },
-    get typeof_Expression(): S.FieldType {
-        return this.Expression.aliased;
-    },
-
-
     get PropertyName(): S.Typedef {
         if (!this["c_PropertyName"]) {
             const typeName = S.TypeName.make("PropertyName");
@@ -624,6 +670,51 @@ const ReflectedSchema = {
     },
     get typeof_PropertyName(): S.FieldType {
         return this.PropertyName.aliased;
+    },
+
+
+    get Method(): S.Typedef {
+        if (!this["c_Method"]) {
+            const typeName = S.TypeName.make("Method");
+            const aliased = TUnion([TNamed("EagerMethod"), TNamed("LazyMethod")]);
+            this["c_Method"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Method"] instanceof S.Typedef);
+        return this["c_Method"] as S.Typedef;
+    },
+    get typeof_Method(): S.FieldType {
+        return this.Method.aliased;
+    },
+
+
+    get Getter(): S.Typedef {
+        if (!this["c_Getter"]) {
+            const typeName = S.TypeName.make("Getter");
+            const aliased = TUnion([TNamed("EagerGetter"), TNamed("LazyGetter")]);
+            this["c_Getter"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Getter"] instanceof S.Typedef);
+        return this["c_Getter"] as S.Typedef;
+    },
+    get typeof_Getter(): S.FieldType {
+        return this.Getter.aliased;
+    },
+
+
+    get Setter(): S.Typedef {
+        if (!this["c_Setter"]) {
+            const typeName = S.TypeName.make("Setter");
+            const aliased = TUnion([TNamed("EagerSetter"), TNamed("LazySetter")]);
+            this["c_Setter"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_Setter"] instanceof S.Typedef);
+        return this["c_Setter"] as S.Typedef;
+    },
+    get typeof_Setter(): S.FieldType {
+        return this.Setter.aliased;
     },
 
 
@@ -684,96 +775,6 @@ const ReflectedSchema = {
     },
     get typeof_ImportDeclaration(): S.FieldType {
         return this.ImportDeclaration.aliased;
-    },
-
-
-    get FunctionDeclaration(): S.Typedef {
-        if (!this["c_FunctionDeclaration"]) {
-            const typeName = S.TypeName.make("FunctionDeclaration");
-            const aliased = TUnion([TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration")]);
-            this["c_FunctionDeclaration"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_FunctionDeclaration"] instanceof S.Typedef);
-        return this["c_FunctionDeclaration"] as S.Typedef;
-    },
-    get typeof_FunctionDeclaration(): S.FieldType {
-        return this.FunctionDeclaration.aliased;
-    },
-
-
-    get FunctionExpression(): S.Typedef {
-        if (!this["c_FunctionExpression"]) {
-            const typeName = S.TypeName.make("FunctionExpression");
-            const aliased = TUnion([TNamed("EagerFunctionExpression"), TNamed("LazyFunctionExpression")]);
-            this["c_FunctionExpression"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_FunctionExpression"] instanceof S.Typedef);
-        return this["c_FunctionExpression"] as S.Typedef;
-    },
-    get typeof_FunctionExpression(): S.FieldType {
-        return this.FunctionExpression.aliased;
-    },
-
-
-    get Method(): S.Typedef {
-        if (!this["c_Method"]) {
-            const typeName = S.TypeName.make("Method");
-            const aliased = TUnion([TNamed("EagerMethod"), TNamed("LazyMethod")]);
-            this["c_Method"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Method"] instanceof S.Typedef);
-        return this["c_Method"] as S.Typedef;
-    },
-    get typeof_Method(): S.FieldType {
-        return this.Method.aliased;
-    },
-
-
-    get Getter(): S.Typedef {
-        if (!this["c_Getter"]) {
-            const typeName = S.TypeName.make("Getter");
-            const aliased = TUnion([TNamed("EagerGetter"), TNamed("LazyGetter")]);
-            this["c_Getter"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Getter"] instanceof S.Typedef);
-        return this["c_Getter"] as S.Typedef;
-    },
-    get typeof_Getter(): S.FieldType {
-        return this.Getter.aliased;
-    },
-
-
-    get Setter(): S.Typedef {
-        if (!this["c_Setter"]) {
-            const typeName = S.TypeName.make("Setter");
-            const aliased = TUnion([TNamed("EagerSetter"), TNamed("LazySetter")]);
-            this["c_Setter"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_Setter"] instanceof S.Typedef);
-        return this["c_Setter"] as S.Typedef;
-    },
-    get typeof_Setter(): S.FieldType {
-        return this.Setter.aliased;
-    },
-
-
-    get ArrowExpression(): S.Typedef {
-        if (!this["c_ArrowExpression"]) {
-            const typeName = S.TypeName.make("ArrowExpression");
-            const aliased = TUnion([TNamed("EagerArrowExpression"), TNamed("LazyArrowExpression")]);
-            this["c_ArrowExpression"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_ArrowExpression"] instanceof S.Typedef);
-        return this["c_ArrowExpression"] as S.Typedef;
-    },
-    get typeof_ArrowExpression(): S.FieldType {
-        return this.ArrowExpression.aliased;
     },
 
 
@@ -1682,6 +1683,21 @@ const ReflectedSchema = {
     get typeof_LazyGetter(): S.FieldType {
         const fieldName = this.LazyGetter.name;
         return S.FieldTypeNamed.make(fieldName);
+    },
+
+
+    get FunctionBody(): S.Typedef {
+        if (!this["c_FunctionBody"]) {
+            const typeName = S.TypeName.make("FunctionBody");
+            const aliased = TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]));
+            this["c_FunctionBody"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_FunctionBody"] instanceof S.Typedef);
+        return this["c_FunctionBody"] as S.Typedef;
+    },
+    get typeof_FunctionBody(): S.FieldType {
+        return this.FunctionBody.aliased;
     },
 
 
@@ -3209,21 +3225,6 @@ const ReflectedSchema = {
     },
 
 
-    get FunctionBody(): S.Typedef {
-        if (!this["c_FunctionBody"]) {
-            const typeName = S.TypeName.make("FunctionBody");
-            const aliased = TArray(TUnion([TNamed("Block"), TNamed("BreakStatement"), TNamed("ContinueStatement"), TNamed("ClassDeclaration"), TNamed("DebuggerStatement"), TNamed("EmptyStatement"), TNamed("ExpressionStatement"), TNamed("EagerFunctionDeclaration"), TNamed("LazyFunctionDeclaration"), TNamed("IfStatement"), TNamed("DoWhileStatement"), TNamed("ForInStatement"), TNamed("ForOfStatement"), TNamed("ForStatement"), TNamed("WhileStatement"), TNamed("LabelledStatement"), TNamed("ReturnStatement"), TNamed("SwitchStatement"), TNamed("SwitchStatementWithDefault"), TNamed("ThrowStatement"), TNamed("TryCatchStatement"), TNamed("TryFinallyStatement"), TNamed("VariableDeclaration"), TNamed("WithStatement")]));
-            this["c_FunctionBody"] = new S.Typedef(
-                               typeName, aliased)
-        }
-        assert(this["c_FunctionBody"] instanceof S.Typedef);
-        return this["c_FunctionBody"] as S.Typedef;
-    },
-    get typeof_FunctionBody(): S.FieldType {
-        return this.FunctionBody.aliased;
-    },
-
-
     get EagerFunctionDeclaration(): S.Iface {
         if (!this["c_EagerFunctionDeclaration"]) {
             const typeName = S.TypeName.make("EagerFunctionDeclaration");
@@ -3508,6 +3509,163 @@ const ReflectedSchema = {
     },
 
 
+    get schema(): S.TreeSchema {
+        if (!this['_schema']) {
+            const d = 
+                new Array<S.Declaration>();
+            d.push(ReflectedSchema.Literal);
+            d.push(ReflectedSchema.ArrowExpression);
+            d.push(ReflectedSchema.FunctionExpression);
+            d.push(ReflectedSchema.Expression);
+            d.push(ReflectedSchema.Arguments);
+            d.push(ReflectedSchema.Identifier);
+            d.push(ReflectedSchema.IdentifierName);
+            d.push(ReflectedSchema.Label);
+            d.push(ReflectedSchema.VariableDeclarationKind);
+            d.push(ReflectedSchema.CompoundAssignmentOperator);
+            d.push(ReflectedSchema.BinaryOperator);
+            d.push(ReflectedSchema.UnaryOperator);
+            d.push(ReflectedSchema.UpdateOperator);
+            d.push(ReflectedSchema.AssertedDeclaredKind);
+            d.push(ReflectedSchema.AssertedDeclaredName);
+            d.push(ReflectedSchema.AssertedBoundName);
+            d.push(ReflectedSchema.AssertedBlockScope);
+            d.push(ReflectedSchema.AssertedScriptGlobalScope);
+            d.push(ReflectedSchema.AssertedVarScope);
+            d.push(ReflectedSchema.AssertedParameterScope);
+            d.push(ReflectedSchema.AssertedBoundNamesScope);
+            d.push(ReflectedSchema.Program);
+            d.push(ReflectedSchema.IterationStatement);
+            d.push(ReflectedSchema.FunctionDeclaration);
+            d.push(ReflectedSchema.Statement);
+            d.push(ReflectedSchema.PropertyName);
+            d.push(ReflectedSchema.Method);
+            d.push(ReflectedSchema.Getter);
+            d.push(ReflectedSchema.Setter);
+            d.push(ReflectedSchema.MethodDefinition);
+            d.push(ReflectedSchema.ObjectProperty);
+            d.push(ReflectedSchema.ExportDeclaration);
+            d.push(ReflectedSchema.ImportDeclaration);
+            d.push(ReflectedSchema.BindingIdentifier);
+            d.push(ReflectedSchema.BindingPattern);
+            d.push(ReflectedSchema.Binding);
+            d.push(ReflectedSchema.SimpleAssignmentTarget);
+            d.push(ReflectedSchema.AssignmentTargetPattern);
+            d.push(ReflectedSchema.AssignmentTarget);
+            d.push(ReflectedSchema.Parameter);
+            d.push(ReflectedSchema.BindingWithInitializer);
+            d.push(ReflectedSchema.AssignmentTargetIdentifier);
+            d.push(ReflectedSchema.ComputedMemberAssignmentTarget);
+            d.push(ReflectedSchema.StaticMemberAssignmentTarget);
+            d.push(ReflectedSchema.ArrayBinding);
+            d.push(ReflectedSchema.BindingPropertyIdentifier);
+            d.push(ReflectedSchema.BindingPropertyProperty);
+            d.push(ReflectedSchema.BindingProperty);
+            d.push(ReflectedSchema.ObjectBinding);
+            d.push(ReflectedSchema.AssignmentTargetWithInitializer);
+            d.push(ReflectedSchema.ArrayAssignmentTarget);
+            d.push(ReflectedSchema.AssignmentTargetPropertyIdentifier);
+            d.push(ReflectedSchema.AssignmentTargetPropertyProperty);
+            d.push(ReflectedSchema.AssignmentTargetProperty);
+            d.push(ReflectedSchema.ObjectAssignmentTarget);
+            d.push(ReflectedSchema.ClassExpression);
+            d.push(ReflectedSchema.ClassDeclaration);
+            d.push(ReflectedSchema.ClassElement);
+            d.push(ReflectedSchema.Module);
+            d.push(ReflectedSchema.Import);
+            d.push(ReflectedSchema.ImportNamespace);
+            d.push(ReflectedSchema.ImportSpecifier);
+            d.push(ReflectedSchema.ExportAllFrom);
+            d.push(ReflectedSchema.ExportFrom);
+            d.push(ReflectedSchema.ExportLocals);
+            d.push(ReflectedSchema.Export);
+            d.push(ReflectedSchema.ExportDefault);
+            d.push(ReflectedSchema.ExportFromSpecifier);
+            d.push(ReflectedSchema.ExportLocalSpecifier);
+            d.push(ReflectedSchema.EagerMethod);
+            d.push(ReflectedSchema.LazyMethod);
+            d.push(ReflectedSchema.EagerGetter);
+            d.push(ReflectedSchema.LazyGetter);
+            d.push(ReflectedSchema.FunctionBody);
+            d.push(ReflectedSchema.GetterContents);
+            d.push(ReflectedSchema.EagerSetter);
+            d.push(ReflectedSchema.LazySetter);
+            d.push(ReflectedSchema.SetterContents);
+            d.push(ReflectedSchema.DataProperty);
+            d.push(ReflectedSchema.ShorthandProperty);
+            d.push(ReflectedSchema.ComputedPropertyName);
+            d.push(ReflectedSchema.LiteralPropertyName);
+            d.push(ReflectedSchema.LiteralBooleanExpression);
+            d.push(ReflectedSchema.LiteralInfinityExpression);
+            d.push(ReflectedSchema.LiteralNullExpression);
+            d.push(ReflectedSchema.LiteralNumericExpression);
+            d.push(ReflectedSchema.LiteralRegExpExpression);
+            d.push(ReflectedSchema.LiteralStringExpression);
+            d.push(ReflectedSchema.ArrayExpression);
+            d.push(ReflectedSchema.EagerArrowExpression);
+            d.push(ReflectedSchema.LazyArrowExpression);
+            d.push(ReflectedSchema.ArrowExpressionContents);
+            d.push(ReflectedSchema.AssignmentExpression);
+            d.push(ReflectedSchema.BinaryExpression);
+            d.push(ReflectedSchema.CallExpression);
+            d.push(ReflectedSchema.CompoundAssignmentExpression);
+            d.push(ReflectedSchema.ComputedMemberExpression);
+            d.push(ReflectedSchema.ConditionalExpression);
+            d.push(ReflectedSchema.EagerFunctionExpression);
+            d.push(ReflectedSchema.LazyFunctionExpression);
+            d.push(ReflectedSchema.FunctionExpressionContents);
+            d.push(ReflectedSchema.IdentifierExpression);
+            d.push(ReflectedSchema.NewExpression);
+            d.push(ReflectedSchema.NewTargetExpression);
+            d.push(ReflectedSchema.ObjectExpression);
+            d.push(ReflectedSchema.UnaryExpression);
+            d.push(ReflectedSchema.StaticMemberExpression);
+            d.push(ReflectedSchema.TemplateExpression);
+            d.push(ReflectedSchema.ThisExpression);
+            d.push(ReflectedSchema.UpdateExpression);
+            d.push(ReflectedSchema.YieldExpression);
+            d.push(ReflectedSchema.YieldStarExpression);
+            d.push(ReflectedSchema.AwaitExpression);
+            d.push(ReflectedSchema.BreakStatement);
+            d.push(ReflectedSchema.ContinueStatement);
+            d.push(ReflectedSchema.DebuggerStatement);
+            d.push(ReflectedSchema.DoWhileStatement);
+            d.push(ReflectedSchema.EmptyStatement);
+            d.push(ReflectedSchema.ExpressionStatement);
+            d.push(ReflectedSchema.ForInOfBinding);
+            d.push(ReflectedSchema.ForInStatement);
+            d.push(ReflectedSchema.ForOfStatement);
+            d.push(ReflectedSchema.ForStatement);
+            d.push(ReflectedSchema.IfStatement);
+            d.push(ReflectedSchema.LabelledStatement);
+            d.push(ReflectedSchema.ReturnStatement);
+            d.push(ReflectedSchema.SwitchStatement);
+            d.push(ReflectedSchema.SwitchStatementWithDefault);
+            d.push(ReflectedSchema.ThrowStatement);
+            d.push(ReflectedSchema.TryCatchStatement);
+            d.push(ReflectedSchema.TryFinallyStatement);
+            d.push(ReflectedSchema.WhileStatement);
+            d.push(ReflectedSchema.WithStatement);
+            d.push(ReflectedSchema.Block);
+            d.push(ReflectedSchema.CatchClause);
+            d.push(ReflectedSchema.Directive);
+            d.push(ReflectedSchema.FormalParameters);
+            d.push(ReflectedSchema.EagerFunctionDeclaration);
+            d.push(ReflectedSchema.LazyFunctionDeclaration);
+            d.push(ReflectedSchema.FunctionOrMethodContents);
+            d.push(ReflectedSchema.Script);
+            d.push(ReflectedSchema.SpreadElement);
+            d.push(ReflectedSchema.Super);
+            d.push(ReflectedSchema.SwitchCase);
+            d.push(ReflectedSchema.SwitchDefault);
+            d.push(ReflectedSchema.TemplateElement);
+            d.push(ReflectedSchema.VariableDeclaration);
+            d.push(ReflectedSchema.VariableDeclarator);
+            this['_schema'] = new S.TreeSchema(d);
+        }
+        assert(this['_schema'] instanceof S.TreeSchema);
+        return this['_schema'] as S.TreeSchema;
+    },
 } // ReflectedSchema;
 
 
@@ -3526,84 +3684,172 @@ export type Label = string;
 
 
 export enum VariableDeclarationKind {
-   KwVar = "var",
-   KwLet = "let",
-   KwConst = "const",
+   KwVar = "VariableDeclarationKind_KwVar",
+   KwLet = "VariableDeclarationKind_KwLet",
+   KwConst = "VariableDeclarationKind_KwConst",
 } // enum VariableDeclarationKind
+
+export function liftVariableDeclarationKind(s: string): VariableDeclarationKind {
+    switch (s) {
+      case "var": return VariableDeclarationKind.KwVar;
+      case "let": return VariableDeclarationKind.KwLet;
+      case "const": return VariableDeclarationKind.KwConst;
+    }
+    throw new Error("NOT ENUM!: " + s);
+}
 
 
 
 export enum CompoundAssignmentOperator {
-   PlusAssign = "+=",
-   MinusAssign = "-=",
-   MulAssign = "*=",
-   DivAssign = "/=",
-   ModAssign = "%=",
-   PowAssign = "**=",
-   LshAssign = "<<=",
-   RshAssign = ">>=",
-   ArshAssign = ">>>=",
-   BitorAssign = "|=",
-   BitxorAssign = "^=",
-   BitandAssign = "&=",
+   PlusAssign = "CompoundAssignmentOperator_PlusAssign",
+   MinusAssign = "CompoundAssignmentOperator_MinusAssign",
+   MulAssign = "CompoundAssignmentOperator_MulAssign",
+   DivAssign = "CompoundAssignmentOperator_DivAssign",
+   ModAssign = "CompoundAssignmentOperator_ModAssign",
+   PowAssign = "CompoundAssignmentOperator_PowAssign",
+   LshAssign = "CompoundAssignmentOperator_LshAssign",
+   RshAssign = "CompoundAssignmentOperator_RshAssign",
+   ArshAssign = "CompoundAssignmentOperator_ArshAssign",
+   BitorAssign = "CompoundAssignmentOperator_BitorAssign",
+   BitxorAssign = "CompoundAssignmentOperator_BitxorAssign",
+   BitandAssign = "CompoundAssignmentOperator_BitandAssign",
 } // enum CompoundAssignmentOperator
+
+export function liftCompoundAssignmentOperator(s: string): CompoundAssignmentOperator {
+    switch (s) {
+      case "+=": return CompoundAssignmentOperator.PlusAssign;
+      case "-=": return CompoundAssignmentOperator.MinusAssign;
+      case "*=": return CompoundAssignmentOperator.MulAssign;
+      case "/=": return CompoundAssignmentOperator.DivAssign;
+      case "%=": return CompoundAssignmentOperator.ModAssign;
+      case "**=": return CompoundAssignmentOperator.PowAssign;
+      case "<<=": return CompoundAssignmentOperator.LshAssign;
+      case ">>=": return CompoundAssignmentOperator.RshAssign;
+      case ">>>=": return CompoundAssignmentOperator.ArshAssign;
+      case "|=": return CompoundAssignmentOperator.BitorAssign;
+      case "^=": return CompoundAssignmentOperator.BitxorAssign;
+      case "&=": return CompoundAssignmentOperator.BitandAssign;
+    }
+    throw new Error("NOT ENUM!: " + s);
+}
 
 
 
 export enum BinaryOperator {
-   Comma = ",",
-   LogicalOr = "||",
-   LogicalAnd = "&&",
-   Bitor = "|",
-   Bitxor = "^",
-   Bitand = "&",
-   Equal = "==",
-   NotEqual = "!=",
-   StrictEqual = "===",
-   NotStrictEqual = "!==",
-   LessThan = "<",
-   LessEqual = "<=",
-   GreaterThan = ">",
-   GreaterEqual = ">=",
-   KwIn = "in",
-   KwInstanceof = "instanceof",
-   Lsh = "<<",
-   Rsh = ">>",
-   Arsh = ">>>",
-   Plus = "+",
-   Minus = "-",
-   Mul = "*",
-   Div = "/",
-   Mod = "%",
-   Pow = "**",
+   Comma = "BinaryOperator_Comma",
+   LogicalOr = "BinaryOperator_LogicalOr",
+   LogicalAnd = "BinaryOperator_LogicalAnd",
+   Bitor = "BinaryOperator_Bitor",
+   Bitxor = "BinaryOperator_Bitxor",
+   Bitand = "BinaryOperator_Bitand",
+   Equal = "BinaryOperator_Equal",
+   NotEqual = "BinaryOperator_NotEqual",
+   StrictEqual = "BinaryOperator_StrictEqual",
+   NotStrictEqual = "BinaryOperator_NotStrictEqual",
+   LessThan = "BinaryOperator_LessThan",
+   LessEqual = "BinaryOperator_LessEqual",
+   GreaterThan = "BinaryOperator_GreaterThan",
+   GreaterEqual = "BinaryOperator_GreaterEqual",
+   KwIn = "BinaryOperator_KwIn",
+   KwInstanceof = "BinaryOperator_KwInstanceof",
+   Lsh = "BinaryOperator_Lsh",
+   Rsh = "BinaryOperator_Rsh",
+   Arsh = "BinaryOperator_Arsh",
+   Plus = "BinaryOperator_Plus",
+   Minus = "BinaryOperator_Minus",
+   Mul = "BinaryOperator_Mul",
+   Div = "BinaryOperator_Div",
+   Mod = "BinaryOperator_Mod",
+   Pow = "BinaryOperator_Pow",
 } // enum BinaryOperator
+
+export function liftBinaryOperator(s: string): BinaryOperator {
+    switch (s) {
+      case ",": return BinaryOperator.Comma;
+      case "||": return BinaryOperator.LogicalOr;
+      case "&&": return BinaryOperator.LogicalAnd;
+      case "|": return BinaryOperator.Bitor;
+      case "^": return BinaryOperator.Bitxor;
+      case "&": return BinaryOperator.Bitand;
+      case "==": return BinaryOperator.Equal;
+      case "!=": return BinaryOperator.NotEqual;
+      case "===": return BinaryOperator.StrictEqual;
+      case "!==": return BinaryOperator.NotStrictEqual;
+      case "<": return BinaryOperator.LessThan;
+      case "<=": return BinaryOperator.LessEqual;
+      case ">": return BinaryOperator.GreaterThan;
+      case ">=": return BinaryOperator.GreaterEqual;
+      case "in": return BinaryOperator.KwIn;
+      case "instanceof": return BinaryOperator.KwInstanceof;
+      case "<<": return BinaryOperator.Lsh;
+      case ">>": return BinaryOperator.Rsh;
+      case ">>>": return BinaryOperator.Arsh;
+      case "+": return BinaryOperator.Plus;
+      case "-": return BinaryOperator.Minus;
+      case "*": return BinaryOperator.Mul;
+      case "/": return BinaryOperator.Div;
+      case "%": return BinaryOperator.Mod;
+      case "**": return BinaryOperator.Pow;
+    }
+    throw new Error("NOT ENUM!: " + s);
+}
 
 
 
 export enum UnaryOperator {
-   Plus = "+",
-   Minus = "-",
-   LogicalNot = "!",
-   Bitnot = "~",
-   KwTypeof = "typeof",
-   KwVoid = "void",
-   KwDelete = "delete",
+   Plus = "UnaryOperator_Plus",
+   Minus = "UnaryOperator_Minus",
+   LogicalNot = "UnaryOperator_LogicalNot",
+   Bitnot = "UnaryOperator_Bitnot",
+   KwTypeof = "UnaryOperator_KwTypeof",
+   KwVoid = "UnaryOperator_KwVoid",
+   KwDelete = "UnaryOperator_KwDelete",
 } // enum UnaryOperator
+
+export function liftUnaryOperator(s: string): UnaryOperator {
+    switch (s) {
+      case "+": return UnaryOperator.Plus;
+      case "-": return UnaryOperator.Minus;
+      case "!": return UnaryOperator.LogicalNot;
+      case "~": return UnaryOperator.Bitnot;
+      case "typeof": return UnaryOperator.KwTypeof;
+      case "void": return UnaryOperator.KwVoid;
+      case "delete": return UnaryOperator.KwDelete;
+    }
+    throw new Error("NOT ENUM!: " + s);
+}
 
 
 
 export enum UpdateOperator {
-   PlusPlus = "++",
-   MinusMinus = "--",
+   PlusPlus = "UpdateOperator_PlusPlus",
+   MinusMinus = "UpdateOperator_MinusMinus",
 } // enum UpdateOperator
+
+export function liftUpdateOperator(s: string): UpdateOperator {
+    switch (s) {
+      case "++": return UpdateOperator.PlusPlus;
+      case "--": return UpdateOperator.MinusMinus;
+    }
+    throw new Error("NOT ENUM!: " + s);
+}
 
 
 
 export enum AssertedDeclaredKind {
-   KwVar = "var",
-   NonConstLexical = "non-const lexical",
-   ConstLexical = "const lexical",
+   KwVar = "AssertedDeclaredKind_KwVar",
+   NonConstLexical = "AssertedDeclaredKind_NonConstLexical",
+   ConstLexical = "AssertedDeclaredKind_ConstLexical",
 } // enum AssertedDeclaredKind
+
+export function liftAssertedDeclaredKind(s: string): AssertedDeclaredKind {
+    switch (s) {
+      case "var": return AssertedDeclaredKind.KwVar;
+      case "non-const lexical": return AssertedDeclaredKind.NonConstLexical;
+      case "const lexical": return AssertedDeclaredKind.ConstLexical;
+    }
+    throw new Error("NOT ENUM!: " + s);
+}
 
 
 
@@ -3616,9 +3862,6 @@ export interface I_AssertedDeclaredName {
 export class AssertedDeclaredName
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedDeclaredName;
-    }
     readonly data$: Ro<I_AssertedDeclaredName>;
 
     private constructor(data: Ro<I_AssertedDeclaredName>) {
@@ -3626,6 +3869,9 @@ export class AssertedDeclaredName
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedDeclaredName;
+    }
     static make(data: Ro<I_AssertedDeclaredName>) {
         return new AssertedDeclaredName(data);
     }
@@ -3633,15 +3879,12 @@ export class AssertedDeclaredName
     get name(): IdentifierName {
        return this.data$.name;
     }
-
     get kind(): AssertedDeclaredKind {
        return this.data$.kind;
     }
-
     get isCaptured(): boolean {
        return this.data$.isCaptured;
     }
-
 }
 
 
@@ -3653,9 +3896,6 @@ export interface I_AssertedBoundName {
 export class AssertedBoundName
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedBoundName;
-    }
     readonly data$: Ro<I_AssertedBoundName>;
 
     private constructor(data: Ro<I_AssertedBoundName>) {
@@ -3663,6 +3903,9 @@ export class AssertedBoundName
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedBoundName;
+    }
     static make(data: Ro<I_AssertedBoundName>) {
         return new AssertedBoundName(data);
     }
@@ -3670,11 +3913,9 @@ export class AssertedBoundName
     get name(): IdentifierName {
        return this.data$.name;
     }
-
     get isCaptured(): boolean {
        return this.data$.isCaptured;
     }
-
 }
 
 
@@ -3686,9 +3927,6 @@ export interface I_AssertedBlockScope {
 export class AssertedBlockScope
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedBlockScope;
-    }
     readonly data$: Ro<I_AssertedBlockScope>;
 
     private constructor(data: Ro<I_AssertedBlockScope>) {
@@ -3696,6 +3934,9 @@ export class AssertedBlockScope
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedBlockScope;
+    }
     static make(data: Ro<I_AssertedBlockScope>) {
         return new AssertedBlockScope(data);
     }
@@ -3703,11 +3944,9 @@ export class AssertedBlockScope
     get declaredNames(): RoArr<AssertedDeclaredName> {
        return this.data$.declaredNames;
     }
-
     get hasDirectEval(): boolean {
        return this.data$.hasDirectEval;
     }
-
 }
 
 
@@ -3719,9 +3958,6 @@ export interface I_AssertedScriptGlobalScope {
 export class AssertedScriptGlobalScope
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedScriptGlobalScope;
-    }
     readonly data$: Ro<I_AssertedScriptGlobalScope>;
 
     private constructor(data: Ro<I_AssertedScriptGlobalScope>) {
@@ -3729,6 +3965,9 @@ export class AssertedScriptGlobalScope
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedScriptGlobalScope;
+    }
     static make(data: Ro<I_AssertedScriptGlobalScope>) {
         return new AssertedScriptGlobalScope(data);
     }
@@ -3736,11 +3975,9 @@ export class AssertedScriptGlobalScope
     get declaredNames(): RoArr<AssertedDeclaredName> {
        return this.data$.declaredNames;
     }
-
     get hasDirectEval(): boolean {
        return this.data$.hasDirectEval;
     }
-
 }
 
 
@@ -3752,9 +3989,6 @@ export interface I_AssertedVarScope {
 export class AssertedVarScope
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedVarScope;
-    }
     readonly data$: Ro<I_AssertedVarScope>;
 
     private constructor(data: Ro<I_AssertedVarScope>) {
@@ -3762,6 +3996,9 @@ export class AssertedVarScope
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedVarScope;
+    }
     static make(data: Ro<I_AssertedVarScope>) {
         return new AssertedVarScope(data);
     }
@@ -3769,11 +4006,9 @@ export class AssertedVarScope
     get declaredNames(): RoArr<AssertedDeclaredName> {
        return this.data$.declaredNames;
     }
-
     get hasDirectEval(): boolean {
        return this.data$.hasDirectEval;
     }
-
 }
 
 
@@ -3786,9 +4021,6 @@ export interface I_AssertedParameterScope {
 export class AssertedParameterScope
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedParameterScope;
-    }
     readonly data$: Ro<I_AssertedParameterScope>;
 
     private constructor(data: Ro<I_AssertedParameterScope>) {
@@ -3796,6 +4028,9 @@ export class AssertedParameterScope
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedParameterScope;
+    }
     static make(data: Ro<I_AssertedParameterScope>) {
         return new AssertedParameterScope(data);
     }
@@ -3803,15 +4038,12 @@ export class AssertedParameterScope
     get boundNames(): RoArr<AssertedBoundName> {
        return this.data$.boundNames;
     }
-
     get hasDirectEval(): boolean {
        return this.data$.hasDirectEval;
     }
-
     get isSimpleParameterList(): boolean {
        return this.data$.isSimpleParameterList;
     }
-
 }
 
 
@@ -3823,9 +4055,6 @@ export interface I_AssertedBoundNamesScope {
 export class AssertedBoundNamesScope
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssertedBoundNamesScope;
-    }
     readonly data$: Ro<I_AssertedBoundNamesScope>;
 
     private constructor(data: Ro<I_AssertedBoundNamesScope>) {
@@ -3833,6 +4062,9 @@ export class AssertedBoundNamesScope
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssertedBoundNamesScope;
+    }
     static make(data: Ro<I_AssertedBoundNamesScope>) {
         return new AssertedBoundNamesScope(data);
     }
@@ -3840,11 +4072,9 @@ export class AssertedBoundNamesScope
     get boundNames(): RoArr<AssertedBoundName> {
        return this.data$.boundNames;
     }
-
     get hasDirectEval(): boolean {
        return this.data$.hasDirectEval;
     }
-
 }
 
 
@@ -3904,9 +4134,6 @@ export class BindingIdentifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_BindingIdentifier;
-    }
     readonly data$: Ro<I_BindingIdentifier>;
 
     private constructor(data: Ro<I_BindingIdentifier>) {
@@ -3915,6 +4142,9 @@ export class BindingIdentifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.BindingIdentifier;
+    }
     static make(data: Ro<I_BindingIdentifier>) {
         return new BindingIdentifier(data);
     }
@@ -3922,7 +4152,6 @@ export class BindingIdentifier
     get name(): Identifier {
        return this.data$.name;
     }
-
 }
 
 
@@ -3953,9 +4182,6 @@ export class BindingWithInitializer
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_BindingWithInitializer;
-    }
     readonly data$: Ro<I_BindingWithInitializer>;
 
     private constructor(data: Ro<I_BindingWithInitializer>) {
@@ -3964,6 +4190,9 @@ export class BindingWithInitializer
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.BindingWithInitializer;
+    }
     static make(data: Ro<I_BindingWithInitializer>) {
         return new BindingWithInitializer(data);
     }
@@ -3971,11 +4200,9 @@ export class BindingWithInitializer
     get binding(): Binding {
        return this.data$.binding;
     }
-
     get init(): Expression {
        return this.data$.init;
     }
-
 }
 
 
@@ -3987,9 +4214,6 @@ export class AssignmentTargetIdentifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssignmentTargetIdentifier;
-    }
     readonly data$: Ro<I_AssignmentTargetIdentifier>;
 
     private constructor(data: Ro<I_AssignmentTargetIdentifier>) {
@@ -3998,6 +4222,9 @@ export class AssignmentTargetIdentifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssignmentTargetIdentifier;
+    }
     static make(data: Ro<I_AssignmentTargetIdentifier>) {
         return new AssignmentTargetIdentifier(data);
     }
@@ -4005,7 +4232,6 @@ export class AssignmentTargetIdentifier
     get name(): Identifier {
        return this.data$.name;
     }
-
 }
 
 
@@ -4018,9 +4244,6 @@ export class ComputedMemberAssignmentTarget
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ComputedMemberAssignmentTarget;
-    }
     readonly data$: Ro<I_ComputedMemberAssignmentTarget>;
 
     private constructor(data: Ro<I_ComputedMemberAssignmentTarget>) {
@@ -4029,6 +4252,9 @@ export class ComputedMemberAssignmentTarget
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ComputedMemberAssignmentTarget;
+    }
     static make(data: Ro<I_ComputedMemberAssignmentTarget>) {
         return new ComputedMemberAssignmentTarget(data);
     }
@@ -4036,11 +4262,9 @@ export class ComputedMemberAssignmentTarget
     get object(): (Expression | Super) {
        return this.data$.object;
     }
-
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -4053,9 +4277,6 @@ export class StaticMemberAssignmentTarget
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_StaticMemberAssignmentTarget;
-    }
     readonly data$: Ro<I_StaticMemberAssignmentTarget>;
 
     private constructor(data: Ro<I_StaticMemberAssignmentTarget>) {
@@ -4064,6 +4285,9 @@ export class StaticMemberAssignmentTarget
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.StaticMemberAssignmentTarget;
+    }
     static make(data: Ro<I_StaticMemberAssignmentTarget>) {
         return new StaticMemberAssignmentTarget(data);
     }
@@ -4071,11 +4295,9 @@ export class StaticMemberAssignmentTarget
     get object(): (Expression | Super) {
        return this.data$.object;
     }
-
     get property(): IdentifierName {
        return this.data$.property;
     }
-
 }
 
 
@@ -4088,9 +4310,6 @@ export class ArrayBinding
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ArrayBinding;
-    }
     readonly data$: Ro<I_ArrayBinding>;
 
     private constructor(data: Ro<I_ArrayBinding>) {
@@ -4099,6 +4318,9 @@ export class ArrayBinding
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ArrayBinding;
+    }
     static make(data: Ro<I_ArrayBinding>) {
         return new ArrayBinding(data);
     }
@@ -4106,11 +4328,9 @@ export class ArrayBinding
     get elements(): RoArr<Opt<(Binding | BindingWithInitializer)>> {
        return this.data$.elements;
     }
-
     get rest(): Opt<Binding> {
        return this.data$.rest;
     }
-
 }
 
 
@@ -4123,9 +4343,6 @@ export class BindingPropertyIdentifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_BindingPropertyIdentifier;
-    }
     readonly data$: Ro<I_BindingPropertyIdentifier>;
 
     private constructor(data: Ro<I_BindingPropertyIdentifier>) {
@@ -4134,6 +4351,9 @@ export class BindingPropertyIdentifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.BindingPropertyIdentifier;
+    }
     static make(data: Ro<I_BindingPropertyIdentifier>) {
         return new BindingPropertyIdentifier(data);
     }
@@ -4141,11 +4361,9 @@ export class BindingPropertyIdentifier
     get binding(): BindingIdentifier {
        return this.data$.binding;
     }
-
     get init(): Opt<Expression> {
        return this.data$.init;
     }
-
 }
 
 
@@ -4158,9 +4376,6 @@ export class BindingPropertyProperty
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_BindingPropertyProperty;
-    }
     readonly data$: Ro<I_BindingPropertyProperty>;
 
     private constructor(data: Ro<I_BindingPropertyProperty>) {
@@ -4169,6 +4384,9 @@ export class BindingPropertyProperty
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.BindingPropertyProperty;
+    }
     static make(data: Ro<I_BindingPropertyProperty>) {
         return new BindingPropertyProperty(data);
     }
@@ -4176,11 +4394,9 @@ export class BindingPropertyProperty
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get binding(): (Binding | BindingWithInitializer) {
        return this.data$.binding;
     }
-
 }
 
 
@@ -4195,9 +4411,6 @@ export class ObjectBinding
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ObjectBinding;
-    }
     readonly data$: Ro<I_ObjectBinding>;
 
     private constructor(data: Ro<I_ObjectBinding>) {
@@ -4206,6 +4419,9 @@ export class ObjectBinding
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ObjectBinding;
+    }
     static make(data: Ro<I_ObjectBinding>) {
         return new ObjectBinding(data);
     }
@@ -4213,7 +4429,6 @@ export class ObjectBinding
     get properties(): RoArr<BindingProperty> {
        return this.data$.properties;
     }
-
 }
 
 
@@ -4226,9 +4441,6 @@ export class AssignmentTargetWithInitializer
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssignmentTargetWithInitializer;
-    }
     readonly data$: Ro<I_AssignmentTargetWithInitializer>;
 
     private constructor(data: Ro<I_AssignmentTargetWithInitializer>) {
@@ -4237,6 +4449,9 @@ export class AssignmentTargetWithInitializer
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssignmentTargetWithInitializer;
+    }
     static make(data: Ro<I_AssignmentTargetWithInitializer>) {
         return new AssignmentTargetWithInitializer(data);
     }
@@ -4244,11 +4459,9 @@ export class AssignmentTargetWithInitializer
     get binding(): AssignmentTarget {
        return this.data$.binding;
     }
-
     get init(): Expression {
        return this.data$.init;
     }
-
 }
 
 
@@ -4261,9 +4474,6 @@ export class ArrayAssignmentTarget
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ArrayAssignmentTarget;
-    }
     readonly data$: Ro<I_ArrayAssignmentTarget>;
 
     private constructor(data: Ro<I_ArrayAssignmentTarget>) {
@@ -4272,6 +4482,9 @@ export class ArrayAssignmentTarget
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ArrayAssignmentTarget;
+    }
     static make(data: Ro<I_ArrayAssignmentTarget>) {
         return new ArrayAssignmentTarget(data);
     }
@@ -4279,11 +4492,9 @@ export class ArrayAssignmentTarget
     get elements(): RoArr<Opt<(AssignmentTarget | AssignmentTargetWithInitializer)>> {
        return this.data$.elements;
     }
-
     get rest(): Opt<AssignmentTarget> {
        return this.data$.rest;
     }
-
 }
 
 
@@ -4296,9 +4507,6 @@ export class AssignmentTargetPropertyIdentifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssignmentTargetPropertyIdentifier;
-    }
     readonly data$: Ro<I_AssignmentTargetPropertyIdentifier>;
 
     private constructor(data: Ro<I_AssignmentTargetPropertyIdentifier>) {
@@ -4307,6 +4515,9 @@ export class AssignmentTargetPropertyIdentifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssignmentTargetPropertyIdentifier;
+    }
     static make(data: Ro<I_AssignmentTargetPropertyIdentifier>) {
         return new AssignmentTargetPropertyIdentifier(data);
     }
@@ -4314,11 +4525,9 @@ export class AssignmentTargetPropertyIdentifier
     get binding(): AssignmentTargetIdentifier {
        return this.data$.binding;
     }
-
     get init(): Opt<Expression> {
        return this.data$.init;
     }
-
 }
 
 
@@ -4331,9 +4540,6 @@ export class AssignmentTargetPropertyProperty
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssignmentTargetPropertyProperty;
-    }
     readonly data$: Ro<I_AssignmentTargetPropertyProperty>;
 
     private constructor(data: Ro<I_AssignmentTargetPropertyProperty>) {
@@ -4342,6 +4548,9 @@ export class AssignmentTargetPropertyProperty
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssignmentTargetPropertyProperty;
+    }
     static make(data: Ro<I_AssignmentTargetPropertyProperty>) {
         return new AssignmentTargetPropertyProperty(data);
     }
@@ -4349,11 +4558,9 @@ export class AssignmentTargetPropertyProperty
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get binding(): (AssignmentTarget | AssignmentTargetWithInitializer) {
        return this.data$.binding;
     }
-
 }
 
 
@@ -4368,9 +4575,6 @@ export class ObjectAssignmentTarget
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ObjectAssignmentTarget;
-    }
     readonly data$: Ro<I_ObjectAssignmentTarget>;
 
     private constructor(data: Ro<I_ObjectAssignmentTarget>) {
@@ -4379,6 +4583,9 @@ export class ObjectAssignmentTarget
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ObjectAssignmentTarget;
+    }
     static make(data: Ro<I_ObjectAssignmentTarget>) {
         return new ObjectAssignmentTarget(data);
     }
@@ -4386,7 +4593,6 @@ export class ObjectAssignmentTarget
     get properties(): RoArr<AssignmentTargetProperty> {
        return this.data$.properties;
     }
-
 }
 
 
@@ -4400,9 +4606,6 @@ export class ClassExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ClassExpression;
-    }
     readonly data$: Ro<I_ClassExpression>;
 
     private constructor(data: Ro<I_ClassExpression>) {
@@ -4411,6 +4614,9 @@ export class ClassExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ClassExpression;
+    }
     static make(data: Ro<I_ClassExpression>) {
         return new ClassExpression(data);
     }
@@ -4418,15 +4624,12 @@ export class ClassExpression
     get name(): Opt<BindingIdentifier> {
        return this.data$.name;
     }
-
     get super(): Opt<Expression> {
        return this.data$.super;
     }
-
     get elements(): RoArr<ClassElement> {
        return this.data$.elements;
     }
-
 }
 
 
@@ -4440,9 +4643,6 @@ export class ClassDeclaration
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ClassDeclaration;
-    }
     readonly data$: Ro<I_ClassDeclaration>;
 
     private constructor(data: Ro<I_ClassDeclaration>) {
@@ -4451,6 +4651,9 @@ export class ClassDeclaration
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ClassDeclaration;
+    }
     static make(data: Ro<I_ClassDeclaration>) {
         return new ClassDeclaration(data);
     }
@@ -4458,15 +4661,12 @@ export class ClassDeclaration
     get name(): BindingIdentifier {
        return this.data$.name;
     }
-
     get super(): Opt<Expression> {
        return this.data$.super;
     }
-
     get elements(): RoArr<ClassElement> {
        return this.data$.elements;
     }
-
 }
 
 
@@ -4479,9 +4679,6 @@ export class ClassElement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ClassElement;
-    }
     readonly data$: Ro<I_ClassElement>;
 
     private constructor(data: Ro<I_ClassElement>) {
@@ -4490,6 +4687,9 @@ export class ClassElement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ClassElement;
+    }
     static make(data: Ro<I_ClassElement>) {
         return new ClassElement(data);
     }
@@ -4497,11 +4697,9 @@ export class ClassElement
     get isStatic(): boolean {
        return this.data$.isStatic;
     }
-
     get method(): MethodDefinition {
        return this.data$.method;
     }
-
 }
 
 
@@ -4515,9 +4713,6 @@ export class Module
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Module;
-    }
     readonly data$: Ro<I_Module>;
 
     private constructor(data: Ro<I_Module>) {
@@ -4526,6 +4721,9 @@ export class Module
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Module;
+    }
     static make(data: Ro<I_Module>) {
         return new Module(data);
     }
@@ -4533,15 +4731,12 @@ export class Module
     get scope(): AssertedVarScope {
        return this.data$.scope;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get items(): RoArr<(ImportDeclaration | ExportDeclaration | Statement)> {
        return this.data$.items;
     }
-
 }
 
 
@@ -4555,9 +4750,6 @@ export class Import
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Import;
-    }
     readonly data$: Ro<I_Import>;
 
     private constructor(data: Ro<I_Import>) {
@@ -4566,6 +4758,9 @@ export class Import
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Import;
+    }
     static make(data: Ro<I_Import>) {
         return new Import(data);
     }
@@ -4573,15 +4768,12 @@ export class Import
     get moduleSpecifier(): string {
        return this.data$.moduleSpecifier;
     }
-
     get defaultBinding(): Opt<BindingIdentifier> {
        return this.data$.defaultBinding;
     }
-
     get namedImports(): RoArr<ImportSpecifier> {
        return this.data$.namedImports;
     }
-
 }
 
 
@@ -4595,9 +4787,6 @@ export class ImportNamespace
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ImportNamespace;
-    }
     readonly data$: Ro<I_ImportNamespace>;
 
     private constructor(data: Ro<I_ImportNamespace>) {
@@ -4606,6 +4795,9 @@ export class ImportNamespace
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ImportNamespace;
+    }
     static make(data: Ro<I_ImportNamespace>) {
         return new ImportNamespace(data);
     }
@@ -4613,15 +4805,12 @@ export class ImportNamespace
     get moduleSpecifier(): string {
        return this.data$.moduleSpecifier;
     }
-
     get defaultBinding(): Opt<BindingIdentifier> {
        return this.data$.defaultBinding;
     }
-
     get namespaceBinding(): BindingIdentifier {
        return this.data$.namespaceBinding;
     }
-
 }
 
 
@@ -4634,9 +4823,6 @@ export class ImportSpecifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ImportSpecifier;
-    }
     readonly data$: Ro<I_ImportSpecifier>;
 
     private constructor(data: Ro<I_ImportSpecifier>) {
@@ -4645,6 +4831,9 @@ export class ImportSpecifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ImportSpecifier;
+    }
     static make(data: Ro<I_ImportSpecifier>) {
         return new ImportSpecifier(data);
     }
@@ -4652,11 +4841,9 @@ export class ImportSpecifier
     get name(): Opt<IdentifierName> {
        return this.data$.name;
     }
-
     get binding(): BindingIdentifier {
        return this.data$.binding;
     }
-
 }
 
 
@@ -4668,9 +4855,6 @@ export class ExportAllFrom
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExportAllFrom;
-    }
     readonly data$: Ro<I_ExportAllFrom>;
 
     private constructor(data: Ro<I_ExportAllFrom>) {
@@ -4679,6 +4863,9 @@ export class ExportAllFrom
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExportAllFrom;
+    }
     static make(data: Ro<I_ExportAllFrom>) {
         return new ExportAllFrom(data);
     }
@@ -4686,7 +4873,6 @@ export class ExportAllFrom
     get moduleSpecifier(): string {
        return this.data$.moduleSpecifier;
     }
-
 }
 
 
@@ -4699,9 +4885,6 @@ export class ExportFrom
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExportFrom;
-    }
     readonly data$: Ro<I_ExportFrom>;
 
     private constructor(data: Ro<I_ExportFrom>) {
@@ -4710,6 +4893,9 @@ export class ExportFrom
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExportFrom;
+    }
     static make(data: Ro<I_ExportFrom>) {
         return new ExportFrom(data);
     }
@@ -4717,11 +4903,9 @@ export class ExportFrom
     get namedExports(): RoArr<ExportFromSpecifier> {
        return this.data$.namedExports;
     }
-
     get moduleSpecifier(): string {
        return this.data$.moduleSpecifier;
     }
-
 }
 
 
@@ -4733,9 +4917,6 @@ export class ExportLocals
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExportLocals;
-    }
     readonly data$: Ro<I_ExportLocals>;
 
     private constructor(data: Ro<I_ExportLocals>) {
@@ -4744,6 +4925,9 @@ export class ExportLocals
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExportLocals;
+    }
     static make(data: Ro<I_ExportLocals>) {
         return new ExportLocals(data);
     }
@@ -4751,7 +4935,6 @@ export class ExportLocals
     get namedExports(): RoArr<ExportLocalSpecifier> {
        return this.data$.namedExports;
     }
-
 }
 
 
@@ -4763,9 +4946,6 @@ export class Export
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Export;
-    }
     readonly data$: Ro<I_Export>;
 
     private constructor(data: Ro<I_Export>) {
@@ -4774,6 +4954,9 @@ export class Export
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Export;
+    }
     static make(data: Ro<I_Export>) {
         return new Export(data);
     }
@@ -4781,7 +4964,6 @@ export class Export
     get declaration(): (FunctionDeclaration | ClassDeclaration | VariableDeclaration) {
        return this.data$.declaration;
     }
-
 }
 
 
@@ -4793,9 +4975,6 @@ export class ExportDefault
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExportDefault;
-    }
     readonly data$: Ro<I_ExportDefault>;
 
     private constructor(data: Ro<I_ExportDefault>) {
@@ -4804,6 +4983,9 @@ export class ExportDefault
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExportDefault;
+    }
     static make(data: Ro<I_ExportDefault>) {
         return new ExportDefault(data);
     }
@@ -4811,7 +4993,6 @@ export class ExportDefault
     get body(): (FunctionDeclaration | ClassDeclaration | Expression) {
        return this.data$.body;
     }
-
 }
 
 
@@ -4824,9 +5005,6 @@ export class ExportFromSpecifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExportFromSpecifier;
-    }
     readonly data$: Ro<I_ExportFromSpecifier>;
 
     private constructor(data: Ro<I_ExportFromSpecifier>) {
@@ -4835,6 +5013,9 @@ export class ExportFromSpecifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExportFromSpecifier;
+    }
     static make(data: Ro<I_ExportFromSpecifier>) {
         return new ExportFromSpecifier(data);
     }
@@ -4842,11 +5023,9 @@ export class ExportFromSpecifier
     get name(): IdentifierName {
        return this.data$.name;
     }
-
     get exportedName(): Opt<IdentifierName> {
        return this.data$.exportedName;
     }
-
 }
 
 
@@ -4859,9 +5038,6 @@ export class ExportLocalSpecifier
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExportLocalSpecifier;
-    }
     readonly data$: Ro<I_ExportLocalSpecifier>;
 
     private constructor(data: Ro<I_ExportLocalSpecifier>) {
@@ -4870,6 +5046,9 @@ export class ExportLocalSpecifier
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExportLocalSpecifier;
+    }
     static make(data: Ro<I_ExportLocalSpecifier>) {
         return new ExportLocalSpecifier(data);
     }
@@ -4877,11 +5056,9 @@ export class ExportLocalSpecifier
     get name(): IdentifierExpression {
        return this.data$.name;
     }
-
     get exportedName(): Opt<IdentifierName> {
        return this.data$.exportedName;
     }
-
 }
 
 
@@ -4897,9 +5074,6 @@ export class EagerMethod
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EagerMethod;
-    }
     readonly data$: Ro<I_EagerMethod>;
 
     private constructor(data: Ro<I_EagerMethod>) {
@@ -4908,6 +5082,9 @@ export class EagerMethod
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EagerMethod;
+    }
     static make(data: Ro<I_EagerMethod>) {
         return new EagerMethod(data);
     }
@@ -4915,23 +5092,18 @@ export class EagerMethod
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): FunctionOrMethodContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -4947,9 +5119,6 @@ export class LazyMethod
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LazyMethod;
-    }
     readonly data$: Ro<I_LazyMethod>;
 
     private constructor(data: Ro<I_LazyMethod>) {
@@ -4958,6 +5127,9 @@ export class LazyMethod
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LazyMethod;
+    }
     static make(data: Ro<I_LazyMethod>) {
         return new LazyMethod(data);
     }
@@ -4965,23 +5137,18 @@ export class LazyMethod
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): FunctionOrMethodContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -4995,9 +5162,6 @@ export class EagerGetter
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EagerGetter;
-    }
     readonly data$: Ro<I_EagerGetter>;
 
     private constructor(data: Ro<I_EagerGetter>) {
@@ -5006,6 +5170,9 @@ export class EagerGetter
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EagerGetter;
+    }
     static make(data: Ro<I_EagerGetter>) {
         return new EagerGetter(data);
     }
@@ -5013,15 +5180,12 @@ export class EagerGetter
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): GetterContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5035,9 +5199,6 @@ export class LazyGetter
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LazyGetter;
-    }
     readonly data$: Ro<I_LazyGetter>;
 
     private constructor(data: Ro<I_LazyGetter>) {
@@ -5046,6 +5207,9 @@ export class LazyGetter
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LazyGetter;
+    }
     static make(data: Ro<I_LazyGetter>) {
         return new LazyGetter(data);
     }
@@ -5053,15 +5217,12 @@ export class LazyGetter
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): GetterContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5075,9 +5236,6 @@ export class GetterContents
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_GetterContents;
-    }
     readonly data$: Ro<I_GetterContents>;
 
     private constructor(data: Ro<I_GetterContents>) {
@@ -5086,6 +5244,9 @@ export class GetterContents
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.GetterContents;
+    }
     static make(data: Ro<I_GetterContents>) {
         return new GetterContents(data);
     }
@@ -5093,15 +5254,12 @@ export class GetterContents
     get isThisCaptured(): boolean {
        return this.data$.isThisCaptured;
     }
-
     get bodyScope(): AssertedVarScope {
        return this.data$.bodyScope;
     }
-
     get body(): FunctionBody {
        return this.data$.body;
     }
-
 }
 
 
@@ -5115,9 +5273,6 @@ export class EagerSetter
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EagerSetter;
-    }
     readonly data$: Ro<I_EagerSetter>;
 
     private constructor(data: Ro<I_EagerSetter>) {
@@ -5126,6 +5281,9 @@ export class EagerSetter
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EagerSetter;
+    }
     static make(data: Ro<I_EagerSetter>) {
         return new EagerSetter(data);
     }
@@ -5133,15 +5291,12 @@ export class EagerSetter
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): SetterContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5155,9 +5310,6 @@ export class LazySetter
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LazySetter;
-    }
     readonly data$: Ro<I_LazySetter>;
 
     private constructor(data: Ro<I_LazySetter>) {
@@ -5166,6 +5318,9 @@ export class LazySetter
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LazySetter;
+    }
     static make(data: Ro<I_LazySetter>) {
         return new LazySetter(data);
     }
@@ -5173,15 +5328,12 @@ export class LazySetter
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): SetterContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5197,9 +5349,6 @@ export class SetterContents
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_SetterContents;
-    }
     readonly data$: Ro<I_SetterContents>;
 
     private constructor(data: Ro<I_SetterContents>) {
@@ -5208,6 +5357,9 @@ export class SetterContents
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.SetterContents;
+    }
     static make(data: Ro<I_SetterContents>) {
         return new SetterContents(data);
     }
@@ -5215,23 +5367,18 @@ export class SetterContents
     get isThisCaptured(): boolean {
        return this.data$.isThisCaptured;
     }
-
     get parameterScope(): AssertedParameterScope {
        return this.data$.parameterScope;
     }
-
     get param(): Parameter {
        return this.data$.param;
     }
-
     get bodyScope(): AssertedVarScope {
        return this.data$.bodyScope;
     }
-
     get body(): FunctionBody {
        return this.data$.body;
     }
-
 }
 
 
@@ -5244,9 +5391,6 @@ export class DataProperty
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_DataProperty;
-    }
     readonly data$: Ro<I_DataProperty>;
 
     private constructor(data: Ro<I_DataProperty>) {
@@ -5255,6 +5399,9 @@ export class DataProperty
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.DataProperty;
+    }
     static make(data: Ro<I_DataProperty>) {
         return new DataProperty(data);
     }
@@ -5262,11 +5409,9 @@ export class DataProperty
     get name(): PropertyName {
        return this.data$.name;
     }
-
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -5278,9 +5423,6 @@ export class ShorthandProperty
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ShorthandProperty;
-    }
     readonly data$: Ro<I_ShorthandProperty>;
 
     private constructor(data: Ro<I_ShorthandProperty>) {
@@ -5289,6 +5431,9 @@ export class ShorthandProperty
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ShorthandProperty;
+    }
     static make(data: Ro<I_ShorthandProperty>) {
         return new ShorthandProperty(data);
     }
@@ -5296,7 +5441,6 @@ export class ShorthandProperty
     get name(): IdentifierExpression {
        return this.data$.name;
     }
-
 }
 
 
@@ -5308,9 +5452,6 @@ export class ComputedPropertyName
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ComputedPropertyName;
-    }
     readonly data$: Ro<I_ComputedPropertyName>;
 
     private constructor(data: Ro<I_ComputedPropertyName>) {
@@ -5319,6 +5460,9 @@ export class ComputedPropertyName
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ComputedPropertyName;
+    }
     static make(data: Ro<I_ComputedPropertyName>) {
         return new ComputedPropertyName(data);
     }
@@ -5326,7 +5470,6 @@ export class ComputedPropertyName
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -5338,9 +5481,6 @@ export class LiteralPropertyName
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralPropertyName;
-    }
     readonly data$: Ro<I_LiteralPropertyName>;
 
     private constructor(data: Ro<I_LiteralPropertyName>) {
@@ -5349,6 +5489,9 @@ export class LiteralPropertyName
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralPropertyName;
+    }
     static make(data: Ro<I_LiteralPropertyName>) {
         return new LiteralPropertyName(data);
     }
@@ -5356,7 +5499,6 @@ export class LiteralPropertyName
     get value(): string {
        return this.data$.value;
     }
-
 }
 
 
@@ -5368,9 +5510,6 @@ export class LiteralBooleanExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralBooleanExpression;
-    }
     readonly data$: Ro<I_LiteralBooleanExpression>;
 
     private constructor(data: Ro<I_LiteralBooleanExpression>) {
@@ -5379,6 +5518,9 @@ export class LiteralBooleanExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralBooleanExpression;
+    }
     static make(data: Ro<I_LiteralBooleanExpression>) {
         return new LiteralBooleanExpression(data);
     }
@@ -5386,7 +5528,6 @@ export class LiteralBooleanExpression
     get value(): boolean {
        return this.data$.value;
     }
-
 }
 
 
@@ -5397,9 +5538,6 @@ export class LiteralInfinityExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralInfinityExpression;
-    }
     readonly data$: Ro<I_LiteralInfinityExpression>;
 
     private constructor(data: Ro<I_LiteralInfinityExpression>) {
@@ -5408,6 +5546,9 @@ export class LiteralInfinityExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralInfinityExpression;
+    }
     static make(data: Ro<I_LiteralInfinityExpression>) {
         return new LiteralInfinityExpression(data);
     }
@@ -5422,9 +5563,6 @@ export class LiteralNullExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralNullExpression;
-    }
     readonly data$: Ro<I_LiteralNullExpression>;
 
     private constructor(data: Ro<I_LiteralNullExpression>) {
@@ -5433,6 +5571,9 @@ export class LiteralNullExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralNullExpression;
+    }
     static make(data: Ro<I_LiteralNullExpression>) {
         return new LiteralNullExpression(data);
     }
@@ -5448,9 +5589,6 @@ export class LiteralNumericExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralNumericExpression;
-    }
     readonly data$: Ro<I_LiteralNumericExpression>;
 
     private constructor(data: Ro<I_LiteralNumericExpression>) {
@@ -5459,6 +5597,9 @@ export class LiteralNumericExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralNumericExpression;
+    }
     static make(data: Ro<I_LiteralNumericExpression>) {
         return new LiteralNumericExpression(data);
     }
@@ -5466,7 +5607,6 @@ export class LiteralNumericExpression
     get value(): number {
        return this.data$.value;
     }
-
 }
 
 
@@ -5479,9 +5619,6 @@ export class LiteralRegExpExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralRegExpExpression;
-    }
     readonly data$: Ro<I_LiteralRegExpExpression>;
 
     private constructor(data: Ro<I_LiteralRegExpExpression>) {
@@ -5490,6 +5627,9 @@ export class LiteralRegExpExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralRegExpExpression;
+    }
     static make(data: Ro<I_LiteralRegExpExpression>) {
         return new LiteralRegExpExpression(data);
     }
@@ -5497,11 +5637,9 @@ export class LiteralRegExpExpression
     get pattern(): string {
        return this.data$.pattern;
     }
-
     get flags(): string {
        return this.data$.flags;
     }
-
 }
 
 
@@ -5513,9 +5651,6 @@ export class LiteralStringExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LiteralStringExpression;
-    }
     readonly data$: Ro<I_LiteralStringExpression>;
 
     private constructor(data: Ro<I_LiteralStringExpression>) {
@@ -5524,6 +5659,9 @@ export class LiteralStringExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LiteralStringExpression;
+    }
     static make(data: Ro<I_LiteralStringExpression>) {
         return new LiteralStringExpression(data);
     }
@@ -5531,7 +5669,6 @@ export class LiteralStringExpression
     get value(): string {
        return this.data$.value;
     }
-
 }
 
 
@@ -5543,9 +5680,6 @@ export class ArrayExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ArrayExpression;
-    }
     readonly data$: Ro<I_ArrayExpression>;
 
     private constructor(data: Ro<I_ArrayExpression>) {
@@ -5554,6 +5688,9 @@ export class ArrayExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ArrayExpression;
+    }
     static make(data: Ro<I_ArrayExpression>) {
         return new ArrayExpression(data);
     }
@@ -5561,7 +5698,6 @@ export class ArrayExpression
     get elements(): RoArr<Opt<(SpreadElement | Expression)>> {
        return this.data$.elements;
     }
-
 }
 
 
@@ -5575,9 +5711,6 @@ export class EagerArrowExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EagerArrowExpression;
-    }
     readonly data$: Ro<I_EagerArrowExpression>;
 
     private constructor(data: Ro<I_EagerArrowExpression>) {
@@ -5586,6 +5719,9 @@ export class EagerArrowExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EagerArrowExpression;
+    }
     static make(data: Ro<I_EagerArrowExpression>) {
         return new EagerArrowExpression(data);
     }
@@ -5593,15 +5729,12 @@ export class EagerArrowExpression
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get directives(): Opt<RoArr<Directive>> {
        return this.data$.directives;
     }
-
     get contents(): ArrowExpressionContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5615,9 +5748,6 @@ export class LazyArrowExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LazyArrowExpression;
-    }
     readonly data$: Ro<I_LazyArrowExpression>;
 
     private constructor(data: Ro<I_LazyArrowExpression>) {
@@ -5626,6 +5756,9 @@ export class LazyArrowExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LazyArrowExpression;
+    }
     static make(data: Ro<I_LazyArrowExpression>) {
         return new LazyArrowExpression(data);
     }
@@ -5633,15 +5766,12 @@ export class LazyArrowExpression
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get directives(): Opt<RoArr<Directive>> {
        return this.data$.directives;
     }
-
     get contents(): ArrowExpressionContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5656,9 +5786,6 @@ export class ArrowExpressionContents
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ArrowExpressionContents;
-    }
     readonly data$: Ro<I_ArrowExpressionContents>;
 
     private constructor(data: Ro<I_ArrowExpressionContents>) {
@@ -5667,6 +5794,9 @@ export class ArrowExpressionContents
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ArrowExpressionContents;
+    }
     static make(data: Ro<I_ArrowExpressionContents>) {
         return new ArrowExpressionContents(data);
     }
@@ -5674,19 +5804,15 @@ export class ArrowExpressionContents
     get parameterScope(): AssertedParameterScope {
        return this.data$.parameterScope;
     }
-
     get params(): FormalParameters {
        return this.data$.params;
     }
-
     get bodyScope(): AssertedVarScope {
        return this.data$.bodyScope;
     }
-
     get body(): (FunctionBody | Expression) {
        return this.data$.body;
     }
-
 }
 
 
@@ -5699,9 +5825,6 @@ export class AssignmentExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AssignmentExpression;
-    }
     readonly data$: Ro<I_AssignmentExpression>;
 
     private constructor(data: Ro<I_AssignmentExpression>) {
@@ -5710,6 +5833,9 @@ export class AssignmentExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AssignmentExpression;
+    }
     static make(data: Ro<I_AssignmentExpression>) {
         return new AssignmentExpression(data);
     }
@@ -5717,11 +5843,9 @@ export class AssignmentExpression
     get binding(): AssignmentTarget {
        return this.data$.binding;
     }
-
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -5735,9 +5859,6 @@ export class BinaryExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_BinaryExpression;
-    }
     readonly data$: Ro<I_BinaryExpression>;
 
     private constructor(data: Ro<I_BinaryExpression>) {
@@ -5746,6 +5867,9 @@ export class BinaryExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.BinaryExpression;
+    }
     static make(data: Ro<I_BinaryExpression>) {
         return new BinaryExpression(data);
     }
@@ -5753,15 +5877,12 @@ export class BinaryExpression
     get operator(): BinaryOperator {
        return this.data$.operator;
     }
-
     get left(): Expression {
        return this.data$.left;
     }
-
     get right(): Expression {
        return this.data$.right;
     }
-
 }
 
 
@@ -5774,9 +5895,6 @@ export class CallExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_CallExpression;
-    }
     readonly data$: Ro<I_CallExpression>;
 
     private constructor(data: Ro<I_CallExpression>) {
@@ -5785,6 +5903,9 @@ export class CallExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.CallExpression;
+    }
     static make(data: Ro<I_CallExpression>) {
         return new CallExpression(data);
     }
@@ -5792,11 +5913,9 @@ export class CallExpression
     get callee(): (Expression | Super) {
        return this.data$.callee;
     }
-
     get arguments(): Arguments {
        return this.data$.arguments;
     }
-
 }
 
 
@@ -5810,9 +5929,6 @@ export class CompoundAssignmentExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_CompoundAssignmentExpression;
-    }
     readonly data$: Ro<I_CompoundAssignmentExpression>;
 
     private constructor(data: Ro<I_CompoundAssignmentExpression>) {
@@ -5821,6 +5937,9 @@ export class CompoundAssignmentExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.CompoundAssignmentExpression;
+    }
     static make(data: Ro<I_CompoundAssignmentExpression>) {
         return new CompoundAssignmentExpression(data);
     }
@@ -5828,15 +5947,12 @@ export class CompoundAssignmentExpression
     get operator(): CompoundAssignmentOperator {
        return this.data$.operator;
     }
-
     get binding(): SimpleAssignmentTarget {
        return this.data$.binding;
     }
-
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -5849,9 +5965,6 @@ export class ComputedMemberExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ComputedMemberExpression;
-    }
     readonly data$: Ro<I_ComputedMemberExpression>;
 
     private constructor(data: Ro<I_ComputedMemberExpression>) {
@@ -5860,6 +5973,9 @@ export class ComputedMemberExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ComputedMemberExpression;
+    }
     static make(data: Ro<I_ComputedMemberExpression>) {
         return new ComputedMemberExpression(data);
     }
@@ -5867,11 +5983,9 @@ export class ComputedMemberExpression
     get object(): (Expression | Super) {
        return this.data$.object;
     }
-
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -5885,9 +5999,6 @@ export class ConditionalExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ConditionalExpression;
-    }
     readonly data$: Ro<I_ConditionalExpression>;
 
     private constructor(data: Ro<I_ConditionalExpression>) {
@@ -5896,6 +6007,9 @@ export class ConditionalExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ConditionalExpression;
+    }
     static make(data: Ro<I_ConditionalExpression>) {
         return new ConditionalExpression(data);
     }
@@ -5903,15 +6017,12 @@ export class ConditionalExpression
     get test(): Expression {
        return this.data$.test;
     }
-
     get consequent(): Expression {
        return this.data$.consequent;
     }
-
     get alternate(): Expression {
        return this.data$.alternate;
     }
-
 }
 
 
@@ -5927,9 +6038,6 @@ export class EagerFunctionExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EagerFunctionExpression;
-    }
     readonly data$: Ro<I_EagerFunctionExpression>;
 
     private constructor(data: Ro<I_EagerFunctionExpression>) {
@@ -5938,6 +6046,9 @@ export class EagerFunctionExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EagerFunctionExpression;
+    }
     static make(data: Ro<I_EagerFunctionExpression>) {
         return new EagerFunctionExpression(data);
     }
@@ -5945,23 +6056,18 @@ export class EagerFunctionExpression
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-
     get name(): Opt<BindingIdentifier> {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): FunctionExpressionContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -5977,9 +6083,6 @@ export class LazyFunctionExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LazyFunctionExpression;
-    }
     readonly data$: Ro<I_LazyFunctionExpression>;
 
     private constructor(data: Ro<I_LazyFunctionExpression>) {
@@ -5988,6 +6091,9 @@ export class LazyFunctionExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LazyFunctionExpression;
+    }
     static make(data: Ro<I_LazyFunctionExpression>) {
         return new LazyFunctionExpression(data);
     }
@@ -5995,23 +6101,18 @@ export class LazyFunctionExpression
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-
     get name(): Opt<BindingIdentifier> {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): FunctionExpressionContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -6028,9 +6129,6 @@ export class FunctionExpressionContents
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_FunctionExpressionContents;
-    }
     readonly data$: Ro<I_FunctionExpressionContents>;
 
     private constructor(data: Ro<I_FunctionExpressionContents>) {
@@ -6039,6 +6137,9 @@ export class FunctionExpressionContents
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.FunctionExpressionContents;
+    }
     static make(data: Ro<I_FunctionExpressionContents>) {
         return new FunctionExpressionContents(data);
     }
@@ -6046,27 +6147,21 @@ export class FunctionExpressionContents
     get isFunctionNameCaptured(): boolean {
        return this.data$.isFunctionNameCaptured;
     }
-
     get isThisCaptured(): boolean {
        return this.data$.isThisCaptured;
     }
-
     get parameterScope(): AssertedParameterScope {
        return this.data$.parameterScope;
     }
-
     get params(): FormalParameters {
        return this.data$.params;
     }
-
     get bodyScope(): AssertedVarScope {
        return this.data$.bodyScope;
     }
-
     get body(): FunctionBody {
        return this.data$.body;
     }
-
 }
 
 
@@ -6078,9 +6173,6 @@ export class IdentifierExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_IdentifierExpression;
-    }
     readonly data$: Ro<I_IdentifierExpression>;
 
     private constructor(data: Ro<I_IdentifierExpression>) {
@@ -6089,6 +6181,9 @@ export class IdentifierExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.IdentifierExpression;
+    }
     static make(data: Ro<I_IdentifierExpression>) {
         return new IdentifierExpression(data);
     }
@@ -6096,7 +6191,6 @@ export class IdentifierExpression
     get name(): Identifier {
        return this.data$.name;
     }
-
 }
 
 
@@ -6109,9 +6203,6 @@ export class NewExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_NewExpression;
-    }
     readonly data$: Ro<I_NewExpression>;
 
     private constructor(data: Ro<I_NewExpression>) {
@@ -6120,6 +6211,9 @@ export class NewExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.NewExpression;
+    }
     static make(data: Ro<I_NewExpression>) {
         return new NewExpression(data);
     }
@@ -6127,11 +6221,9 @@ export class NewExpression
     get callee(): Expression {
        return this.data$.callee;
     }
-
     get arguments(): Arguments {
        return this.data$.arguments;
     }
-
 }
 
 
@@ -6142,9 +6234,6 @@ export class NewTargetExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_NewTargetExpression;
-    }
     readonly data$: Ro<I_NewTargetExpression>;
 
     private constructor(data: Ro<I_NewTargetExpression>) {
@@ -6153,6 +6242,9 @@ export class NewTargetExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.NewTargetExpression;
+    }
     static make(data: Ro<I_NewTargetExpression>) {
         return new NewTargetExpression(data);
     }
@@ -6168,9 +6260,6 @@ export class ObjectExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ObjectExpression;
-    }
     readonly data$: Ro<I_ObjectExpression>;
 
     private constructor(data: Ro<I_ObjectExpression>) {
@@ -6179,6 +6268,9 @@ export class ObjectExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ObjectExpression;
+    }
     static make(data: Ro<I_ObjectExpression>) {
         return new ObjectExpression(data);
     }
@@ -6186,7 +6278,6 @@ export class ObjectExpression
     get properties(): RoArr<ObjectProperty> {
        return this.data$.properties;
     }
-
 }
 
 
@@ -6199,9 +6290,6 @@ export class UnaryExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_UnaryExpression;
-    }
     readonly data$: Ro<I_UnaryExpression>;
 
     private constructor(data: Ro<I_UnaryExpression>) {
@@ -6210,6 +6298,9 @@ export class UnaryExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.UnaryExpression;
+    }
     static make(data: Ro<I_UnaryExpression>) {
         return new UnaryExpression(data);
     }
@@ -6217,11 +6308,9 @@ export class UnaryExpression
     get operator(): UnaryOperator {
        return this.data$.operator;
     }
-
     get operand(): Expression {
        return this.data$.operand;
     }
-
 }
 
 
@@ -6234,9 +6323,6 @@ export class StaticMemberExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_StaticMemberExpression;
-    }
     readonly data$: Ro<I_StaticMemberExpression>;
 
     private constructor(data: Ro<I_StaticMemberExpression>) {
@@ -6245,6 +6331,9 @@ export class StaticMemberExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.StaticMemberExpression;
+    }
     static make(data: Ro<I_StaticMemberExpression>) {
         return new StaticMemberExpression(data);
     }
@@ -6252,11 +6341,9 @@ export class StaticMemberExpression
     get object(): (Expression | Super) {
        return this.data$.object;
     }
-
     get property(): IdentifierName {
        return this.data$.property;
     }
-
 }
 
 
@@ -6269,9 +6356,6 @@ export class TemplateExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_TemplateExpression;
-    }
     readonly data$: Ro<I_TemplateExpression>;
 
     private constructor(data: Ro<I_TemplateExpression>) {
@@ -6280,6 +6364,9 @@ export class TemplateExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.TemplateExpression;
+    }
     static make(data: Ro<I_TemplateExpression>) {
         return new TemplateExpression(data);
     }
@@ -6287,11 +6374,9 @@ export class TemplateExpression
     get tag(): Opt<Expression> {
        return this.data$.tag;
     }
-
     get elements(): RoArr<(Expression | TemplateElement)> {
        return this.data$.elements;
     }
-
 }
 
 
@@ -6302,9 +6387,6 @@ export class ThisExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ThisExpression;
-    }
     readonly data$: Ro<I_ThisExpression>;
 
     private constructor(data: Ro<I_ThisExpression>) {
@@ -6313,6 +6395,9 @@ export class ThisExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ThisExpression;
+    }
     static make(data: Ro<I_ThisExpression>) {
         return new ThisExpression(data);
     }
@@ -6330,9 +6415,6 @@ export class UpdateExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_UpdateExpression;
-    }
     readonly data$: Ro<I_UpdateExpression>;
 
     private constructor(data: Ro<I_UpdateExpression>) {
@@ -6341,6 +6423,9 @@ export class UpdateExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.UpdateExpression;
+    }
     static make(data: Ro<I_UpdateExpression>) {
         return new UpdateExpression(data);
     }
@@ -6348,15 +6433,12 @@ export class UpdateExpression
     get isPrefix(): boolean {
        return this.data$.isPrefix;
     }
-
     get operator(): UpdateOperator {
        return this.data$.operator;
     }
-
     get operand(): SimpleAssignmentTarget {
        return this.data$.operand;
     }
-
 }
 
 
@@ -6368,9 +6450,6 @@ export class YieldExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_YieldExpression;
-    }
     readonly data$: Ro<I_YieldExpression>;
 
     private constructor(data: Ro<I_YieldExpression>) {
@@ -6379,6 +6458,9 @@ export class YieldExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.YieldExpression;
+    }
     static make(data: Ro<I_YieldExpression>) {
         return new YieldExpression(data);
     }
@@ -6386,7 +6468,6 @@ export class YieldExpression
     get expression(): Opt<Expression> {
        return this.data$.expression;
     }
-
 }
 
 
@@ -6398,9 +6479,6 @@ export class YieldStarExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_YieldStarExpression;
-    }
     readonly data$: Ro<I_YieldStarExpression>;
 
     private constructor(data: Ro<I_YieldStarExpression>) {
@@ -6409,6 +6487,9 @@ export class YieldStarExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.YieldStarExpression;
+    }
     static make(data: Ro<I_YieldStarExpression>) {
         return new YieldStarExpression(data);
     }
@@ -6416,7 +6497,6 @@ export class YieldStarExpression
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -6428,9 +6508,6 @@ export class AwaitExpression
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_AwaitExpression;
-    }
     readonly data$: Ro<I_AwaitExpression>;
 
     private constructor(data: Ro<I_AwaitExpression>) {
@@ -6439,6 +6516,9 @@ export class AwaitExpression
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.AwaitExpression;
+    }
     static make(data: Ro<I_AwaitExpression>) {
         return new AwaitExpression(data);
     }
@@ -6446,7 +6526,6 @@ export class AwaitExpression
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -6458,9 +6537,6 @@ export class BreakStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_BreakStatement;
-    }
     readonly data$: Ro<I_BreakStatement>;
 
     private constructor(data: Ro<I_BreakStatement>) {
@@ -6469,6 +6545,9 @@ export class BreakStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.BreakStatement;
+    }
     static make(data: Ro<I_BreakStatement>) {
         return new BreakStatement(data);
     }
@@ -6476,7 +6555,6 @@ export class BreakStatement
     get label(): Opt<Label> {
        return this.data$.label;
     }
-
 }
 
 
@@ -6488,9 +6566,6 @@ export class ContinueStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ContinueStatement;
-    }
     readonly data$: Ro<I_ContinueStatement>;
 
     private constructor(data: Ro<I_ContinueStatement>) {
@@ -6499,6 +6574,9 @@ export class ContinueStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ContinueStatement;
+    }
     static make(data: Ro<I_ContinueStatement>) {
         return new ContinueStatement(data);
     }
@@ -6506,7 +6584,6 @@ export class ContinueStatement
     get label(): Opt<Label> {
        return this.data$.label;
     }
-
 }
 
 
@@ -6517,9 +6594,6 @@ export class DebuggerStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_DebuggerStatement;
-    }
     readonly data$: Ro<I_DebuggerStatement>;
 
     private constructor(data: Ro<I_DebuggerStatement>) {
@@ -6528,6 +6602,9 @@ export class DebuggerStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.DebuggerStatement;
+    }
     static make(data: Ro<I_DebuggerStatement>) {
         return new DebuggerStatement(data);
     }
@@ -6544,9 +6621,6 @@ export class DoWhileStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_DoWhileStatement;
-    }
     readonly data$: Ro<I_DoWhileStatement>;
 
     private constructor(data: Ro<I_DoWhileStatement>) {
@@ -6555,6 +6629,9 @@ export class DoWhileStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.DoWhileStatement;
+    }
     static make(data: Ro<I_DoWhileStatement>) {
         return new DoWhileStatement(data);
     }
@@ -6562,11 +6639,9 @@ export class DoWhileStatement
     get test(): Expression {
        return this.data$.test;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -6577,9 +6652,6 @@ export class EmptyStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EmptyStatement;
-    }
     readonly data$: Ro<I_EmptyStatement>;
 
     private constructor(data: Ro<I_EmptyStatement>) {
@@ -6588,6 +6660,9 @@ export class EmptyStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EmptyStatement;
+    }
     static make(data: Ro<I_EmptyStatement>) {
         return new EmptyStatement(data);
     }
@@ -6603,9 +6678,6 @@ export class ExpressionStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ExpressionStatement;
-    }
     readonly data$: Ro<I_ExpressionStatement>;
 
     private constructor(data: Ro<I_ExpressionStatement>) {
@@ -6614,6 +6686,9 @@ export class ExpressionStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ExpressionStatement;
+    }
     static make(data: Ro<I_ExpressionStatement>) {
         return new ExpressionStatement(data);
     }
@@ -6621,7 +6696,6 @@ export class ExpressionStatement
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -6634,9 +6708,6 @@ export class ForInOfBinding
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ForInOfBinding;
-    }
     readonly data$: Ro<I_ForInOfBinding>;
 
     private constructor(data: Ro<I_ForInOfBinding>) {
@@ -6645,6 +6716,9 @@ export class ForInOfBinding
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ForInOfBinding;
+    }
     static make(data: Ro<I_ForInOfBinding>) {
         return new ForInOfBinding(data);
     }
@@ -6652,11 +6726,9 @@ export class ForInOfBinding
     get kind(): VariableDeclarationKind {
        return this.data$.kind;
     }
-
     get binding(): Binding {
        return this.data$.binding;
     }
-
 }
 
 
@@ -6670,9 +6742,6 @@ export class ForInStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ForInStatement;
-    }
     readonly data$: Ro<I_ForInStatement>;
 
     private constructor(data: Ro<I_ForInStatement>) {
@@ -6681,6 +6750,9 @@ export class ForInStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ForInStatement;
+    }
     static make(data: Ro<I_ForInStatement>) {
         return new ForInStatement(data);
     }
@@ -6688,15 +6760,12 @@ export class ForInStatement
     get left(): (ForInOfBinding | AssignmentTarget) {
        return this.data$.left;
     }
-
     get right(): Expression {
        return this.data$.right;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -6710,9 +6779,6 @@ export class ForOfStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ForOfStatement;
-    }
     readonly data$: Ro<I_ForOfStatement>;
 
     private constructor(data: Ro<I_ForOfStatement>) {
@@ -6721,6 +6787,9 @@ export class ForOfStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ForOfStatement;
+    }
     static make(data: Ro<I_ForOfStatement>) {
         return new ForOfStatement(data);
     }
@@ -6728,15 +6797,12 @@ export class ForOfStatement
     get left(): (ForInOfBinding | AssignmentTarget) {
        return this.data$.left;
     }
-
     get right(): Expression {
        return this.data$.right;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -6751,9 +6817,6 @@ export class ForStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ForStatement;
-    }
     readonly data$: Ro<I_ForStatement>;
 
     private constructor(data: Ro<I_ForStatement>) {
@@ -6762,6 +6825,9 @@ export class ForStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ForStatement;
+    }
     static make(data: Ro<I_ForStatement>) {
         return new ForStatement(data);
     }
@@ -6769,19 +6835,15 @@ export class ForStatement
     get init(): Opt<(VariableDeclaration | Expression)> {
        return this.data$.init;
     }
-
     get test(): Opt<Expression> {
        return this.data$.test;
     }
-
     get update(): Opt<Expression> {
        return this.data$.update;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -6795,9 +6857,6 @@ export class IfStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_IfStatement;
-    }
     readonly data$: Ro<I_IfStatement>;
 
     private constructor(data: Ro<I_IfStatement>) {
@@ -6806,6 +6865,9 @@ export class IfStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.IfStatement;
+    }
     static make(data: Ro<I_IfStatement>) {
         return new IfStatement(data);
     }
@@ -6813,15 +6875,12 @@ export class IfStatement
     get test(): Expression {
        return this.data$.test;
     }
-
     get consequent(): Statement {
        return this.data$.consequent;
     }
-
     get alternate(): Opt<Statement> {
        return this.data$.alternate;
     }
-
 }
 
 
@@ -6834,9 +6893,6 @@ export class LabelledStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LabelledStatement;
-    }
     readonly data$: Ro<I_LabelledStatement>;
 
     private constructor(data: Ro<I_LabelledStatement>) {
@@ -6845,6 +6901,9 @@ export class LabelledStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LabelledStatement;
+    }
     static make(data: Ro<I_LabelledStatement>) {
         return new LabelledStatement(data);
     }
@@ -6852,11 +6911,9 @@ export class LabelledStatement
     get label(): Label {
        return this.data$.label;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -6868,9 +6925,6 @@ export class ReturnStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ReturnStatement;
-    }
     readonly data$: Ro<I_ReturnStatement>;
 
     private constructor(data: Ro<I_ReturnStatement>) {
@@ -6879,6 +6933,9 @@ export class ReturnStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ReturnStatement;
+    }
     static make(data: Ro<I_ReturnStatement>) {
         return new ReturnStatement(data);
     }
@@ -6886,7 +6943,6 @@ export class ReturnStatement
     get expression(): Opt<Expression> {
        return this.data$.expression;
     }
-
 }
 
 
@@ -6899,9 +6955,6 @@ export class SwitchStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_SwitchStatement;
-    }
     readonly data$: Ro<I_SwitchStatement>;
 
     private constructor(data: Ro<I_SwitchStatement>) {
@@ -6910,6 +6963,9 @@ export class SwitchStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.SwitchStatement;
+    }
     static make(data: Ro<I_SwitchStatement>) {
         return new SwitchStatement(data);
     }
@@ -6917,11 +6973,9 @@ export class SwitchStatement
     get discriminant(): Expression {
        return this.data$.discriminant;
     }
-
     get cases(): RoArr<SwitchCase> {
        return this.data$.cases;
     }
-
 }
 
 
@@ -6936,9 +6990,6 @@ export class SwitchStatementWithDefault
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_SwitchStatementWithDefault;
-    }
     readonly data$: Ro<I_SwitchStatementWithDefault>;
 
     private constructor(data: Ro<I_SwitchStatementWithDefault>) {
@@ -6947,6 +6998,9 @@ export class SwitchStatementWithDefault
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.SwitchStatementWithDefault;
+    }
     static make(data: Ro<I_SwitchStatementWithDefault>) {
         return new SwitchStatementWithDefault(data);
     }
@@ -6954,19 +7008,15 @@ export class SwitchStatementWithDefault
     get discriminant(): Expression {
        return this.data$.discriminant;
     }
-
     get preDefaultCases(): RoArr<SwitchCase> {
        return this.data$.preDefaultCases;
     }
-
     get defaultCase(): SwitchDefault {
        return this.data$.defaultCase;
     }
-
     get postDefaultCases(): RoArr<SwitchCase> {
        return this.data$.postDefaultCases;
     }
-
 }
 
 
@@ -6978,9 +7028,6 @@ export class ThrowStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_ThrowStatement;
-    }
     readonly data$: Ro<I_ThrowStatement>;
 
     private constructor(data: Ro<I_ThrowStatement>) {
@@ -6989,6 +7036,9 @@ export class ThrowStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.ThrowStatement;
+    }
     static make(data: Ro<I_ThrowStatement>) {
         return new ThrowStatement(data);
     }
@@ -6996,7 +7046,6 @@ export class ThrowStatement
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -7009,9 +7058,6 @@ export class TryCatchStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_TryCatchStatement;
-    }
     readonly data$: Ro<I_TryCatchStatement>;
 
     private constructor(data: Ro<I_TryCatchStatement>) {
@@ -7020,6 +7066,9 @@ export class TryCatchStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.TryCatchStatement;
+    }
     static make(data: Ro<I_TryCatchStatement>) {
         return new TryCatchStatement(data);
     }
@@ -7027,11 +7076,9 @@ export class TryCatchStatement
     get body(): Block {
        return this.data$.body;
     }
-
     get catchClause(): CatchClause {
        return this.data$.catchClause;
     }
-
 }
 
 
@@ -7045,9 +7092,6 @@ export class TryFinallyStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_TryFinallyStatement;
-    }
     readonly data$: Ro<I_TryFinallyStatement>;
 
     private constructor(data: Ro<I_TryFinallyStatement>) {
@@ -7056,6 +7100,9 @@ export class TryFinallyStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.TryFinallyStatement;
+    }
     static make(data: Ro<I_TryFinallyStatement>) {
         return new TryFinallyStatement(data);
     }
@@ -7063,15 +7110,12 @@ export class TryFinallyStatement
     get body(): Block {
        return this.data$.body;
     }
-
     get catchClause(): Opt<CatchClause> {
        return this.data$.catchClause;
     }
-
     get finalizer(): Block {
        return this.data$.finalizer;
     }
-
 }
 
 
@@ -7084,9 +7128,6 @@ export class WhileStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_WhileStatement;
-    }
     readonly data$: Ro<I_WhileStatement>;
 
     private constructor(data: Ro<I_WhileStatement>) {
@@ -7095,6 +7136,9 @@ export class WhileStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.WhileStatement;
+    }
     static make(data: Ro<I_WhileStatement>) {
         return new WhileStatement(data);
     }
@@ -7102,11 +7146,9 @@ export class WhileStatement
     get test(): Expression {
        return this.data$.test;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -7119,9 +7161,6 @@ export class WithStatement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_WithStatement;
-    }
     readonly data$: Ro<I_WithStatement>;
 
     private constructor(data: Ro<I_WithStatement>) {
@@ -7130,6 +7169,9 @@ export class WithStatement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.WithStatement;
+    }
     static make(data: Ro<I_WithStatement>) {
         return new WithStatement(data);
     }
@@ -7137,11 +7179,9 @@ export class WithStatement
     get object(): Expression {
        return this.data$.object;
     }
-
     get body(): Statement {
        return this.data$.body;
     }
-
 }
 
 
@@ -7154,9 +7194,6 @@ export class Block
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Block;
-    }
     readonly data$: Ro<I_Block>;
 
     private constructor(data: Ro<I_Block>) {
@@ -7165,6 +7202,9 @@ export class Block
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Block;
+    }
     static make(data: Ro<I_Block>) {
         return new Block(data);
     }
@@ -7172,11 +7212,9 @@ export class Block
     get scope(): AssertedBlockScope {
        return this.data$.scope;
     }
-
     get statements(): RoArr<Statement> {
        return this.data$.statements;
     }
-
 }
 
 
@@ -7190,9 +7228,6 @@ export class CatchClause
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_CatchClause;
-    }
     readonly data$: Ro<I_CatchClause>;
 
     private constructor(data: Ro<I_CatchClause>) {
@@ -7201,6 +7236,9 @@ export class CatchClause
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.CatchClause;
+    }
     static make(data: Ro<I_CatchClause>) {
         return new CatchClause(data);
     }
@@ -7208,15 +7246,12 @@ export class CatchClause
     get bindingScope(): AssertedBoundNamesScope {
        return this.data$.bindingScope;
     }
-
     get binding(): Binding {
        return this.data$.binding;
     }
-
     get body(): Block {
        return this.data$.body;
     }
-
 }
 
 
@@ -7228,9 +7263,6 @@ export class Directive
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Directive;
-    }
     readonly data$: Ro<I_Directive>;
 
     private constructor(data: Ro<I_Directive>) {
@@ -7239,6 +7271,9 @@ export class Directive
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Directive;
+    }
     static make(data: Ro<I_Directive>) {
         return new Directive(data);
     }
@@ -7246,7 +7281,6 @@ export class Directive
     get rawValue(): string {
        return this.data$.rawValue;
     }
-
 }
 
 
@@ -7259,9 +7293,6 @@ export class FormalParameters
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_FormalParameters;
-    }
     readonly data$: Ro<I_FormalParameters>;
 
     private constructor(data: Ro<I_FormalParameters>) {
@@ -7270,6 +7301,9 @@ export class FormalParameters
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.FormalParameters;
+    }
     static make(data: Ro<I_FormalParameters>) {
         return new FormalParameters(data);
     }
@@ -7277,11 +7311,9 @@ export class FormalParameters
     get items(): RoArr<Parameter> {
        return this.data$.items;
     }
-
     get rest(): Opt<Binding> {
        return this.data$.rest;
     }
-
 }
 
 
@@ -7300,9 +7332,6 @@ export class EagerFunctionDeclaration
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_EagerFunctionDeclaration;
-    }
     readonly data$: Ro<I_EagerFunctionDeclaration>;
 
     private constructor(data: Ro<I_EagerFunctionDeclaration>) {
@@ -7311,6 +7340,9 @@ export class EagerFunctionDeclaration
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.EagerFunctionDeclaration;
+    }
     static make(data: Ro<I_EagerFunctionDeclaration>) {
         return new EagerFunctionDeclaration(data);
     }
@@ -7318,23 +7350,18 @@ export class EagerFunctionDeclaration
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-
     get name(): BindingIdentifier {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get contents(): FunctionOrMethodContents {
        return this.data$.contents;
     }
-
 }
 
 
@@ -7350,9 +7377,6 @@ export class LazyFunctionDeclaration
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_LazyFunctionDeclaration;
-    }
     readonly data$: Ro<I_LazyFunctionDeclaration>;
 
     private constructor(data: Ro<I_LazyFunctionDeclaration>) {
@@ -7361,6 +7385,9 @@ export class LazyFunctionDeclaration
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.LazyFunctionDeclaration;
+    }
     static make(data: Ro<I_LazyFunctionDeclaration>) {
         return new LazyFunctionDeclaration(data);
     }
@@ -7368,23 +7395,18 @@ export class LazyFunctionDeclaration
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-
     get name(): BindingIdentifier {
        return this.data$.name;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get content(): FunctionOrMethodContents {
        return this.data$.content;
     }
-
 }
 
 
@@ -7400,9 +7422,6 @@ export class FunctionOrMethodContents
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_FunctionOrMethodContents;
-    }
     readonly data$: Ro<I_FunctionOrMethodContents>;
 
     private constructor(data: Ro<I_FunctionOrMethodContents>) {
@@ -7411,6 +7430,9 @@ export class FunctionOrMethodContents
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.FunctionOrMethodContents;
+    }
     static make(data: Ro<I_FunctionOrMethodContents>) {
         return new FunctionOrMethodContents(data);
     }
@@ -7418,23 +7440,18 @@ export class FunctionOrMethodContents
     get isThisCaptured(): boolean {
        return this.data$.isThisCaptured;
     }
-
     get parameterScope(): AssertedParameterScope {
        return this.data$.parameterScope;
     }
-
     get params(): FormalParameters {
        return this.data$.params;
     }
-
     get bodyScope(): AssertedVarScope {
        return this.data$.bodyScope;
     }
-
     get body(): FunctionBody {
        return this.data$.body;
     }
-
 }
 
 
@@ -7448,9 +7465,6 @@ export class Script
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Script;
-    }
     readonly data$: Ro<I_Script>;
 
     private constructor(data: Ro<I_Script>) {
@@ -7459,6 +7473,9 @@ export class Script
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Script;
+    }
     static make(data: Ro<I_Script>) {
         return new Script(data);
     }
@@ -7466,15 +7483,12 @@ export class Script
     get scope(): AssertedScriptGlobalScope {
        return this.data$.scope;
     }
-
     get directives(): RoArr<Directive> {
        return this.data$.directives;
     }
-
     get statements(): RoArr<Statement> {
        return this.data$.statements;
     }
-
 }
 
 
@@ -7486,9 +7500,6 @@ export class SpreadElement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_SpreadElement;
-    }
     readonly data$: Ro<I_SpreadElement>;
 
     private constructor(data: Ro<I_SpreadElement>) {
@@ -7497,6 +7508,9 @@ export class SpreadElement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.SpreadElement;
+    }
     static make(data: Ro<I_SpreadElement>) {
         return new SpreadElement(data);
     }
@@ -7504,7 +7518,6 @@ export class SpreadElement
     get expression(): Expression {
        return this.data$.expression;
     }
-
 }
 
 
@@ -7515,9 +7528,6 @@ export class Super
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_Super;
-    }
     readonly data$: Ro<I_Super>;
 
     private constructor(data: Ro<I_Super>) {
@@ -7526,6 +7536,9 @@ export class Super
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.Super;
+    }
     static make(data: Ro<I_Super>) {
         return new Super(data);
     }
@@ -7542,9 +7555,6 @@ export class SwitchCase
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_SwitchCase;
-    }
     readonly data$: Ro<I_SwitchCase>;
 
     private constructor(data: Ro<I_SwitchCase>) {
@@ -7553,6 +7563,9 @@ export class SwitchCase
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.SwitchCase;
+    }
     static make(data: Ro<I_SwitchCase>) {
         return new SwitchCase(data);
     }
@@ -7560,11 +7573,9 @@ export class SwitchCase
     get test(): Expression {
        return this.data$.test;
     }
-
     get consequent(): RoArr<Statement> {
        return this.data$.consequent;
     }
-
 }
 
 
@@ -7576,9 +7587,6 @@ export class SwitchDefault
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_SwitchDefault;
-    }
     readonly data$: Ro<I_SwitchDefault>;
 
     private constructor(data: Ro<I_SwitchDefault>) {
@@ -7587,6 +7595,9 @@ export class SwitchDefault
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.SwitchDefault;
+    }
     static make(data: Ro<I_SwitchDefault>) {
         return new SwitchDefault(data);
     }
@@ -7594,7 +7605,6 @@ export class SwitchDefault
     get consequent(): RoArr<Statement> {
        return this.data$.consequent;
     }
-
 }
 
 
@@ -7606,9 +7616,6 @@ export class TemplateElement
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_TemplateElement;
-    }
     readonly data$: Ro<I_TemplateElement>;
 
     private constructor(data: Ro<I_TemplateElement>) {
@@ -7617,6 +7624,9 @@ export class TemplateElement
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.TemplateElement;
+    }
     static make(data: Ro<I_TemplateElement>) {
         return new TemplateElement(data);
     }
@@ -7624,7 +7634,6 @@ export class TemplateElement
     get rawValue(): string {
        return this.data$.rawValue;
     }
-
 }
 
 
@@ -7637,9 +7646,6 @@ export class VariableDeclaration
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_VariableDeclaration;
-    }
     readonly data$: Ro<I_VariableDeclaration>;
 
     private constructor(data: Ro<I_VariableDeclaration>) {
@@ -7648,6 +7654,9 @@ export class VariableDeclaration
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.VariableDeclaration;
+    }
     static make(data: Ro<I_VariableDeclaration>) {
         return new VariableDeclaration(data);
     }
@@ -7655,11 +7664,9 @@ export class VariableDeclaration
     get kind(): VariableDeclarationKind {
        return this.data$.kind;
     }
-
     get declarators(): RoArr<VariableDeclarator> {
        return this.data$.declarators;
     }
-
 }
 
 
@@ -7672,9 +7679,6 @@ export class VariableDeclarator
   extends BaseNode
   implements S.Instance
 {
-    get iface$(): S.Iface {
-        return ReflectedSchema.typeof_VariableDeclarator;
-    }
     readonly data$: Ro<I_VariableDeclarator>;
 
     private constructor(data: Ro<I_VariableDeclarator>) {
@@ -7683,6 +7687,9 @@ export class VariableDeclarator
         Object.freeze(this);
     }
 
+    get iface$(): S.Iface {
+        return ReflectedSchema.VariableDeclarator;
+    }
     static make(data: Ro<I_VariableDeclarator>) {
         return new VariableDeclarator(data);
     }
@@ -7690,11 +7697,9 @@ export class VariableDeclarator
     get binding(): Binding {
        return this.data$.binding;
     }
-
     get init(): Opt<Expression> {
        return this.data$.init;
     }
-
 }
 
 
