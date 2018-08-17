@@ -259,8 +259,6 @@ export abstract class Declaration {
     abstract dumpReflection(defns: Array<string>);
     abstract matchesValue(schema: TreeSchema, value: Value)
       : boolean;
-    abstract prettyValue(schema: TreeSchema, value: Value,
-                         out: Array<string>);
     abstract flattennedType(schema: TreeSchema): FieldType;
 }
 
@@ -292,13 +290,6 @@ export class Typedef extends Declaration {
       : boolean
     {
         return this.aliased.matchesValue(schema, value);
-    }
-
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        assert(this.matchesValue(schema, value));
-        this.aliased.prettyValue(schema, value, out);
     }
 
     flattennedType(schema: TreeSchema): FieldType {
@@ -481,13 +472,6 @@ export class Enum extends Declaration {
                this.containsName(value);
     }
 
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        assert(this.matchesValue(schema, value));
-        out.push(value as string);
-    }
-
     flattennedType(schema: TreeSchema): FieldType {
         return this.intoFieldType();
     }
@@ -603,48 +587,6 @@ export class Iface extends Declaration {
         return null;
     }
 
-    prettyInstance(schema: TreeSchema, inst: Instance,
-                   out: Array<string>)
-    {
-        assert(inst.iface$ === this);
-
-        out.push(`${this.name.name} {`);
-
-        let npushed: number = 0;
-        
-        // Retrieve each field.
-        for (let field of this.fields) {
-            const fty = field.ty;
-            const fval = inst[field.name] as Value;
-            assert(isValue(fval));
-            const fvalStrs = new Array<string>();
-            fty.prettyValue(schema, fval, fvalStrs);
-            assert(fvalStrs.length > 0);
-            if (fvalStrs.length == 1 &&
-                fvalStrs[0].length < 30)
-            {
-                out.push(`  ${field.name}: ` +
-                            fvalStrs[0]);
-                npushed++;
-            } else {
-                const first = fvalStrs.shift();
-                const tabbed = fvalStrs.map(s => {
-                    return '  ' + s;
-                });
-                const tabbedFirst =
-                    `  ${field.name}: ${first}`;
-                out.push(tabbedFirst, ...tabbed);
-                npushed += 1 + tabbed.length;
-            }
-        }
-
-        let trailer: string = '';
-        if (npushed > 10) {
-            trailer = ` // ${this.name.name}`
-        }
-        out.push(`}${trailer}`);
-    }
-
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
     {
@@ -658,14 +600,6 @@ export class Iface extends Declaration {
     {
         assert(inst.iface$ === this);
         return inst[field.name] as Value;
-    }
-
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        assert(this.matchesValue(schema, value));
-        this.prettyInstance(schema, value as Instance, out);
-        out.push('');
     }
 
     flattennedType(schema: TreeSchema): FieldType {

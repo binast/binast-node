@@ -7,7 +7,7 @@ import * as shift_parser from 'shift-parser';
 
 import * as S from 'binast-schema';
 import * as TS from '../typed_schema';
-import {MemoryStringSink} from '../data_sink';
+import {ConsoleStringSink} from '../data_sink';
 import {PrettyPrintHandler} from '../pretty_printer';
 import {Importer} from '../lift_es6';
 
@@ -36,24 +36,15 @@ function main() {
     log("Done lifting shift-parsed JSON to typed schema.");
 
     log("Visiting tree.");
-    const sink = new MemoryStringSink();
+    const sink = new ConsoleStringSink();
     const visitor = S.Visitor.make({
         schema: SCHEMA,
         root: script,
         handler: new PrettyPrintHandler(sink)
     });
     visitor.visit();
+    sink.flush();
     log("Done visiting tree.");
-
-    log("Visit data: ");
-    log("````");
-    log(sink.extractStringArray().join(''));
-    log("````");
-
-    const out = new Array<string>();
-    script.iface$.prettyInstance(SCHEMA, script, out);
-    console.log("SCRIPT:");
-    console.log(out.join("\n"));
 }
 
 const LOG_PREFIX = 'ANALYSIS.log: ';

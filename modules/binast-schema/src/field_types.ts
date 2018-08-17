@@ -43,8 +43,6 @@ export abstract class FieldType {
       : FieldType|null;
     abstract matchesValue(schema: TreeSchema, value: Value)
               : boolean;
-    abstract prettyValue(schema: TreeSchema, value: Value,
-                         out: Array<string>);
 
     protected abstract flattenImpl(schema: TreeSchema)
       : FieldType;
@@ -141,20 +139,6 @@ export class FieldTypePrimitive extends FieldType {
             return typeof(value) === 'number';
           case TN_STR:
             return typeof(value) === 'string';
-        }
-        throw new Error(`Unknown primitive ${this.name}`);
-    }
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        switch (this) {
-          case TN_BOOL: out.push(`Bool(${value})`); return;
-          case TN_UINT: out.push(`Uint(${value})`); return;
-          case TN_INT: out.push(`Int(${value})`); return;
-          case TN_F64: out.push(`F64(${value})`); return;
-          case TN_STR:
-            out.push(`Str(${JSON.stringify(value)})`);
-            return;
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -280,12 +264,6 @@ export class FieldTypeNamed extends FieldType {
         const decl = schema.getDecl(this.name);
         return decl.matchesValue(schema, value);
     }
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        const decl = schema.getDecl(this.name);
-        return decl.prettyValue(schema, value, out);
-    }
     protected flattenImpl(schema: TreeSchema): FieldType {
         // Peek through the typedef and flatten the
         // underlying type.
@@ -345,18 +323,6 @@ export class FieldTypeUnion extends FieldType {
         return this.variants.some(v => {
             return v.matchesValue(schema, value);
         });
-    }
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        // Check every constituent type.
-        for (let v of this.variants) {
-            if (v.matchesValue(schema, value)) {
-                v.prettyValue(schema, value, out);
-                return;
-            }
-        }
-        throw new Error(`Union not matched: ${value}`);
     }
     protected flattenImpl(schema: TreeSchema): FieldType {
         // Flatten the constituent types.
@@ -471,16 +437,6 @@ export class FieldTypeOpt extends FieldType {
         return (value === null) ||
                this.inner.matchesValue(schema, value);
     }
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        assert(this.matchesValue(schema, value));
-        if (value === null) {
-            out.push('null');
-        } else {
-            this.inner.prettyValue(schema, value, out);
-        }
-    }
     protected flattenImpl(schema: TreeSchema): FieldType {
         const flatInner = this.inner.flatten(schema);
         return FieldTypeOpt.make(flatInner);
@@ -538,31 +494,6 @@ export class FieldTypeArray extends FieldType {
                 v => this.inner.matchesValue(
                     schema,
                     v as Value)));
-    }
-    prettyValue(schema: TreeSchema, value: Value,
-                out: Array<string>)
-    {
-        assert(this.matchesValue(schema, value));
-        const arrays = new Array<Array<string>>();
-        for (let e of (value as Array<any>)) {
-            const arr = new Array<string>();
-            this.inner.prettyValue(schema, e, arr);
-            arrays.push(arr.map(s => ('  ' + s)));
-        }
-        // Check for small definition.
-        if (arrays.every(arr => (arr.length === 1))) {
-            const j = arrays.map(arr => arr[0]).join(', ');
-            if (j.length < 40) {
-                out.push(`[${j}]`);
-                return;
-            }
-        }
-
-        out.push('[');
-        for (let arr of arrays) {
-            out.push(...arr);
-        }
-        out.push(']');
     }
     protected flattenImpl(schema: TreeSchema): FieldType {
         const flatInner = this.inner.flatten(schema);

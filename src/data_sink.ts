@@ -15,8 +15,6 @@ export type StringData =
 
 export interface StringSink {
     write(...data: Array<StringData>): number;
-
-    extractStringArray(): Array<string>;
 }
 
 const INIT_BUFFER_SIZE: number = 256;
@@ -127,5 +125,43 @@ export class MemoryStringSink implements StringSink {
         const buf = this.buffer;
         this.buffer = [];
         return buf;
+    }
+}
+
+export class ConsoleStringSink implements StringSink {
+    readonly prefix: string;
+    readonly accum: Array<string>;
+
+    constructor(prefix: string = '') {
+        this.prefix = prefix;
+        this.accum = new Array();
+    }
+
+    write(...data: Array<StringData>): number {
+        let chars: number = 0;
+        for (let d of data) {
+            assert(typeof(d) === 'string');
+            this.accum.push(d);
+            chars += d.length;
+        }
+        const joined = this.accum.splice(0).join('');
+        const lines = joined.split('\n');
+        if (lines.length > 0) {
+            this.accum.push(lines.pop());
+        }
+        for (let line of lines) {
+            this.logLine(line);
+        }
+        return chars;
+    }
+
+    flush() {
+        for (let line of this.accum.join('').split('\n')) {
+            this.logLine(line);
+        }
+    }
+
+    private logLine(line: string) {
+        console.log(this.prefix + line);
     }
 }

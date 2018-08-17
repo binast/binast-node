@@ -395,7 +395,8 @@ class Context {
             declScope.addName(dn);
             return true;
         });
-        assert(found === true);
+        assert(found === true,
+               `Name ${name} not found for kind ${kind}`);
     }
 
     private noteBound(name: TS.Identifier,
@@ -421,7 +422,7 @@ class Context {
     private noteDeclaredVar(name: TS.Identifier) {
         this.noteDeclared(name,
             TS.AssertedDeclaredKind.KwVar,
-            [VarScope]);
+            [VarScope, ScriptGlobalScope]);
     }
 
     private noteDeclaredLet(name: TS.Identifier) {
