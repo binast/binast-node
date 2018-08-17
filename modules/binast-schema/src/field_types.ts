@@ -3,7 +3,7 @@ import * as assert from 'assert';
 
 import {OrderedMap} from './ordered_map';
 import {TreeSchema, TypeName, Declaration, Iface, Enum,
-        Value, Instance}
+        Identifier, Value, Instance}
     from './tree_schema';
 
 // A FieldType is one of:
@@ -139,6 +139,8 @@ export class FieldTypePrimitive extends FieldType {
             return typeof(value) === 'number';
           case TN_STR:
             return typeof(value) === 'string';
+          case TN_IDENT:
+            return value instanceof Identifier;
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -154,6 +156,7 @@ export class FieldTypePrimitive extends FieldType {
           case TN_INT: return 'Int';
           case TN_F64: return 'number';
           case TN_STR: return 'string';
+          case TN_IDENT: return 'S.Identifier';
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -164,6 +167,7 @@ export class FieldTypePrimitive extends FieldType {
           case TN_INT: return 'TInt';
           case TN_F64: return 'TF64';
           case TN_STR: return 'TStr';
+          case TN_IDENT: return 'TIdent';
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -195,6 +199,10 @@ export class FieldTypePrimitive extends FieldType {
             matches = typeof(value) === 'string';
             break;
 
+          case TN_IDENT:
+            matches = value instanceof Identifier;
+            break;
+
           default:
             throw new Error(`Unknown primitive ` +
                             this.name);
@@ -222,6 +230,9 @@ export class FieldTypePrimitive extends FieldType {
     static get Str(): FieldTypePrimitive {
         return TN_STR;
     }
+    static get Ident(): FieldTypePrimitive {
+        return TN_IDENT;
+    }
 }
 
 const TN_BOOL = FieldTypePrimitive.make('bool');
@@ -229,6 +240,7 @@ const TN_UINT = FieldTypePrimitive.make('uint');
 const TN_INT = FieldTypePrimitive.make('int');
 const TN_F64 = FieldTypePrimitive.make('f64');
 const TN_STR = FieldTypePrimitive.make('str');
+const TN_IDENT = FieldTypePrimitive.make('ident');
 
 export class FieldTypeNamed extends FieldType {
     readonly name: TypeName;

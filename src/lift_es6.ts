@@ -75,8 +75,8 @@ abstract class BaseScope {
 
     // Maps identifier names to the index into
     // an appropriate array.
-    nameMap: Map<TS.IdentifierName, number>;
-    captureSet: Set<TS.IdentifierName>;
+    nameMap: Map<string, number>;
+    captureSet: Set<string>;
 
     constructor() {
         this.id = NEXT_SCOPE_ID++;
@@ -89,51 +89,88 @@ abstract class BaseScope {
 
     addName(nameEntry: AssertedName) {
         const name = nameEntry.name;
-        assert(typeof(name) == 'string')
+        const nameStr = name.name;
+        assert(typeof(nameStr) == 'string')
         // JS allows shadowing names
         // TODO: Find out if this is ok in strict mode.
         //   If it's not, then this needs to be checked
         //   when strict mode is on.
-        if (this.nameMap.has(name)) {
+        const existingIdx = this.nameMap.get(nameStr);
+        if (existingIdx) {
+            const existing = this.names[existingIdx];
+            assert(nameEntry.constructor ===
+                        existing.constructor);
+
+            // Bound names are allowed to collide.
+            // FIXME: Forbidden in strict mode?
+            if (nameEntry instanceof TS.AssertedBoundName) {
+                return;
+            }
+
+            assert(nameEntry instanceof
+                    TS.AssertedDeclaredName);
+
+            // Lets and Consts collide always.
+            if (nameEntry.kind !==
+                TS.AssertedDeclaredKind.KwVar)
+            {
+                throw new Error("Name collision. [FIXME]");
+            }
+
+            // Vars collide with existing lets and consts.
+            assert(this.names[existingIdx]
+                    instanceof TS.AssertedDeclaredName);
+
+            const existingName = this.names[existingIdx] as
+                                   TS.AssertedDeclaredName;
+
+            if (existingName.kind !==
+                TS.AssertedDeclaredKind.KwVar)
+            {
+                throw new Error("Name collision. [FIXME]");
+            }
+
             return;
         }
+
         const idx = this.names.length;
         this.names.push(nameEntry);
-        this.nameMap.set(name, idx);
+        this.nameMap.set(nameStr, idx);
     }
 
-    doesBindName(name: TS.IdentifierName): boolean {
-        return this.nameMap.get(name) !== undefined;
+    doesBindName(name: TS.Identifier): boolean {
+        return this.nameMap.get(name.name) !== undefined;
     }
 
     /** Try to capture the use of the given name with this
      * scope.  Return whether successful. */
-    findOrCaptureUse(name: TS.IdentifierName,
-                     capture: boolean)
+    findOrCaptureUse(name: TS.Identifier, capture: boolean)
       : boolean
     {
+        const nameStr = name.name;
         if (this.doesBindName(name)) {
-            if (capture && !this.captureSet.has(name)) {
-                this.captureSet.add(name);
-                this.markCaptured(name);
+            if (capture && !this.captureSet.has(nameStr)) {
+                this.captureSet.add(nameStr);
+                this.markCaptured(nameStr);
             }
             return true;
         }
         return false;
     }
 
-    protected abstract markCaptured(name: TS.IdentifierName);
+    protected abstract markCaptured(name: string);
 }
 
 abstract class DeclaredScope extends BaseScope {
-    protected markCaptured(name: TS.IdentifierName) {
+    protected markCaptured(name: string) {
         const idx = this.nameMap.get(name);
         assert(this.names[idx] instanceof
                     TS.AssertedDeclaredName);
         const declName = this.names[idx] as
                             TS.AssertedDeclaredName;
+
         const newDeclName = TS.AssertedDeclaredName.make({
-            name: name,
+            name: declName.name,
             kind: declName.kind,
             isCaptured: true
         });
@@ -153,14 +190,14 @@ abstract class DeclaredScope extends BaseScope {
 }
 
 abstract class BoundScope extends BaseScope {
-    protected markCaptured(name: TS.IdentifierName) {
+    protected markCaptured(name: string) {
         const idx = this.nameMap.get(name);
         assert(this.names[idx] instanceof
                     TS.AssertedBoundName);
         const boundName = this.names[idx] as
                                 TS.AssertedBoundName;
         const newBoundName = TS.AssertedBoundName.make({
-            name: name,
+            name: boundName.name,
             isCaptured: true
         });
         this.names[idx] = newBoundName;
@@ -370,10 +407,11 @@ class Context {
     private idToIdName(id: TS.Identifier)
       : TS.IdentifierName
     {
+        assert(id instanceof S.Identifier);
         // ASSERT: RS.typeof_Identifier
         //      == RS.typeof_IdentifierName.
-        //      == RS.TStr
-        return id as TS.IdentifierName;
+        //      == RS.TIdent
+        return id;
     }
 
     private noteDeclared(name: TS.Identifier,
@@ -463,7 +501,7 @@ class Context {
      * it at used if necessary), or return null if the
      * reference is free.
      */
-    noteUseName(name: string): BaseScope|null {
+    noteUseName(name: TS.Identifier): BaseScope|null {
         let capture: boolean = false;
 
         const foundScope = this.eachScope(
@@ -525,11 +563,12 @@ export class Registry<T> {
 export class Importer {
     readonly cx: Context;
     readonly strings: Registry<string>;
-    readonly nodes: Registry<object>;
+    readonly ids: Registry<S.Identifier>;
 
     constructor() {
         this.cx = new Context();
         this.strings = new Registry<string>();
+        this.ids = new Registry<S.Identifier>();
     }
 
     //
@@ -654,7 +693,6 @@ export class Importer {
     liftVariableDeclarationKind(kind: string)
       : TS.VariableDeclarationKind
     {
-        this.strings.note(kind);
         switch (kind) {
           case 'var':
             return TS.VariableDeclarationKind.KwVar;
@@ -712,8 +750,9 @@ export class Importer {
     }
 
     liftIdentifier(name: string): TS.Identifier {
-        this.strings.note(name);
-        return name as TS.Identifier;
+        const id = S.Identifier.make(name);
+        this.ids.note(id);
+        return id;
     }
 
     liftFunctionDeclaration(json: any)
@@ -1184,8 +1223,7 @@ export class Importer {
 
         // TODO: Check for |super| in object_.
         const object = this.liftExpression(json.object);
-        const property = json.property;
-        this.strings.note(property);
+        const property = this.liftIdentifier(json.property);
         return TS.StaticMemberExpression.make({
             object, property
         });

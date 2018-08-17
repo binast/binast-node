@@ -8,6 +8,8 @@ import {FieldType, FieldTypePrimitive, FieldTypeOpt,
         FieldTypeNamed, FieldTypeUnion, FieldTypeArray}
     from './field_types';
 
+import {jsonStr} from './util';
+
 /*
  * Conceptually, the visitor emits a stream of
  * syntax atoms, with some understanding of a tree
@@ -342,6 +344,9 @@ export class Visitor {
       : PathShape
     {
         const rty = ty.resolveType(this.schema, value);
+        assert(rty !== null,
+            `Bad rty: ${rty} for: ${jsonStr(value)}\n` +
+            `ty=${ty.prettyString()}`);
 
         // Check the type, resolve named types to
         // Iface or Enum.

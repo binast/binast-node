@@ -35,8 +35,34 @@ export class TypeName {
     }
 }
 
+/**
+ * Global unique wrapper object for identifiers.
+ */
+const IDENTIFIERS = new Map<string, Identifier>();
+export class Identifier {
+    readonly name: string;
+
+    private constructor(name: string) {
+        this.name = name;
+        Object.freeze(this);
+    }
+
+    static make(name: string): Identifier {
+        let id = IDENTIFIERS.get(name);
+        if (!id) {
+            id = new Identifier(name);
+            TYPE_NAMES.set(name, id);
+        }
+        return id;
+    }
+
+    prettyString(): string {
+        return this.name;
+    }
+}
+
 export type Value = null | boolean | number | string |
-                    Instance | Array<any>;
+                    Identifier | Instance | Array<any>;
 export interface Instance {
     iface$: Iface;
 }
@@ -45,6 +71,7 @@ export function isValue(x: any): boolean {
            (typeof(x) === 'boolean') ||
            (typeof(x) === 'number') ||
            (typeof(x) === 'string') ||
+           (x instanceof Identifier) ||
            ((typeof(x) === 'object') &&
                 (x['iface$'] instanceof Iface)) ||
            // Don't do a deep check here.
@@ -143,6 +170,7 @@ export class TreeSchema {
             "const TInt = S.FieldTypePrimitive.Int;",
             "const TF64 = S.FieldTypePrimitive.F64;",
             "const TStr = S.FieldTypePrimitive.Str;",
+            "const TIdent = S.FieldTypePrimitive.Ident;",
             "",
             "function mkEVN(enumName: string, name: string)"
               + ": S.EnumVariantName {",

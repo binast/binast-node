@@ -2,8 +2,13 @@
 
 typedef FrozenArray<(SpreadElement or Expression)> Arguments;
 typedef DOMString string;
+
+[IdentifierType]
 typedef string Identifier;
+
+[IdentifierType]
 typedef string IdentifierName;
+
 typedef string Label;
 
 enum VariableDeclarationKind {

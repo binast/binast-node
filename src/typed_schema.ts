@@ -43,6 +43,7 @@ const TUint = S.FieldTypePrimitive.Uint;
 const TInt = S.FieldTypePrimitive.Int;
 const TF64 = S.FieldTypePrimitive.F64;
 const TStr = S.FieldTypePrimitive.Str;
+const TIdent = S.FieldTypePrimitive.Ident;
 
 function mkEVN(enumName: string, name: string): S.EnumVariantName {
    const tn = S.TypeName.make(enumName);
@@ -68,7 +69,7 @@ export const ReflectedSchema = {
     get Identifier(): S.Typedef {
         if (!this["c_Identifier"]) {
             const typeName = S.TypeName.make("Identifier");
-            const aliased = TStr;
+            const aliased = TIdent;
             this["c_Identifier"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -83,7 +84,7 @@ export const ReflectedSchema = {
     get IdentifierName(): S.Typedef {
         if (!this["c_IdentifierName"]) {
             const typeName = S.TypeName.make("IdentifierName");
-            const aliased = TStr;
+            const aliased = TIdent;
             this["c_IdentifierName"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -3674,10 +3675,10 @@ export const ReflectedSchema = {
 export type Arguments = RoArr<(SpreadElement | Expression)>;
 
 
-export type Identifier = string;
+export type Identifier = S.Identifier;
 
 
-export type IdentifierName = string;
+export type IdentifierName = S.Identifier;
 
 
 export type Label = string;

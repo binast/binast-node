@@ -115,7 +115,27 @@ class Lifter {
             return 'ignore';
         }
 
-        const ft = this.liftIdlType(idlType);
+        // Check for the 'IdentifierType' attribute.
+        let isIdentifier = false;
+        const extAttrs = typedefDecl['extAttrs'];
+        if (extAttrs) {
+            for (let item of extAttrs['items']) {
+                if ((item['type'] === 'extended-attribute')
+                    && (item['name'] == 'IdentifierType'))
+                {
+                    isIdentifier = true;
+                }
+            }
+        }
+
+        let ft = this.liftIdlType(idlType);
+        if (isIdentifier) {
+            // IdentifierType attributes are only
+            // valid on string typedefs.
+            assert(ft === FieldTypePrimitive.Str);
+            ft = FieldTypePrimitive.Ident;
+        }
+
         const typeName = TypeName.make(name);
         const td = new Typedef(typeName, ft);
         return td;

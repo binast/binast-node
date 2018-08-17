@@ -27,7 +27,11 @@ function valueString(value: S.Value, shape: S.PathShape)
         assert(value === null);
         return 'null';
     } else if (shape instanceof S.FieldTypePrimitive) {
-        return value.toString();
+        if (value instanceof S.Identifier) {
+            return value.name;
+        } else {
+            return value.toString();
+        }
     }
     throw new Error("Bad PathShape: " + shape);
 }
