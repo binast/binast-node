@@ -7,6 +7,8 @@ import * as shift_parser from 'shift-parser';
 
 import * as S from 'binast-schema';
 import * as TS from '../typed_schema';
+import {MemoryStringSink} from '../data_sink';
+import {PrettyPrintHandler} from '../pretty_printer';
 import {Importer} from '../lift_es6';
 
 const SCHEMA = TS.ReflectedSchema.schema;
@@ -34,13 +36,19 @@ function main() {
     log("Done lifting shift-parsed JSON to typed schema.");
 
     log("Visiting tree.");
+    const sink = new MemoryStringSink();
     const visitor = S.Visitor.make({
         schema: SCHEMA,
         root: script,
-        handler: new MyHandler()
+        handler: new PrettyPrintHandler(sink)
     });
     visitor.visit();
     log("Done visiting tree.");
+
+    log("Visit data: ");
+    log("````");
+    log(sink.extractStringArray().join(''));
+    log("````");
 
     const out = new Array<string>();
     script.iface$.prettyInstance(SCHEMA, script, out);
@@ -48,36 +56,14 @@ function main() {
     console.log(out.join("\n"));
 }
 
-class MyHandler implements S.VisitHandler {
-    begin(schema: S.TreeSchema, loc: S.TreeLocation) {
-        const {key, shape, bound, value} = loc;
-        console.log([
-            `Begin`,
-            `    key = ${key}`,
-            `    shape = ${shape.prettyString()}`,
-            `    bound = ${bound.prettyString()}`,
-            `    value = ${value}`,
-            ``,
-        ].join("\n"));
-    }
-
-    end(schema: S.TreeSchema, loc: S.TreeLocation) {
-        const {key, shape, bound, value} = loc;
-        console.log(...[
-            `End k=${key} v=${value}\n`,
-            ``
-        ]);
-    }
-}
-
 const LOG_PREFIX = 'ANALYSIS.log: ';
 function log(msg) {
     console.log(LOG_PREFIX
-        + msg.replace(/\n/, LOG_PREFIX + '\n'));
+        + msg.replace(/\n/g, '\n' + LOG_PREFIX));
 }
 
 function usage(exit: boolean) {
-    console.log("Usage: analysis.ts <file>");
+    console.log("Usage: npm run analysis <js-file>");
     if (exit) {
         process.exit(1);
     }
