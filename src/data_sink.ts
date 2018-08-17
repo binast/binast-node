@@ -15,7 +15,6 @@ export type StringData =
 
 export interface StringSink {
     write(...data: Array<StringData>): number;
-    writeLine(...data: Array<StringData>): number;
 
     extractStringArray(): Array<string>;
 }
@@ -122,9 +121,6 @@ export class MemoryStringSink implements StringSink {
             chars += d.length;
         }
         return chars;
-    }
-    writeLine(...data: Array<StringData>): number {
-        return this.write(...data.map(d => (d + '\n')));
     }
 
     extractStringArray(): Array<string> {
