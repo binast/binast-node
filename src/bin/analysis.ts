@@ -52,25 +52,21 @@ class MyHandler implements S.VisitHandler {
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
         console.log([
-            `Begin\n`,
+            `Begin`,
             `    key = ${key}`,
             `    shape = ${shape.prettyString()}`,
             `    bound = ${bound.prettyString()}`,
             `    value = ${value}`,
-            `--`,
+            ``,
         ].join("\n"));
     }
 
     end(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
-        console.log([
-            `End\n`,
-            `    key = ${key}`,
-            `    shape = ${shape.prettyString()}`,
-            `    bound = ${bound.prettyString()}`,
-            `    value = ${value}`,
-            `--`,
-        ].join("\n"));
+        console.log(...[
+            `End k=${key} v=${value}\n`,
+            ``
+        ]);
     }
 }
 

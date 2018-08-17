@@ -21,8 +21,19 @@ export enum FieldTypeKind {
 let NEXT_TYPE_ID: number = 1;
 const TYPE_CACHE: Map<string, FieldType> = new Map();
 
+interface FlatCache {
+    ty: FieldType|null;
+    schema: TreeSchema|null;
+}
+
 export abstract class FieldType {
     readonly typeId: number;
+    private flatCache: FlatCache|null;
+
+    protected constructor(typeId: number) {
+        this.typeId = typeId;
+        this.flatCache = {ty:null, schema:null};
+    }
 
     abstract prettyString(): string;
     abstract kind(): FieldTypeKind;
@@ -35,8 +46,18 @@ export abstract class FieldType {
     abstract prettyValue(schema: TreeSchema, value: Value,
                          out: Array<string>);
 
-    protected constructor(typeId: number) {
-        this.typeId = typeId;
+    protected abstract flattenImpl(schema: TreeSchema)
+      : FieldType;
+
+    flatten(schema: TreeSchema): FieldType {
+        if (this.flatCache.schema === schema) {
+            return this.flatCache.ty;
+        }
+
+        const ty = this.flattenImpl(schema);
+        this.flatCache.ty = ty;
+        this.flatCache.schema = schema;
+        return ty;
     }
 
     protected static nextId(): number {
@@ -136,6 +157,10 @@ export class FieldTypePrimitive extends FieldType {
             return;
         }
         throw new Error(`Unknown primitive ${this.name}`);
+    }
+
+    protected flattenImpl(schema: TreeSchema): FieldType {
+        return this;
     }
 
     typescriptString(): string {
@@ -261,6 +286,12 @@ export class FieldTypeNamed extends FieldType {
         const decl = schema.getDecl(this.name);
         return decl.prettyValue(schema, value, out);
     }
+    protected flattenImpl(schema: TreeSchema): FieldType {
+        // Peek through the typedef and flatten the
+        // underlying type.
+        const decl = schema.getDecl(this.name);
+        return decl.flattennedType(schema);
+    }
 
     kind(): FieldTypeKind {
         return FieldTypeKind.Named;
@@ -326,6 +357,62 @@ export class FieldTypeUnion extends FieldType {
             }
         }
         throw new Error(`Union not matched: ${value}`);
+    }
+    protected flattenImpl(schema: TreeSchema): FieldType {
+        // Flatten the constituent types.
+
+        let isOpt: boolean = false;
+
+        let flats = new Array<FieldType>();
+
+        for (let variant of this.variants) {
+            let flat = variant.flatten(schema);
+
+            // Unwrap any optionals, marking isOpt true
+            while (flat instanceof FieldTypeOpt) {
+                isOpt = true;
+                flat = flat.inner;
+            }
+
+            // Primitive, and Array types flow through.
+            if ((flat instanceof FieldTypePrimitive) ||
+                (flat instanceof FieldTypeArray))
+            {
+                flats.push(flat);
+                continue;
+            }
+
+            // Flattened named types should refer to
+            // only enums or ifaces, not typedefs.
+            if (flat instanceof FieldTypeNamed) {
+                const decl = schema.getDecl(flat.name);
+                assert((decl instanceof Iface) ||
+                       (decl instanceof Enum));
+                flats.push(flat);
+                continue;
+            }
+
+            assert(flat instanceof FieldTypeUnion);
+            // Expand any member unions.
+            for (let flatVariant of
+                    ((flat as FieldTypeUnion).variants))
+            {
+                // None of the constituents should
+                // be Opts or Unions.
+                assert(! (flatVariant instanceof
+                                FieldTypeOpt));
+                assert(! (flatVariant instanceof
+                                FieldTypeUnion));
+                flats.push(flatVariant);
+            }
+        }
+
+        let result: FieldType =
+            FieldTypeUnion.make(Object.freeze(flats));
+        if (isOpt) {
+            result = FieldTypeOpt.make(result);
+        }
+        return result;
     }
 
     typescriptString(): string {
@@ -393,6 +480,10 @@ export class FieldTypeOpt extends FieldType {
         } else {
             this.inner.prettyValue(schema, value, out);
         }
+    }
+    protected flattenImpl(schema: TreeSchema): FieldType {
+        const flatInner = this.inner.flatten(schema);
+        return FieldTypeOpt.make(flatInner);
     }
 
     typescriptString(): string {
@@ -472,6 +563,10 @@ export class FieldTypeArray extends FieldType {
             out.push(...arr);
         }
         out.push(']');
+    }
+    protected flattenImpl(schema: TreeSchema): FieldType {
+        const flatInner = this.inner.flatten(schema);
+        return FieldTypeArray.make(flatInner);
     }
 
     typescriptString(): string {

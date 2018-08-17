@@ -289,9 +289,10 @@ export class Visitor {
         const inst = value as Instance;
 
         for (let field of inst.iface$.fields) {
+            const ty = field.ty;
             const value = inst[field.name];
-            const bound = field.ty;
-            const shape = this.resolveShape(bound, value);
+            const bound = ty.flatten(this.schema);
+            const shape = this.resolveShape(ty, value);
             const key = field.name;
 
             assert(shape !== null);
@@ -324,8 +325,9 @@ export class Visitor {
 
         const arr = this.cursor.value as Array<Value>;
         arr.forEach((value: Value, i: number) => {
-            const bound = ty.inner;
-            const shape = this.resolveShape(bound, value);
+            const vty = ty.inner;
+            const bound = vty.flatten(this.schema);
+            const shape = this.resolveShape(vty, value);
             const key = i;
 
             assert(shape !== null);

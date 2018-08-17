@@ -261,6 +261,7 @@ export abstract class Declaration {
       : boolean;
     abstract prettyValue(schema: TreeSchema, value: Value,
                          out: Array<string>);
+    abstract flattennedType(schema: TreeSchema): FieldType;
 }
 
 
@@ -298,6 +299,10 @@ export class Typedef extends Declaration {
     {
         assert(this.matchesValue(schema, value));
         this.aliased.prettyValue(schema, value, out);
+    }
+
+    flattennedType(schema: TreeSchema): FieldType {
+        return this.aliased.flatten(schema);
     }
 
     dumpTypescript(defns: Array<string>) {
@@ -483,6 +488,10 @@ export class Enum extends Declaration {
         out.push(value as string);
     }
 
+    flattennedType(schema: TreeSchema): FieldType {
+        return this.intoFieldType();
+    }
+
     dumpTypescript(defns: Array<string>) {
         // On the interface, bind the typedef
         // name as a method yielding the Typedef
@@ -657,6 +666,10 @@ export class Iface extends Declaration {
         assert(this.matchesValue(schema, value));
         this.prettyInstance(schema, value as Instance, out);
         out.push('');
+    }
+
+    flattennedType(schema: TreeSchema): FieldType {
+        return this.intoFieldType();
     }
 
     dumpTypescript(defns: Array<string>) {
