@@ -28,6 +28,8 @@ export abstract class FieldType {
     abstract kind(): FieldTypeKind;
     abstract typescriptString(): string;
     abstract reflectedString(): string;
+    abstract resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null;
     abstract matchesValue(schema: TreeSchema, value: Value)
               : boolean;
     abstract prettyValue(schema: TreeSchema, value: Value,
@@ -156,6 +158,41 @@ export class FieldTypePrimitive extends FieldType {
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        let matches: boolean = false;
+        switch (this) {
+          case TN_BOOL:
+            matches = typeof(value) === 'boolean'
+            break;
+
+          case TN_UINT:
+            matches = (typeof(value) === 'number') &&
+                      Number.isInteger(value) &&
+                      (value >= 0);
+            break;
+
+          case TN_INT:
+            matches = (typeof(value) === 'number') &&
+                      Number.isInteger(value);
+            break;
+
+          case TN_F64:
+            matches = typeof(value) === 'number';
+            break;
+
+          case TN_STR:
+            matches = typeof(value) === 'string';
+            break;
+
+          default:
+            throw new Error(`Unknown primitive ` +
+                            this.name);
+        }
+
+        return matches ? this : null;
+    }
 
     static typeKey(name: string): string {
         return `prim(${name})`;
@@ -205,6 +242,12 @@ export class FieldTypeNamed extends FieldType {
     reflectedString(): string {
         const tstr = JSON.stringify(this.name.name);
         return `TNamed(${tstr})`;
+    }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        const decl = schema.getDecl(this.name);
+        return decl.resolveType(schema, value);
     }
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
@@ -296,6 +339,17 @@ export class FieldTypeUnion extends FieldType {
                 this.variants.map(v => v.reflectedString())
                             .join(', ') + '])';
     }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        for (let variant of this.variants) {
+            const r = variant.resolveType(schema, value);
+            if (r !== null) {
+                return r;
+            }
+        }
+        return null;
+    }
 }
 
 export class FieldTypeOpt extends FieldType {
@@ -348,6 +402,14 @@ export class FieldTypeOpt extends FieldType {
     reflectedString() {
         let innerStr = this.inner.reflectedString();
         return `TOpt(${innerStr})`;
+    }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        if (value === null) {
+            return this;
+        }
+        return this.inner.resolveType(schema, value);
     }
 }
 
@@ -419,5 +481,10 @@ export class FieldTypeArray extends FieldType {
     reflectedString() {
         let innerStr = this.inner.reflectedString();
         return `TArray(${innerStr})`;
+    }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        return (value instanceof Array) ? this : null;
     }
 }

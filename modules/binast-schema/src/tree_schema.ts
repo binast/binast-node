@@ -211,9 +211,12 @@ export class TreeSchema {
     // types.  For Ifaces and Enums it generates
     // Named types, and for typedefs it substitutes
     // the aliased type.
-    resolveType(typeName: TypeName): FieldType {
+    resolveType(typeName: TypeName, value: Value)
+      : FieldType|null
+    {
         // Look up the type.
-        return this.getDecl(typeName).intoFieldType();
+        const decl = this.getDecl(typeName);
+        return decl.resolveType(this, value);
     }
 
     prettyString(): string {
@@ -250,6 +253,8 @@ export abstract class Declaration {
 
     abstract prettyString(): string;
     abstract intoFieldType(): FieldType;
+    abstract resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null;
     abstract dumpTypescript(defns: Array<string>);
     abstract dumpReflection(defns: Array<string>);
     abstract matchesValue(schema: TreeSchema, value: Value)
@@ -275,6 +280,11 @@ export class Typedef extends Declaration {
 
     intoFieldType(): FieldType {
         return this.aliased;
+    }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        return this.aliased.resolveType(schema, value);
     }
 
     matchesValue(schema: TreeSchema, value: Value)
@@ -448,6 +458,16 @@ export class Enum extends Declaration {
     intoFieldType(): FieldType {
         return FieldTypeNamed.make(this.name);
     }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        if (typeof(value) == 'string' &&
+            this.containsName(value as string))
+        {
+            return this.intoFieldType();
+        }
+        return null;
+    }
 
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
@@ -562,6 +582,17 @@ export class Iface extends Declaration {
     intoFieldType(): FieldType {
         return FieldTypeNamed.make(this.name);
     }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        if (typeof(value) == 'object' &&
+            value !== null &&
+            value['iface$'] === this)
+        {
+            return this.intoFieldType();
+        }
+        return null;
+    }
 
     prettyInstance(schema: TreeSchema, inst: Instance,
                    out: Array<string>)
@@ -613,6 +644,13 @@ export class Iface extends Declaration {
                (value['iface$'] === this);
     }
 
+    getInstanceField(field: IfaceField, inst: Instance):
+      Value
+    {
+        assert(inst.iface$ === this);
+        return inst[field.name] as Value;
+    }
+
     prettyValue(schema: TreeSchema, value: Value,
                 out: Array<string>)
     {
@@ -620,7 +658,6 @@ export class Iface extends Declaration {
         this.prettyInstance(schema, value as Instance, out);
         out.push('');
     }
-
 
     dumpTypescript(defns: Array<string>) {
         // On the interface, bind the typedef

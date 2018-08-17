@@ -5,10 +5,11 @@ import * as fs from 'fs';
 import * as minimist from 'minimist';
 import * as shift_parser from 'shift-parser';
 
-import * as S from '../typed_schema';
+import * as S from 'binast-schema';
+import * as TS from '../typed_schema';
 import {Importer} from '../lift_es6';
 
-const Schema = S.ReflectedSchema.schema;
+const SCHEMA = TS.ReflectedSchema.schema;
 
 function main() {
     const opts = minimist(process.argv.slice(2));
@@ -32,10 +33,45 @@ function main() {
     const script = importer.liftScript(json);
     log("Done lifting shift-parsed JSON to typed schema.");
 
+    log("Visiting tree.");
+    const visitor = S.Visitor.make({
+        schema: SCHEMA,
+        root: script,
+        handler: new MyHandler()
+    });
+    visitor.visit();
+    log("Done visiting tree.");
+
     const out = new Array<string>();
-    script.iface$.prettyInstance(Schema, script, out);
+    script.iface$.prettyInstance(SCHEMA, script, out);
     console.log("SCRIPT:");
     console.log(out.join("\n"));
+}
+
+class MyHandler implements S.VisitHandler {
+    begin(schema: S.TreeSchema, loc: S.TreeLocation) {
+        const {key, shape, bound, value} = loc;
+        console.log([
+            `Begin\n`,
+            `    key = ${key}`,
+            `    shape = ${shape.prettyString()}`,
+            `    bound = ${bound.prettyString()}`,
+            `    value = ${value}`,
+            `--`,
+        ].join("\n"));
+    }
+
+    end(schema: S.TreeSchema, loc: S.TreeLocation) {
+        const {key, shape, bound, value} = loc;
+        console.log([
+            `End\n`,
+            `    key = ${key}`,
+            `    shape = ${shape.prettyString()}`,
+            `    bound = ${bound.prettyString()}`,
+            `    value = ${value}`,
+            `--`,
+        ].join("\n"));
+    }
 }
 
 const LOG_PREFIX = 'ANALYSIS.log: ';
