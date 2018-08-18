@@ -35,12 +35,12 @@ export class PrettyPrintHandler
         const boundStr = bound.prettyString();
 
         this.writeTabbedLines(...[
-            `${key}: ${shapeStr} {`,
-            `    bound=${boundStr}`
+            `${key}: ${boundStr} = {`,
+            `    @ ${shapeStr};`,
         ]);
         if (valueStr !== null) {
             this.writeTabbedLines(...[
-                `    value=${valueStr}`
+                `    value = ${valueStr}`
             ]);
         }
         this.depth++;
@@ -73,25 +73,20 @@ function shapeString(shape: S.PathShape): string {
 function valueString(value: S.Value, shape: S.PathShape)
   : string|null
 {
-    if ((shape instanceof S.Iface) ||
-        (shape instanceof S.Enum) ||
+    if ((shape instanceof S.FieldTypeIface) ||
         (shape instanceof S.FieldTypeArray))
     {
         return null;
-    } else if (shape instanceof S.FieldTypeOpt) {
-        assert(value === null);
-        return 'null';
+    } else if (shape instanceof S.FieldTypeEnum) {
+        assert(typeof(value) === 'string');
+        return value.toString();
     } else if (shape instanceof S.FieldTypePrimitive) {
-        if (value instanceof S.Identifier) {
-            return value.name;
-        } else {
-            return value.toString();
-        }
+        return `${value}`;
     } else if (shape instanceof S.FieldTypeIdent) {
         const tag = shape.tag;
         assert(value instanceof S.Identifier);
         const ident = value as S.Identifier;
-        return `${tag}(${ident.name})`;
+        return ident.name;
     } else {
         throw new Error("Bad PathShape: " + shape);
     }

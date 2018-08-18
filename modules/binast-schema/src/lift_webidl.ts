@@ -8,8 +8,7 @@ import {TreeSchema, Declaration, TypeName, EnumVariantName,
         Typedef, Enum, Iface, IfaceField}
     from './tree_schema';
 import {FieldType, FieldTypePrimitive, FieldTypeIdent,
-        FieldTypeNamed, FieldTypeUnion, FieldTypeArray,
-        FieldTypeOpt}
+        FieldTypeNamed, FieldTypeUnion, FieldTypeArray}
     from './field_types';
 
 import {jsonStr} from './util';
@@ -248,7 +247,7 @@ class Lifter {
 
         let ft: FieldType = FieldTypeArray.make(innerFt);
         if (idlType.nullable) {
-            ft = FieldTypeOpt.make(ft);
+            ft = FieldTypeUnion.makeNullable(ft);
         }
         return ft;
     }
@@ -273,13 +272,10 @@ class Lifter {
             }
             variants.push(vt);
         }
-
-        let ft: FieldType = FieldTypeUnion.make(
-                                Object.freeze(variants));
         if (idlType.nullable) {
-            ft = FieldTypeOpt.make(ft);
+            variants.unshift(FieldTypePrimitive.Null);
         }
-        return ft;
+        return FieldTypeUnion.make(Object.freeze(variants));
     }
 
     tryLiftSimpleType(idlType: any): FieldType|null
@@ -317,7 +313,7 @@ class Lifter {
         let tn = TypeName.make(idlType.baseName);
         let ft: FieldType = FieldTypeNamed.make(tn);
         if (idlType.nullable) {
-            ft = FieldTypeOpt.make(ft);
+            ft = FieldTypeUnion.makeNullable(ft);
         }
         return ft;
     }

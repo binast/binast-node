@@ -1,7 +1,8 @@
 
 import * as assert from 'assert';
 
-import {FieldType, FieldTypeNamed}
+import {FieldType, TerminalFieldType, FieldTypeNamed,
+        FieldTypeIface, FieldTypeEnum}
     from './field_types';
 
 import {OrderedMap}
@@ -143,10 +144,6 @@ export class TreeSchema {
             "",
             "",
             "/* Helpers. */",
-            "function TOpt(inner: S.FieldType)"
-              + ": S.FieldTypeOpt {",
-            "   return S.FieldTypeOpt.make(inner);",
-            "}",
             "",
             "function TArray(inner: S.FieldType)"
               + ": S.FieldTypeArray {",
@@ -165,11 +162,24 @@ export class TreeSchema {
                         "S.TypeName.make(name));",
             "}",
             "",
+            "function TIface(name: string)"
+              + ": S.FieldTypeIface {",
+            "   return S.FieldTypeIface.make(" +
+                        "S.TypeName.make(name));",
+            "}",
+            "",
+            "function TEnum(name: string)"
+              + ": S.FieldTypeEnum {",
+            "   return S.FieldTypeEnum.make(" +
+                        "S.TypeName.make(name));",
+            "}",
+            "",
             "function TIdent(name: string)"
               + ": S.FieldTypeIdent {",
             "   return S.FieldTypeIdent.make(name);",
             "}",
             "",
+            "const TNull = S.FieldTypePrimitive.Null;",
             "const TBool = S.FieldTypePrimitive.Bool;",
             "const TUint = S.FieldTypePrimitive.Uint;",
             "const TInt = S.FieldTypePrimitive.Int;",
@@ -244,7 +254,7 @@ export class TreeSchema {
     // Named types, and for typedefs it substitutes
     // the aliased type.
     resolveType(typeName: TypeName, value: Value)
-      : FieldType|null
+      : TerminalFieldType|null
     {
         // Look up the type.
         const decl = this.getDecl(typeName);
@@ -286,12 +296,13 @@ export abstract class Declaration {
     abstract prettyString(): string;
     abstract intoFieldType(): FieldType;
     abstract resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null;
+      : TerminalFieldType|null;
     abstract dumpTypescript(defns: Array<string>);
     abstract dumpReflection(defns: Array<string>);
     abstract matchesValue(schema: TreeSchema, value: Value)
       : boolean;
-    abstract flattennedType(schema: TreeSchema): FieldType;
+    abstract flattennedType(schema: TreeSchema)
+      : Array<TerminalFieldType>;
 }
 
 
@@ -313,7 +324,7 @@ export class Typedef extends Declaration {
         return this.aliased;
     }
     resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
+      : TerminalFieldType|null
     {
         return this.aliased.resolveType(schema, value);
     }
@@ -324,7 +335,9 @@ export class Typedef extends Declaration {
         return this.aliased.matchesValue(schema, value);
     }
 
-    flattennedType(schema: TreeSchema): FieldType {
+    flattennedType(schema: TreeSchema)
+      : Array<TerminalFieldType>
+    {
         return this.aliased.flatten(schema);
     }
 
@@ -483,11 +496,11 @@ export class Enum extends Declaration {
                '};';
     }
 
-    intoFieldType(): FieldType {
-        return FieldTypeNamed.make(this.name);
+    intoFieldType(): FieldTypeEnum {
+        return FieldTypeEnum.make(this.name);
     }
     resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
+      : TerminalFieldType|null
     {
         if (typeof(value) == 'string' &&
             this.containsName(value as string))
@@ -504,8 +517,10 @@ export class Enum extends Declaration {
                this.containsName(value);
     }
 
-    flattennedType(schema: TreeSchema): FieldType {
-        return this.intoFieldType();
+    flattennedType(schema: TreeSchema)
+      : Array<TerminalFieldType>
+    {
+        return [FieldTypeEnum.make(this.name)];
     }
 
     dumpTypescript(defns: Array<string>) {
@@ -576,7 +591,7 @@ export class Enum extends Declaration {
         `},`,
         `get typeof_${nm}(): S.FieldType {`,
         `    const fieldName = this.${nm}.name;`,
-        `    return S.FieldTypeNamed.make(fieldName);`,
+        `    return S.FieldTypeEnum.make(fieldName);`,
         `}`,
         ]);
     }
@@ -604,11 +619,11 @@ export class Iface extends Declaration {
              `}`;
     }
 
-    intoFieldType(): FieldType {
-        return FieldTypeNamed.make(this.name);
+    intoFieldType(): FieldTypeIface {
+        return FieldTypeIface.make(this.name);
     }
     resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
+      : TerminalFieldType|null
     {
         if (typeof(value) == 'object' &&
             value !== null &&
@@ -634,8 +649,10 @@ export class Iface extends Declaration {
         return inst[field.name] as Value;
     }
 
-    flattennedType(schema: TreeSchema): FieldType {
-        return this.intoFieldType();
+    flattennedType(schema: TreeSchema)
+      : Array<TerminalFieldType>
+    {
+        return [FieldTypeIface.make(this.name)];
     }
 
     dumpTypescript(defns: Array<string>) {
@@ -754,7 +771,7 @@ export class Iface extends Declaration {
         `},`,
         `get typeof_${nm}(): S.FieldType {`,
         `    const fieldName = this.${nm}.name;`,
-        `    return S.FieldTypeNamed.make(fieldName);`,
+        `    return S.FieldTypeIface.make(fieldName);`,
         `}`,
         ]);
     }

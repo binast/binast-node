@@ -4,9 +4,10 @@ import * as assert from 'assert';
 import {TreeSchema, Typedef, Enum, Iface, Value, Instance}
     from './tree_schema';
 
-import {FieldType, FieldTypePrimitive, FieldTypeIdent,
-        FieldTypeOpt, FieldTypeNamed, FieldTypeUnion,
-        FieldTypeArray}
+import {FieldType, TerminalFieldType,
+        FieldTypePrimitive, FieldTypeIdent,
+        FieldTypeNamed, FieldTypeUnion, FieldTypeArray,
+        FieldTypeIface, FieldTypeEnum}
     from './field_types';
 
 import {jsonStr} from './util';
@@ -43,9 +44,7 @@ export type PathKey = string | number;
 // Shape describes the represenation of the value
 // being encoded - a specific Iface, Enum, Array,
 // or primitive type.
-export type PathShape =
-    Iface | Enum | FieldTypePrimitive | FieldTypeIdent |
-    FieldTypeOpt | FieldTypeArray;
+export type PathShape = TerminalFieldType;
 
 // Bound describes the bounds on this type, which is
 // the set of allowable types at this location,
@@ -235,9 +234,10 @@ export class Visitor {
     private makeRootKey(): string {
         return '$Root'
     }
-    private makeRootShape(): Iface {
+    private makeRootShape(): FieldTypeIface {
         // Just the root instance iface.
-        return this.root.iface$;
+        const iface = this.root.iface$;
+        return FieldTypeIface.make(iface.name);
     }
     private makeRootBound(): FieldType {
         // Just a FieldType containing the type of
@@ -263,16 +263,16 @@ export class Visitor {
         // Begin this tree item.
         this.handler.begin(this.schema, this.cursor);
 
-        if (shape instanceof Iface) {
+        assert(shape instanceof TerminalFieldType);
+
+        if (shape instanceof FieldTypeIface) {
             this.walkIface(shape);
-        } else if (shape instanceof Enum) {
+        } else if (shape instanceof FieldTypeEnum) {
             this.walkEnum(shape);
         } else if (shape instanceof FieldTypePrimitive) {
             this.walkPrimitive(shape);
         } else if (shape instanceof FieldTypeIdent) {
             this.walkIdent(shape);
-        } else if (shape instanceof FieldTypeOpt) {
-            this.walkOpt(shape);
         } else if (shape instanceof FieldTypeArray) {
             this.walkArray(shape);
         } else {
@@ -287,7 +287,7 @@ export class Visitor {
         this.cursor.pop(value);
     }
 
-    private walkIface(iface: Iface) {
+    private walkIface(iface: FieldTypeIface) {
         const schema = this.schema;
         const value = this.cursor.value;
         assert(iface.matchesValue(schema, value));
@@ -307,7 +307,7 @@ export class Visitor {
         }
     }
 
-    private walkEnum(enm: Enum) {
+    private walkEnum(enm: FieldTypeEnum) {
         const value = this.cursor.value;
         assert(enm.matchesValue(this.schema, value));
     }
@@ -318,14 +318,6 @@ export class Visitor {
     }
 
     private walkIdent(ty: FieldTypeIdent) {
-        const value = this.cursor.value;
-        assert(ty.matchesValue(this.schema, value));
-    }
-
-    private walkOpt(ty: FieldTypeOpt) {
-        // The only value with an Opt shape is
-        // null.  Any other value will have some
-        // inner type as the shape.
         const value = this.cursor.value;
         assert(ty.matchesValue(this.schema, value));
     }
@@ -356,22 +348,7 @@ export class Visitor {
             `Bad rty: ${rty} for: ${jsonStr(value)}\n` +
             `ty=${ty.prettyString()}`);
 
-        // Check the type, resolve named types to
-        // Iface or Enum.
-        if (rty instanceof FieldTypeNamed) {
-            const decl = this.schema.getDecl(rty.name);
-            assert((decl instanceof Iface) ||
-                   (decl instanceof Enum));
-            return decl as (Iface|Enum);
-        }
-
-        // Otherwise, it should be one of the
-        // allowed field types - not a union.
-        assert((rty instanceof FieldTypePrimitive) ||
-               (rty instanceof FieldTypeIdent) ||
-               (rty instanceof FieldTypeArray) ||
-               (rty instanceof FieldTypeOpt));
-
-        return rty as PathShape;
+        assert(rty instanceof TerminalFieldType);
+        return rty as TerminalFieldType;
     }
 }

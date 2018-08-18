@@ -22,9 +22,6 @@ abstract class BaseNode {
 
 
 /* Helpers. */
-function TOpt(inner: S.FieldType): S.FieldTypeOpt {
-   return S.FieldTypeOpt.make(inner);
-}
 
 function TArray(inner: S.FieldType): S.FieldTypeArray {
    return S.FieldTypeArray.make(inner);
@@ -38,10 +35,19 @@ function TNamed(name: string): S.FieldTypeNamed {
    return S.FieldTypeNamed.make(S.TypeName.make(name));
 }
 
+function TIface(name: string): S.FieldTypeIface {
+   return S.FieldTypeIface.make(S.TypeName.make(name));
+}
+
+function TEnum(name: string): S.FieldTypeEnum {
+   return S.FieldTypeEnum.make(S.TypeName.make(name));
+}
+
 function TIdent(name: string): S.FieldTypeIdent {
    return S.FieldTypeIdent.make(name);
 }
 
+const TNull = S.FieldTypePrimitive.Null;
 const TBool = S.FieldTypePrimitive.Bool;
 const TUint = S.FieldTypePrimitive.Uint;
 const TInt = S.FieldTypePrimitive.Int;
@@ -135,7 +141,7 @@ export const ReflectedSchema = {
     },
     get typeof_VariableDeclarationKind(): S.FieldType {
         const fieldName = this.VariableDeclarationKind.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeEnum.make(fieldName);
     },
 
 
@@ -187,7 +193,7 @@ export const ReflectedSchema = {
     },
     get typeof_CompoundAssignmentOperator(): S.FieldType {
         const fieldName = this.CompoundAssignmentOperator.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeEnum.make(fieldName);
     },
 
 
@@ -278,7 +284,7 @@ export const ReflectedSchema = {
     },
     get typeof_BinaryOperator(): S.FieldType {
         const fieldName = this.BinaryOperator.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeEnum.make(fieldName);
     },
 
 
@@ -315,7 +321,7 @@ export const ReflectedSchema = {
     },
     get typeof_UnaryOperator(): S.FieldType {
         const fieldName = this.UnaryOperator.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeEnum.make(fieldName);
     },
 
 
@@ -337,7 +343,7 @@ export const ReflectedSchema = {
     },
     get typeof_UpdateOperator(): S.FieldType {
         const fieldName = this.UpdateOperator.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeEnum.make(fieldName);
     },
 
 
@@ -362,7 +368,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedDeclaredKind(): S.FieldType {
         const fieldName = this.AssertedDeclaredKind.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeEnum.make(fieldName);
     },
 
 
@@ -390,7 +396,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedDeclaredName(): S.FieldType {
         const fieldName = this.AssertedDeclaredName.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -414,7 +420,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedBoundName(): S.FieldType {
         const fieldName = this.AssertedBoundName.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -438,7 +444,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedBlockScope(): S.FieldType {
         const fieldName = this.AssertedBlockScope.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -462,7 +468,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedScriptGlobalScope(): S.FieldType {
         const fieldName = this.AssertedScriptGlobalScope.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -486,7 +492,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedVarScope(): S.FieldType {
         const fieldName = this.AssertedVarScope.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -514,7 +520,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedParameterScope(): S.FieldType {
         const fieldName = this.AssertedParameterScope.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -538,7 +544,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssertedBoundNamesScope(): S.FieldType {
         const fieldName = this.AssertedBoundNamesScope.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -798,7 +804,7 @@ export const ReflectedSchema = {
     },
     get typeof_BindingIdentifier(): S.FieldType {
         const fieldName = this.BindingIdentifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -912,7 +918,7 @@ export const ReflectedSchema = {
     },
     get typeof_BindingWithInitializer(): S.FieldType {
         const fieldName = this.BindingWithInitializer.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -932,7 +938,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssignmentTargetIdentifier(): S.FieldType {
         const fieldName = this.AssignmentTargetIdentifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -956,7 +962,7 @@ export const ReflectedSchema = {
     },
     get typeof_ComputedMemberAssignmentTarget(): S.FieldType {
         const fieldName = this.ComputedMemberAssignmentTarget.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -980,7 +986,7 @@ export const ReflectedSchema = {
     },
     get typeof_StaticMemberAssignmentTarget(): S.FieldType {
         const fieldName = this.StaticMemberAssignmentTarget.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -990,11 +996,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TOpt(TUnion([TNamed("Binding"), TNamed("BindingWithInitializer")]))),
+                /* ty = */ TArray(TUnion([TNull, TNamed("Binding"), TNamed("BindingWithInitializer")])),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "rest",
-                /* ty = */ TOpt(TNamed("Binding")),
+                /* ty = */ TUnion([TNull, TNamed("Binding")]),
                 /* isLazy = */ false),
             ];
             this["c_ArrayBinding"] = new S.Iface(typeName, fields, true);
@@ -1004,7 +1010,7 @@ export const ReflectedSchema = {
     },
     get typeof_ArrayBinding(): S.FieldType {
         const fieldName = this.ArrayBinding.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1018,7 +1024,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_BindingPropertyIdentifier"] = new S.Iface(typeName, fields, true);
@@ -1028,7 +1034,7 @@ export const ReflectedSchema = {
     },
     get typeof_BindingPropertyIdentifier(): S.FieldType {
         const fieldName = this.BindingPropertyIdentifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1052,7 +1058,7 @@ export const ReflectedSchema = {
     },
     get typeof_BindingPropertyProperty(): S.FieldType {
         const fieldName = this.BindingPropertyProperty.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1087,7 +1093,7 @@ export const ReflectedSchema = {
     },
     get typeof_ObjectBinding(): S.FieldType {
         const fieldName = this.ObjectBinding.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1111,7 +1117,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssignmentTargetWithInitializer(): S.FieldType {
         const fieldName = this.AssignmentTargetWithInitializer.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1121,11 +1127,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TOpt(TUnion([TNamed("AssignmentTarget"), TNamed("AssignmentTargetWithInitializer")]))),
+                /* ty = */ TArray(TUnion([TNull, TNamed("AssignmentTarget"), TNamed("AssignmentTargetWithInitializer")])),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "rest",
-                /* ty = */ TOpt(TNamed("AssignmentTarget")),
+                /* ty = */ TUnion([TNull, TNamed("AssignmentTarget")]),
                 /* isLazy = */ false),
             ];
             this["c_ArrayAssignmentTarget"] = new S.Iface(typeName, fields, true);
@@ -1135,7 +1141,7 @@ export const ReflectedSchema = {
     },
     get typeof_ArrayAssignmentTarget(): S.FieldType {
         const fieldName = this.ArrayAssignmentTarget.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1149,7 +1155,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_AssignmentTargetPropertyIdentifier"] = new S.Iface(typeName, fields, true);
@@ -1159,7 +1165,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssignmentTargetPropertyIdentifier(): S.FieldType {
         const fieldName = this.AssignmentTargetPropertyIdentifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1183,7 +1189,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssignmentTargetPropertyProperty(): S.FieldType {
         const fieldName = this.AssignmentTargetPropertyProperty.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1218,7 +1224,7 @@ export const ReflectedSchema = {
     },
     get typeof_ObjectAssignmentTarget(): S.FieldType {
         const fieldName = this.ObjectAssignmentTarget.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1228,11 +1234,11 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TOpt(TNamed("BindingIdentifier")),
+                /* ty = */ TUnion([TNull, TNamed("BindingIdentifier")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "super",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "elements",
@@ -1246,7 +1252,7 @@ export const ReflectedSchema = {
     },
     get typeof_ClassExpression(): S.FieldType {
         const fieldName = this.ClassExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1260,7 +1266,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "super",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "elements",
@@ -1274,7 +1280,7 @@ export const ReflectedSchema = {
     },
     get typeof_ClassDeclaration(): S.FieldType {
         const fieldName = this.ClassDeclaration.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1298,7 +1304,7 @@ export const ReflectedSchema = {
     },
     get typeof_ClassElement(): S.FieldType {
         const fieldName = this.ClassElement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1326,7 +1332,7 @@ export const ReflectedSchema = {
     },
     get typeof_Module(): S.FieldType {
         const fieldName = this.Module.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1340,7 +1346,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "defaultBinding",
-                /* ty = */ TOpt(TNamed("BindingIdentifier")),
+                /* ty = */ TUnion([TNull, TNamed("BindingIdentifier")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "namedImports",
@@ -1354,7 +1360,7 @@ export const ReflectedSchema = {
     },
     get typeof_Import(): S.FieldType {
         const fieldName = this.Import.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1368,7 +1374,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "defaultBinding",
-                /* ty = */ TOpt(TNamed("BindingIdentifier")),
+                /* ty = */ TUnion([TNull, TNamed("BindingIdentifier")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "namespaceBinding",
@@ -1382,7 +1388,7 @@ export const ReflectedSchema = {
     },
     get typeof_ImportNamespace(): S.FieldType {
         const fieldName = this.ImportNamespace.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1392,7 +1398,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TOpt(TNamed("IdentifierName")),
+                /* ty = */ TUnion([TNull, TNamed("IdentifierName")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "binding",
@@ -1406,7 +1412,7 @@ export const ReflectedSchema = {
     },
     get typeof_ImportSpecifier(): S.FieldType {
         const fieldName = this.ImportSpecifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1426,7 +1432,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExportAllFrom(): S.FieldType {
         const fieldName = this.ExportAllFrom.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1450,7 +1456,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExportFrom(): S.FieldType {
         const fieldName = this.ExportFrom.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1470,7 +1476,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExportLocals(): S.FieldType {
         const fieldName = this.ExportLocals.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1490,7 +1496,7 @@ export const ReflectedSchema = {
     },
     get typeof_Export(): S.FieldType {
         const fieldName = this.Export.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1510,7 +1516,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExportDefault(): S.FieldType {
         const fieldName = this.ExportDefault.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1524,7 +1530,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "exportedName",
-                /* ty = */ TOpt(TNamed("IdentifierName")),
+                /* ty = */ TUnion([TNull, TNamed("IdentifierName")]),
                 /* isLazy = */ false),
             ];
             this["c_ExportFromSpecifier"] = new S.Iface(typeName, fields, true);
@@ -1534,7 +1540,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExportFromSpecifier(): S.FieldType {
         const fieldName = this.ExportFromSpecifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1548,7 +1554,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "exportedName",
-                /* ty = */ TOpt(TNamed("IdentifierName")),
+                /* ty = */ TUnion([TNull, TNamed("IdentifierName")]),
                 /* isLazy = */ false),
             ];
             this["c_ExportLocalSpecifier"] = new S.Iface(typeName, fields, true);
@@ -1558,7 +1564,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExportLocalSpecifier(): S.FieldType {
         const fieldName = this.ExportLocalSpecifier.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1594,7 +1600,7 @@ export const ReflectedSchema = {
     },
     get typeof_EagerMethod(): S.FieldType {
         const fieldName = this.EagerMethod.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1630,7 +1636,7 @@ export const ReflectedSchema = {
     },
     get typeof_LazyMethod(): S.FieldType {
         const fieldName = this.LazyMethod.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1658,7 +1664,7 @@ export const ReflectedSchema = {
     },
     get typeof_EagerGetter(): S.FieldType {
         const fieldName = this.EagerGetter.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1686,7 +1692,7 @@ export const ReflectedSchema = {
     },
     get typeof_LazyGetter(): S.FieldType {
         const fieldName = this.LazyGetter.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1714,7 +1720,7 @@ export const ReflectedSchema = {
     },
     get typeof_GetterContents(): S.FieldType {
         const fieldName = this.GetterContents.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1742,7 +1748,7 @@ export const ReflectedSchema = {
     },
     get typeof_EagerSetter(): S.FieldType {
         const fieldName = this.EagerSetter.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1770,7 +1776,7 @@ export const ReflectedSchema = {
     },
     get typeof_LazySetter(): S.FieldType {
         const fieldName = this.LazySetter.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1806,7 +1812,7 @@ export const ReflectedSchema = {
     },
     get typeof_SetterContents(): S.FieldType {
         const fieldName = this.SetterContents.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1830,7 +1836,7 @@ export const ReflectedSchema = {
     },
     get typeof_DataProperty(): S.FieldType {
         const fieldName = this.DataProperty.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1850,7 +1856,7 @@ export const ReflectedSchema = {
     },
     get typeof_ShorthandProperty(): S.FieldType {
         const fieldName = this.ShorthandProperty.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1870,7 +1876,7 @@ export const ReflectedSchema = {
     },
     get typeof_ComputedPropertyName(): S.FieldType {
         const fieldName = this.ComputedPropertyName.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1890,7 +1896,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralPropertyName(): S.FieldType {
         const fieldName = this.LiteralPropertyName.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1910,7 +1916,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralBooleanExpression(): S.FieldType {
         const fieldName = this.LiteralBooleanExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1926,7 +1932,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralInfinityExpression(): S.FieldType {
         const fieldName = this.LiteralInfinityExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1942,7 +1948,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralNullExpression(): S.FieldType {
         const fieldName = this.LiteralNullExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1962,7 +1968,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralNumericExpression(): S.FieldType {
         const fieldName = this.LiteralNumericExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -1986,7 +1992,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralRegExpExpression(): S.FieldType {
         const fieldName = this.LiteralRegExpExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2006,7 +2012,7 @@ export const ReflectedSchema = {
     },
     get typeof_LiteralStringExpression(): S.FieldType {
         const fieldName = this.LiteralStringExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2016,7 +2022,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "elements",
-                /* ty = */ TArray(TOpt(TUnion([TNamed("SpreadElement"), TNamed("Expression")]))),
+                /* ty = */ TArray(TUnion([TNull, TNamed("SpreadElement"), TNamed("Expression")])),
                 /* isLazy = */ false),
             ];
             this["c_ArrayExpression"] = new S.Iface(typeName, fields, true);
@@ -2026,7 +2032,7 @@ export const ReflectedSchema = {
     },
     get typeof_ArrayExpression(): S.FieldType {
         const fieldName = this.ArrayExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2040,7 +2046,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
-                /* ty = */ TOpt(TArray(TNamed("Directive"))),
+                /* ty = */ TUnion([TNull, TArray(TNamed("Directive"))]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "contents",
@@ -2054,7 +2060,7 @@ export const ReflectedSchema = {
     },
     get typeof_EagerArrowExpression(): S.FieldType {
         const fieldName = this.EagerArrowExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2068,7 +2074,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
-                /* ty = */ TOpt(TArray(TNamed("Directive"))),
+                /* ty = */ TUnion([TNull, TArray(TNamed("Directive"))]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "contents",
@@ -2082,7 +2088,7 @@ export const ReflectedSchema = {
     },
     get typeof_LazyArrowExpression(): S.FieldType {
         const fieldName = this.LazyArrowExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2114,7 +2120,7 @@ export const ReflectedSchema = {
     },
     get typeof_ArrowExpressionContents(): S.FieldType {
         const fieldName = this.ArrowExpressionContents.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2138,7 +2144,7 @@ export const ReflectedSchema = {
     },
     get typeof_AssignmentExpression(): S.FieldType {
         const fieldName = this.AssignmentExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2166,7 +2172,7 @@ export const ReflectedSchema = {
     },
     get typeof_BinaryExpression(): S.FieldType {
         const fieldName = this.BinaryExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2190,7 +2196,7 @@ export const ReflectedSchema = {
     },
     get typeof_CallExpression(): S.FieldType {
         const fieldName = this.CallExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2218,7 +2224,7 @@ export const ReflectedSchema = {
     },
     get typeof_CompoundAssignmentExpression(): S.FieldType {
         const fieldName = this.CompoundAssignmentExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2242,7 +2248,7 @@ export const ReflectedSchema = {
     },
     get typeof_ComputedMemberExpression(): S.FieldType {
         const fieldName = this.ComputedMemberExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2270,7 +2276,7 @@ export const ReflectedSchema = {
     },
     get typeof_ConditionalExpression(): S.FieldType {
         const fieldName = this.ConditionalExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2288,7 +2294,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TOpt(TNamed("BindingIdentifier")),
+                /* ty = */ TUnion([TNull, TNamed("BindingIdentifier")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -2306,7 +2312,7 @@ export const ReflectedSchema = {
     },
     get typeof_EagerFunctionExpression(): S.FieldType {
         const fieldName = this.EagerFunctionExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2324,7 +2330,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "name",
-                /* ty = */ TOpt(TNamed("BindingIdentifier")),
+                /* ty = */ TUnion([TNull, TNamed("BindingIdentifier")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "directives",
@@ -2342,7 +2348,7 @@ export const ReflectedSchema = {
     },
     get typeof_LazyFunctionExpression(): S.FieldType {
         const fieldName = this.LazyFunctionExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2382,7 +2388,7 @@ export const ReflectedSchema = {
     },
     get typeof_FunctionExpressionContents(): S.FieldType {
         const fieldName = this.FunctionExpressionContents.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2402,7 +2408,7 @@ export const ReflectedSchema = {
     },
     get typeof_IdentifierExpression(): S.FieldType {
         const fieldName = this.IdentifierExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2426,7 +2432,7 @@ export const ReflectedSchema = {
     },
     get typeof_NewExpression(): S.FieldType {
         const fieldName = this.NewExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2442,7 +2448,7 @@ export const ReflectedSchema = {
     },
     get typeof_NewTargetExpression(): S.FieldType {
         const fieldName = this.NewTargetExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2462,7 +2468,7 @@ export const ReflectedSchema = {
     },
     get typeof_ObjectExpression(): S.FieldType {
         const fieldName = this.ObjectExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2486,7 +2492,7 @@ export const ReflectedSchema = {
     },
     get typeof_UnaryExpression(): S.FieldType {
         const fieldName = this.UnaryExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2510,7 +2516,7 @@ export const ReflectedSchema = {
     },
     get typeof_StaticMemberExpression(): S.FieldType {
         const fieldName = this.StaticMemberExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2520,7 +2526,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "tag",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "elements",
@@ -2534,7 +2540,7 @@ export const ReflectedSchema = {
     },
     get typeof_TemplateExpression(): S.FieldType {
         const fieldName = this.TemplateExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2550,7 +2556,7 @@ export const ReflectedSchema = {
     },
     get typeof_ThisExpression(): S.FieldType {
         const fieldName = this.ThisExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2578,7 +2584,7 @@ export const ReflectedSchema = {
     },
     get typeof_UpdateExpression(): S.FieldType {
         const fieldName = this.UpdateExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2588,7 +2594,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_YieldExpression"] = new S.Iface(typeName, fields, true);
@@ -2598,7 +2604,7 @@ export const ReflectedSchema = {
     },
     get typeof_YieldExpression(): S.FieldType {
         const fieldName = this.YieldExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2618,7 +2624,7 @@ export const ReflectedSchema = {
     },
     get typeof_YieldStarExpression(): S.FieldType {
         const fieldName = this.YieldStarExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2638,7 +2644,7 @@ export const ReflectedSchema = {
     },
     get typeof_AwaitExpression(): S.FieldType {
         const fieldName = this.AwaitExpression.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2648,7 +2654,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "label",
-                /* ty = */ TOpt(TNamed("Label")),
+                /* ty = */ TUnion([TNull, TNamed("Label")]),
                 /* isLazy = */ false),
             ];
             this["c_BreakStatement"] = new S.Iface(typeName, fields, true);
@@ -2658,7 +2664,7 @@ export const ReflectedSchema = {
     },
     get typeof_BreakStatement(): S.FieldType {
         const fieldName = this.BreakStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2668,7 +2674,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "label",
-                /* ty = */ TOpt(TNamed("Label")),
+                /* ty = */ TUnion([TNull, TNamed("Label")]),
                 /* isLazy = */ false),
             ];
             this["c_ContinueStatement"] = new S.Iface(typeName, fields, true);
@@ -2678,7 +2684,7 @@ export const ReflectedSchema = {
     },
     get typeof_ContinueStatement(): S.FieldType {
         const fieldName = this.ContinueStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2694,7 +2700,7 @@ export const ReflectedSchema = {
     },
     get typeof_DebuggerStatement(): S.FieldType {
         const fieldName = this.DebuggerStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2718,7 +2724,7 @@ export const ReflectedSchema = {
     },
     get typeof_DoWhileStatement(): S.FieldType {
         const fieldName = this.DoWhileStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2734,7 +2740,7 @@ export const ReflectedSchema = {
     },
     get typeof_EmptyStatement(): S.FieldType {
         const fieldName = this.EmptyStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2754,7 +2760,7 @@ export const ReflectedSchema = {
     },
     get typeof_ExpressionStatement(): S.FieldType {
         const fieldName = this.ExpressionStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2778,7 +2784,7 @@ export const ReflectedSchema = {
     },
     get typeof_ForInOfBinding(): S.FieldType {
         const fieldName = this.ForInOfBinding.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2806,7 +2812,7 @@ export const ReflectedSchema = {
     },
     get typeof_ForInStatement(): S.FieldType {
         const fieldName = this.ForInStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2834,7 +2840,7 @@ export const ReflectedSchema = {
     },
     get typeof_ForOfStatement(): S.FieldType {
         const fieldName = this.ForOfStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2844,15 +2850,15 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TUnion([TNamed("VariableDeclaration"), TNamed("Expression")])),
+                /* ty = */ TUnion([TNull, TNamed("VariableDeclaration"), TNamed("Expression")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "test",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "update",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "body",
@@ -2866,7 +2872,7 @@ export const ReflectedSchema = {
     },
     get typeof_ForStatement(): S.FieldType {
         const fieldName = this.ForStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2884,7 +2890,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "alternate",
-                /* ty = */ TOpt(TNamed("Statement")),
+                /* ty = */ TUnion([TNull, TNamed("Statement")]),
                 /* isLazy = */ false),
             ];
             this["c_IfStatement"] = new S.Iface(typeName, fields, true);
@@ -2894,7 +2900,7 @@ export const ReflectedSchema = {
     },
     get typeof_IfStatement(): S.FieldType {
         const fieldName = this.IfStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2918,7 +2924,7 @@ export const ReflectedSchema = {
     },
     get typeof_LabelledStatement(): S.FieldType {
         const fieldName = this.LabelledStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2928,7 +2934,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "expression",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_ReturnStatement"] = new S.Iface(typeName, fields, true);
@@ -2938,7 +2944,7 @@ export const ReflectedSchema = {
     },
     get typeof_ReturnStatement(): S.FieldType {
         const fieldName = this.ReturnStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2962,7 +2968,7 @@ export const ReflectedSchema = {
     },
     get typeof_SwitchStatement(): S.FieldType {
         const fieldName = this.SwitchStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -2994,7 +3000,7 @@ export const ReflectedSchema = {
     },
     get typeof_SwitchStatementWithDefault(): S.FieldType {
         const fieldName = this.SwitchStatementWithDefault.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3014,7 +3020,7 @@ export const ReflectedSchema = {
     },
     get typeof_ThrowStatement(): S.FieldType {
         const fieldName = this.ThrowStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3038,7 +3044,7 @@ export const ReflectedSchema = {
     },
     get typeof_TryCatchStatement(): S.FieldType {
         const fieldName = this.TryCatchStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3052,7 +3058,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "catchClause",
-                /* ty = */ TOpt(TNamed("CatchClause")),
+                /* ty = */ TUnion([TNull, TNamed("CatchClause")]),
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "finalizer",
@@ -3066,7 +3072,7 @@ export const ReflectedSchema = {
     },
     get typeof_TryFinallyStatement(): S.FieldType {
         const fieldName = this.TryFinallyStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3090,7 +3096,7 @@ export const ReflectedSchema = {
     },
     get typeof_WhileStatement(): S.FieldType {
         const fieldName = this.WhileStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3114,7 +3120,7 @@ export const ReflectedSchema = {
     },
     get typeof_WithStatement(): S.FieldType {
         const fieldName = this.WithStatement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3138,7 +3144,7 @@ export const ReflectedSchema = {
     },
     get typeof_Block(): S.FieldType {
         const fieldName = this.Block.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3166,7 +3172,7 @@ export const ReflectedSchema = {
     },
     get typeof_CatchClause(): S.FieldType {
         const fieldName = this.CatchClause.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3186,7 +3192,7 @@ export const ReflectedSchema = {
     },
     get typeof_Directive(): S.FieldType {
         const fieldName = this.Directive.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3200,7 +3206,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "rest",
-                /* ty = */ TOpt(TNamed("Binding")),
+                /* ty = */ TUnion([TNull, TNamed("Binding")]),
                 /* isLazy = */ false),
             ];
             this["c_FormalParameters"] = new S.Iface(typeName, fields, true);
@@ -3210,7 +3216,7 @@ export const ReflectedSchema = {
     },
     get typeof_FormalParameters(): S.FieldType {
         const fieldName = this.FormalParameters.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3261,7 +3267,7 @@ export const ReflectedSchema = {
     },
     get typeof_EagerFunctionDeclaration(): S.FieldType {
         const fieldName = this.EagerFunctionDeclaration.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3297,7 +3303,7 @@ export const ReflectedSchema = {
     },
     get typeof_LazyFunctionDeclaration(): S.FieldType {
         const fieldName = this.LazyFunctionDeclaration.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3333,7 +3339,7 @@ export const ReflectedSchema = {
     },
     get typeof_FunctionOrMethodContents(): S.FieldType {
         const fieldName = this.FunctionOrMethodContents.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3361,7 +3367,7 @@ export const ReflectedSchema = {
     },
     get typeof_Script(): S.FieldType {
         const fieldName = this.Script.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3381,7 +3387,7 @@ export const ReflectedSchema = {
     },
     get typeof_SpreadElement(): S.FieldType {
         const fieldName = this.SpreadElement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3397,7 +3403,7 @@ export const ReflectedSchema = {
     },
     get typeof_Super(): S.FieldType {
         const fieldName = this.Super.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3421,7 +3427,7 @@ export const ReflectedSchema = {
     },
     get typeof_SwitchCase(): S.FieldType {
         const fieldName = this.SwitchCase.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3441,7 +3447,7 @@ export const ReflectedSchema = {
     },
     get typeof_SwitchDefault(): S.FieldType {
         const fieldName = this.SwitchDefault.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3461,7 +3467,7 @@ export const ReflectedSchema = {
     },
     get typeof_TemplateElement(): S.FieldType {
         const fieldName = this.TemplateElement.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3485,7 +3491,7 @@ export const ReflectedSchema = {
     },
     get typeof_VariableDeclaration(): S.FieldType {
         const fieldName = this.VariableDeclaration.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -3499,7 +3505,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "init",
-                /* ty = */ TOpt(TNamed("Expression")),
+                /* ty = */ TUnion([TNull, TNamed("Expression")]),
                 /* isLazy = */ false),
             ];
             this["c_VariableDeclarator"] = new S.Iface(typeName, fields, true);
@@ -3509,7 +3515,7 @@ export const ReflectedSchema = {
     },
     get typeof_VariableDeclarator(): S.FieldType {
         const fieldName = this.VariableDeclarator.name;
-        return S.FieldTypeNamed.make(fieldName);
+        return S.FieldTypeIface.make(fieldName);
     },
 
 
@@ -4306,8 +4312,8 @@ export class StaticMemberAssignmentTarget
 
 
 export interface I_ArrayBinding {
-    readonly elements: RoArr<Opt<(Binding | BindingWithInitializer)>>;
-    readonly rest: Opt<Binding>;
+    readonly elements: RoArr<(null | Binding | BindingWithInitializer)>;
+    readonly rest: (null | Binding);
 } // I_ArrayBinding
 
 export class ArrayBinding
@@ -4329,10 +4335,10 @@ export class ArrayBinding
         return new ArrayBinding(data);
     }
 
-    get elements(): RoArr<Opt<(Binding | BindingWithInitializer)>> {
+    get elements(): RoArr<(null | Binding | BindingWithInitializer)> {
        return this.data$.elements;
     }
-    get rest(): Opt<Binding> {
+    get rest(): (null | Binding) {
        return this.data$.rest;
     }
 }
@@ -4340,7 +4346,7 @@ export class ArrayBinding
 
 export interface I_BindingPropertyIdentifier {
     readonly binding: BindingIdentifier;
-    readonly init: Opt<Expression>;
+    readonly init: (null | Expression);
 } // I_BindingPropertyIdentifier
 
 export class BindingPropertyIdentifier
@@ -4365,7 +4371,7 @@ export class BindingPropertyIdentifier
     get binding(): BindingIdentifier {
        return this.data$.binding;
     }
-    get init(): Opt<Expression> {
+    get init(): (null | Expression) {
        return this.data$.init;
     }
 }
@@ -4470,8 +4476,8 @@ export class AssignmentTargetWithInitializer
 
 
 export interface I_ArrayAssignmentTarget {
-    readonly elements: RoArr<Opt<(AssignmentTarget | AssignmentTargetWithInitializer)>>;
-    readonly rest: Opt<AssignmentTarget>;
+    readonly elements: RoArr<(null | AssignmentTarget | AssignmentTargetWithInitializer)>;
+    readonly rest: (null | AssignmentTarget);
 } // I_ArrayAssignmentTarget
 
 export class ArrayAssignmentTarget
@@ -4493,10 +4499,10 @@ export class ArrayAssignmentTarget
         return new ArrayAssignmentTarget(data);
     }
 
-    get elements(): RoArr<Opt<(AssignmentTarget | AssignmentTargetWithInitializer)>> {
+    get elements(): RoArr<(null | AssignmentTarget | AssignmentTargetWithInitializer)> {
        return this.data$.elements;
     }
-    get rest(): Opt<AssignmentTarget> {
+    get rest(): (null | AssignmentTarget) {
        return this.data$.rest;
     }
 }
@@ -4504,7 +4510,7 @@ export class ArrayAssignmentTarget
 
 export interface I_AssignmentTargetPropertyIdentifier {
     readonly binding: AssignmentTargetIdentifier;
-    readonly init: Opt<Expression>;
+    readonly init: (null | Expression);
 } // I_AssignmentTargetPropertyIdentifier
 
 export class AssignmentTargetPropertyIdentifier
@@ -4529,7 +4535,7 @@ export class AssignmentTargetPropertyIdentifier
     get binding(): AssignmentTargetIdentifier {
        return this.data$.binding;
     }
-    get init(): Opt<Expression> {
+    get init(): (null | Expression) {
        return this.data$.init;
     }
 }
@@ -4601,8 +4607,8 @@ export class ObjectAssignmentTarget
 
 
 export interface I_ClassExpression {
-    readonly name: Opt<BindingIdentifier>;
-    readonly super: Opt<Expression>;
+    readonly name: (null | BindingIdentifier);
+    readonly super: (null | Expression);
     readonly elements: RoArr<ClassElement>;
 } // I_ClassExpression
 
@@ -4625,10 +4631,10 @@ export class ClassExpression
         return new ClassExpression(data);
     }
 
-    get name(): Opt<BindingIdentifier> {
+    get name(): (null | BindingIdentifier) {
        return this.data$.name;
     }
-    get super(): Opt<Expression> {
+    get super(): (null | Expression) {
        return this.data$.super;
     }
     get elements(): RoArr<ClassElement> {
@@ -4639,7 +4645,7 @@ export class ClassExpression
 
 export interface I_ClassDeclaration {
     readonly name: BindingIdentifier;
-    readonly super: Opt<Expression>;
+    readonly super: (null | Expression);
     readonly elements: RoArr<ClassElement>;
 } // I_ClassDeclaration
 
@@ -4665,7 +4671,7 @@ export class ClassDeclaration
     get name(): BindingIdentifier {
        return this.data$.name;
     }
-    get super(): Opt<Expression> {
+    get super(): (null | Expression) {
        return this.data$.super;
     }
     get elements(): RoArr<ClassElement> {
@@ -4746,7 +4752,7 @@ export class Module
 
 export interface I_Import {
     readonly moduleSpecifier: string;
-    readonly defaultBinding: Opt<BindingIdentifier>;
+    readonly defaultBinding: (null | BindingIdentifier);
     readonly namedImports: RoArr<ImportSpecifier>;
 } // I_Import
 
@@ -4772,7 +4778,7 @@ export class Import
     get moduleSpecifier(): string {
        return this.data$.moduleSpecifier;
     }
-    get defaultBinding(): Opt<BindingIdentifier> {
+    get defaultBinding(): (null | BindingIdentifier) {
        return this.data$.defaultBinding;
     }
     get namedImports(): RoArr<ImportSpecifier> {
@@ -4783,7 +4789,7 @@ export class Import
 
 export interface I_ImportNamespace {
     readonly moduleSpecifier: string;
-    readonly defaultBinding: Opt<BindingIdentifier>;
+    readonly defaultBinding: (null | BindingIdentifier);
     readonly namespaceBinding: BindingIdentifier;
 } // I_ImportNamespace
 
@@ -4809,7 +4815,7 @@ export class ImportNamespace
     get moduleSpecifier(): string {
        return this.data$.moduleSpecifier;
     }
-    get defaultBinding(): Opt<BindingIdentifier> {
+    get defaultBinding(): (null | BindingIdentifier) {
        return this.data$.defaultBinding;
     }
     get namespaceBinding(): BindingIdentifier {
@@ -4819,7 +4825,7 @@ export class ImportNamespace
 
 
 export interface I_ImportSpecifier {
-    readonly name: Opt<IdentifierName>;
+    readonly name: (null | IdentifierName);
     readonly binding: BindingIdentifier;
 } // I_ImportSpecifier
 
@@ -4842,7 +4848,7 @@ export class ImportSpecifier
         return new ImportSpecifier(data);
     }
 
-    get name(): Opt<IdentifierName> {
+    get name(): (null | IdentifierName) {
        return this.data$.name;
     }
     get binding(): BindingIdentifier {
@@ -5002,7 +5008,7 @@ export class ExportDefault
 
 export interface I_ExportFromSpecifier {
     readonly name: IdentifierName;
-    readonly exportedName: Opt<IdentifierName>;
+    readonly exportedName: (null | IdentifierName);
 } // I_ExportFromSpecifier
 
 export class ExportFromSpecifier
@@ -5027,7 +5033,7 @@ export class ExportFromSpecifier
     get name(): IdentifierName {
        return this.data$.name;
     }
-    get exportedName(): Opt<IdentifierName> {
+    get exportedName(): (null | IdentifierName) {
        return this.data$.exportedName;
     }
 }
@@ -5035,7 +5041,7 @@ export class ExportFromSpecifier
 
 export interface I_ExportLocalSpecifier {
     readonly name: IdentifierExpression;
-    readonly exportedName: Opt<IdentifierName>;
+    readonly exportedName: (null | IdentifierName);
 } // I_ExportLocalSpecifier
 
 export class ExportLocalSpecifier
@@ -5060,7 +5066,7 @@ export class ExportLocalSpecifier
     get name(): IdentifierExpression {
        return this.data$.name;
     }
-    get exportedName(): Opt<IdentifierName> {
+    get exportedName(): (null | IdentifierName) {
        return this.data$.exportedName;
     }
 }
@@ -5677,7 +5683,7 @@ export class LiteralStringExpression
 
 
 export interface I_ArrayExpression {
-    readonly elements: RoArr<Opt<(SpreadElement | Expression)>>;
+    readonly elements: RoArr<(null | SpreadElement | Expression)>;
 } // I_ArrayExpression
 
 export class ArrayExpression
@@ -5699,7 +5705,7 @@ export class ArrayExpression
         return new ArrayExpression(data);
     }
 
-    get elements(): RoArr<Opt<(SpreadElement | Expression)>> {
+    get elements(): RoArr<(null | SpreadElement | Expression)> {
        return this.data$.elements;
     }
 }
@@ -5707,7 +5713,7 @@ export class ArrayExpression
 
 export interface I_EagerArrowExpression {
     readonly isAsync: boolean;
-    readonly directives: Opt<RoArr<Directive>>;
+    readonly directives: (null | RoArr<Directive>);
     readonly contents: ArrowExpressionContents;
 } // I_EagerArrowExpression
 
@@ -5733,7 +5739,7 @@ export class EagerArrowExpression
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-    get directives(): Opt<RoArr<Directive>> {
+    get directives(): (null | RoArr<Directive>) {
        return this.data$.directives;
     }
     get contents(): ArrowExpressionContents {
@@ -5744,7 +5750,7 @@ export class EagerArrowExpression
 
 export interface I_LazyArrowExpression {
     readonly isAsync: boolean;
-    readonly directives: Opt<RoArr<Directive>>;
+    readonly directives: (null | RoArr<Directive>);
     readonly contents: ArrowExpressionContents;
 } // I_LazyArrowExpression
 
@@ -5770,7 +5776,7 @@ export class LazyArrowExpression
     get isAsync(): boolean {
        return this.data$.isAsync;
     }
-    get directives(): Opt<RoArr<Directive>> {
+    get directives(): (null | RoArr<Directive>) {
        return this.data$.directives;
     }
     get contents(): ArrowExpressionContents {
@@ -6033,7 +6039,7 @@ export class ConditionalExpression
 export interface I_EagerFunctionExpression {
     readonly isAsync: boolean;
     readonly isGenerator: boolean;
-    readonly name: Opt<BindingIdentifier>;
+    readonly name: (null | BindingIdentifier);
     readonly directives: RoArr<Directive>;
     readonly contents: FunctionExpressionContents;
 } // I_EagerFunctionExpression
@@ -6063,7 +6069,7 @@ export class EagerFunctionExpression
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-    get name(): Opt<BindingIdentifier> {
+    get name(): (null | BindingIdentifier) {
        return this.data$.name;
     }
     get directives(): RoArr<Directive> {
@@ -6078,7 +6084,7 @@ export class EagerFunctionExpression
 export interface I_LazyFunctionExpression {
     readonly isAsync: boolean;
     readonly isGenerator: boolean;
-    readonly name: Opt<BindingIdentifier>;
+    readonly name: (null | BindingIdentifier);
     readonly directives: RoArr<Directive>;
     readonly contents: FunctionExpressionContents;
 } // I_LazyFunctionExpression
@@ -6108,7 +6114,7 @@ export class LazyFunctionExpression
     get isGenerator(): boolean {
        return this.data$.isGenerator;
     }
-    get name(): Opt<BindingIdentifier> {
+    get name(): (null | BindingIdentifier) {
        return this.data$.name;
     }
     get directives(): RoArr<Directive> {
@@ -6352,7 +6358,7 @@ export class StaticMemberExpression
 
 
 export interface I_TemplateExpression {
-    readonly tag: Opt<Expression>;
+    readonly tag: (null | Expression);
     readonly elements: RoArr<(Expression | TemplateElement)>;
 } // I_TemplateExpression
 
@@ -6375,7 +6381,7 @@ export class TemplateExpression
         return new TemplateExpression(data);
     }
 
-    get tag(): Opt<Expression> {
+    get tag(): (null | Expression) {
        return this.data$.tag;
     }
     get elements(): RoArr<(Expression | TemplateElement)> {
@@ -6447,7 +6453,7 @@ export class UpdateExpression
 
 
 export interface I_YieldExpression {
-    readonly expression: Opt<Expression>;
+    readonly expression: (null | Expression);
 } // I_YieldExpression
 
 export class YieldExpression
@@ -6469,7 +6475,7 @@ export class YieldExpression
         return new YieldExpression(data);
     }
 
-    get expression(): Opt<Expression> {
+    get expression(): (null | Expression) {
        return this.data$.expression;
     }
 }
@@ -6534,7 +6540,7 @@ export class AwaitExpression
 
 
 export interface I_BreakStatement {
-    readonly label: Opt<Label>;
+    readonly label: (null | Label);
 } // I_BreakStatement
 
 export class BreakStatement
@@ -6556,14 +6562,14 @@ export class BreakStatement
         return new BreakStatement(data);
     }
 
-    get label(): Opt<Label> {
+    get label(): (null | Label) {
        return this.data$.label;
     }
 }
 
 
 export interface I_ContinueStatement {
-    readonly label: Opt<Label>;
+    readonly label: (null | Label);
 } // I_ContinueStatement
 
 export class ContinueStatement
@@ -6585,7 +6591,7 @@ export class ContinueStatement
         return new ContinueStatement(data);
     }
 
-    get label(): Opt<Label> {
+    get label(): (null | Label) {
        return this.data$.label;
     }
 }
@@ -6811,9 +6817,9 @@ export class ForOfStatement
 
 
 export interface I_ForStatement {
-    readonly init: Opt<(VariableDeclaration | Expression)>;
-    readonly test: Opt<Expression>;
-    readonly update: Opt<Expression>;
+    readonly init: (null | VariableDeclaration | Expression);
+    readonly test: (null | Expression);
+    readonly update: (null | Expression);
     readonly body: Statement;
 } // I_ForStatement
 
@@ -6836,13 +6842,13 @@ export class ForStatement
         return new ForStatement(data);
     }
 
-    get init(): Opt<(VariableDeclaration | Expression)> {
+    get init(): (null | VariableDeclaration | Expression) {
        return this.data$.init;
     }
-    get test(): Opt<Expression> {
+    get test(): (null | Expression) {
        return this.data$.test;
     }
-    get update(): Opt<Expression> {
+    get update(): (null | Expression) {
        return this.data$.update;
     }
     get body(): Statement {
@@ -6854,7 +6860,7 @@ export class ForStatement
 export interface I_IfStatement {
     readonly test: Expression;
     readonly consequent: Statement;
-    readonly alternate: Opt<Statement>;
+    readonly alternate: (null | Statement);
 } // I_IfStatement
 
 export class IfStatement
@@ -6882,7 +6888,7 @@ export class IfStatement
     get consequent(): Statement {
        return this.data$.consequent;
     }
-    get alternate(): Opt<Statement> {
+    get alternate(): (null | Statement) {
        return this.data$.alternate;
     }
 }
@@ -6922,7 +6928,7 @@ export class LabelledStatement
 
 
 export interface I_ReturnStatement {
-    readonly expression: Opt<Expression>;
+    readonly expression: (null | Expression);
 } // I_ReturnStatement
 
 export class ReturnStatement
@@ -6944,7 +6950,7 @@ export class ReturnStatement
         return new ReturnStatement(data);
     }
 
-    get expression(): Opt<Expression> {
+    get expression(): (null | Expression) {
        return this.data$.expression;
     }
 }
@@ -7088,7 +7094,7 @@ export class TryCatchStatement
 
 export interface I_TryFinallyStatement {
     readonly body: Block;
-    readonly catchClause: Opt<CatchClause>;
+    readonly catchClause: (null | CatchClause);
     readonly finalizer: Block;
 } // I_TryFinallyStatement
 
@@ -7114,7 +7120,7 @@ export class TryFinallyStatement
     get body(): Block {
        return this.data$.body;
     }
-    get catchClause(): Opt<CatchClause> {
+    get catchClause(): (null | CatchClause) {
        return this.data$.catchClause;
     }
     get finalizer(): Block {
@@ -7290,7 +7296,7 @@ export class Directive
 
 export interface I_FormalParameters {
     readonly items: RoArr<Parameter>;
-    readonly rest: Opt<Binding>;
+    readonly rest: (null | Binding);
 } // I_FormalParameters
 
 export class FormalParameters
@@ -7315,7 +7321,7 @@ export class FormalParameters
     get items(): RoArr<Parameter> {
        return this.data$.items;
     }
-    get rest(): Opt<Binding> {
+    get rest(): (null | Binding) {
        return this.data$.rest;
     }
 }
@@ -7676,7 +7682,7 @@ export class VariableDeclaration
 
 export interface I_VariableDeclarator {
     readonly binding: Binding;
-    readonly init: Opt<Expression>;
+    readonly init: (null | Expression);
 } // I_VariableDeclarator
 
 export class VariableDeclarator
@@ -7701,7 +7707,7 @@ export class VariableDeclarator
     get binding(): Binding {
        return this.data$.binding;
     }
-    get init(): Opt<Expression> {
+    get init(): (null | Expression) {
        return this.data$.init;
     }
 }

@@ -16,14 +16,15 @@ import {jsonStr} from './util';
 //  5. An array of a given type. ([T])
 
 export enum FieldTypeKind {
-    Primitive, Ident, Named, Union, Opt, Array
+    Primitive, Ident, Named, Union, Array,
+    Iface, Enum
 };
 
 let NEXT_TYPE_ID: number = 1;
 const TYPE_CACHE: Map<string, FieldType> = new Map();
 
 interface FlatCache {
-    ty: FieldType|null;
+    tys: Array<TerminalFieldType>|null;
     schema: TreeSchema|null;
 }
 
@@ -33,7 +34,7 @@ export abstract class FieldType {
 
     protected constructor(typeId: number) {
         this.typeId = typeId;
-        this.flatCache = {ty:null, schema:null};
+        this.flatCache = {tys:null, schema:null};
     }
 
     abstract prettyString(): string;
@@ -41,22 +42,22 @@ export abstract class FieldType {
     abstract typescriptString(): string;
     abstract reflectedString(): string;
     abstract resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null;
+      : TerminalFieldType|null;
     abstract matchesValue(schema: TreeSchema, value: Value)
               : boolean;
 
     protected abstract flattenImpl(schema: TreeSchema)
-      : FieldType;
+      : Array<TerminalFieldType>;
 
-    flatten(schema: TreeSchema): FieldType {
+    flatten(schema: TreeSchema): Array<TerminalFieldType> {
         if (this.flatCache.schema === schema) {
-            return this.flatCache.ty;
+            return this.flatCache.tys;
         }
 
-        const ty = this.flattenImpl(schema);
-        this.flatCache.ty = ty;
+        const tys = this.flattenImpl(schema);
+        this.flatCache.tys = tys;
         this.flatCache.schema = schema;
-        return ty;
+        return tys;
     }
 
     protected static nextId(): number {
@@ -93,9 +94,6 @@ export abstract class FieldType {
     isUnion(): boolean {
         return this.isKind(FieldTypeKind.Union);
     }
-    isOpt(): boolean {
-        return this.isKind(FieldTypeKind.Opt);
-    }
     isArray(): boolean {
         return this.isKind(FieldTypeKind.Array);
     }
@@ -104,7 +102,33 @@ export abstract class FieldType {
     }
 }
 
-export class FieldTypePrimitive extends FieldType {
+export abstract class TerminalFieldType
+  extends FieldType
+{
+    constructor(typeId: number) {
+        super(typeId);
+    }
+
+    // Terminal types all have a trivial resolve.
+    resolveType(schema: TreeSchema, value: Value)
+      : TerminalFieldType|null
+    {
+        return this.matchesValue(schema, value)
+                            ? this : null;
+    }
+
+    // And a trivial flatten
+    protected flattenImpl(schema: TreeSchema)
+      : Array<TerminalFieldType>
+    {
+        // Array types are terminal.
+        return [this];
+    }
+}
+
+export class FieldTypePrimitive
+  extends TerminalFieldType
+{
     readonly name: string;
 
     private constructor(typeId: number, name: string) {
@@ -130,6 +154,8 @@ export class FieldTypePrimitive extends FieldType {
       : boolean
     {
         switch (this) {
+          case TN_NULL:
+            return value === null;
           case TN_BOOL:
             return typeof(value) === 'boolean';
           case TN_UINT:
@@ -147,12 +173,9 @@ export class FieldTypePrimitive extends FieldType {
         throw new Error(`Unknown primitive ${this.name}`);
     }
 
-    protected flattenImpl(schema: TreeSchema): FieldType {
-        return this;
-    }
-
     typescriptString(): string {
         switch (this) {
+          case TN_NULL: return 'null';
           case TN_BOOL: return 'boolean';
           case TN_UINT: return 'UInt';
           case TN_INT: return 'Int';
@@ -163,6 +186,7 @@ export class FieldTypePrimitive extends FieldType {
     }
     reflectedString(): string {
         switch (this) {
+          case TN_NULL: return 'TNull';
           case TN_BOOL: return 'TBool';
           case TN_UINT: return 'TUint';
           case TN_INT: return 'TInt';
@@ -170,41 +194,6 @@ export class FieldTypePrimitive extends FieldType {
           case TN_STR: return 'TStr';
         }
         throw new Error(`Unknown primitive ${this.name}`);
-    }
-    resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
-    {
-        let matches: boolean = false;
-        switch (this) {
-          case TN_BOOL:
-            matches = typeof(value) === 'boolean'
-            break;
-
-          case TN_UINT:
-            matches = (typeof(value) === 'number') &&
-                      Number.isInteger(value) &&
-                      (value >= 0);
-            break;
-
-          case TN_INT:
-            matches = (typeof(value) === 'number') &&
-                      Number.isInteger(value);
-            break;
-
-          case TN_F64:
-            matches = typeof(value) === 'number';
-            break;
-
-          case TN_STR:
-            matches = typeof(value) === 'string';
-            break;
-
-          default:
-            throw new Error(`Unknown primitive ` +
-                            this.name);
-        }
-
-        return matches ? this : null;
     }
 
     static typeKey(name: string): string {
@@ -226,6 +215,9 @@ export class FieldTypePrimitive extends FieldType {
     static get Str(): FieldTypePrimitive {
         return TN_STR;
     }
+    static get Null(): FieldTypePrimitive {
+        return TN_NULL;
+    }
 }
 
 const TN_BOOL = FieldTypePrimitive.make('bool');
@@ -233,8 +225,11 @@ const TN_UINT = FieldTypePrimitive.make('uint');
 const TN_INT = FieldTypePrimitive.make('int');
 const TN_F64 = FieldTypePrimitive.make('f64');
 const TN_STR = FieldTypePrimitive.make('str');
+const TN_NULL = FieldTypePrimitive.make('null');
 
-export class FieldTypeIdent extends FieldType {
+export class FieldTypeIdent
+  extends TerminalFieldType
+{
     readonly tag: string;
 
     private constructor(typeId: number, tag: string) {
@@ -262,20 +257,11 @@ export class FieldTypeIdent extends FieldType {
         return value instanceof Identifier;
     }
 
-    protected flattenImpl(schema: TreeSchema): FieldType {
-        return this;
-    }
-
     typescriptString(): string {
         return 'S.Identifier';
     }
     reflectedString(): string {
         return `TIdent(${jsonStr(this.tag)})`;
-    }
-    resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
-    {
-        return (value instanceof Identifier) ? this : null;
     }
 
     static typeKey(tag: string): string {
@@ -306,7 +292,7 @@ export class FieldTypeNamed extends FieldType {
         return `TNamed(${tstr})`;
     }
     resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
+      : TerminalFieldType|null
     {
         const decl = schema.getDecl(this.name);
         return decl.resolveType(schema, value);
@@ -317,7 +303,9 @@ export class FieldTypeNamed extends FieldType {
         const decl = schema.getDecl(this.name);
         return decl.matchesValue(schema, value);
     }
-    protected flattenImpl(schema: TreeSchema): FieldType {
+    protected flattenImpl(schema: TreeSchema)
+      : Array<TerminalFieldType>
+    {
         // Peek through the typedef and flatten the
         // underlying type.
         const decl = schema.getDecl(this.name);
@@ -355,6 +343,14 @@ export class FieldTypeUnion extends FieldType {
         });
     }
 
+    static makeNullable(ty: FieldType): FieldTypeUnion
+    {
+        return FieldTypeUnion.make(Object.freeze([
+            FieldTypePrimitive.Null,
+            ty
+        ]));
+    }
+
     kind(): FieldTypeKind {
         return FieldTypeKind.Union;
     }
@@ -377,61 +373,34 @@ export class FieldTypeUnion extends FieldType {
             return v.matchesValue(schema, value);
         });
     }
-    protected flattenImpl(schema: TreeSchema): FieldType {
+    protected flattenImpl(schema: TreeSchema)
+      : Array<TerminalFieldType>
+    {
         // Flatten the constituent types.
 
-        let isOpt: boolean = false;
-
-        let flats = new Array<FieldType>();
+        let flats = new Array<TerminalFieldType>();
+        let flatSet = new Set<TerminalFieldType>();
+        let hasNull: boolean = false;
 
         for (let variant of this.variants) {
-            let flat = variant.flatten(schema);
-
-            // Unwrap any optionals, marking isOpt true
-            while (flat instanceof FieldTypeOpt) {
-                isOpt = true;
-                flat = flat.inner;
-            }
-
-            // Primitive, and Array types flow through.
-            if ((flat instanceof FieldTypePrimitive) ||
-                (flat instanceof FieldTypeArray))
-            {
-                flats.push(flat);
-                continue;
-            }
-
-            // Flattened named types should refer to
-            // only enums or ifaces, not typedefs.
-            if (flat instanceof FieldTypeNamed) {
-                const decl = schema.getDecl(flat.name);
-                assert((decl instanceof Iface) ||
-                       (decl instanceof Enum));
-                flats.push(flat);
-                continue;
-            }
-
-            assert(flat instanceof FieldTypeUnion);
-            // Expand any member unions.
-            for (let flatVariant of
-                    ((flat as FieldTypeUnion).variants))
-            {
-                // None of the constituents should
-                // be Opts or Unions.
-                assert(! (flatVariant instanceof
-                                FieldTypeOpt));
-                assert(! (flatVariant instanceof
-                                FieldTypeUnion));
-                flats.push(flatVariant);
+            // Get array of underlying flattened
+            // types and promote it.
+            let subFlats = variant.flatten(schema);
+            for (let sf of subFlats) {
+                if (sf === FieldTypePrimitive.Null) {
+                    hasNull = true;
+                    return;
+                }
+                if (! flatSet.has(sf)) {
+                    flats.push(sf);
+                    flatSet.add(sf);
+                }
             }
         }
-
-        let result: FieldType =
-            FieldTypeUnion.make(Object.freeze(flats));
-        if (isOpt) {
-            result = FieldTypeOpt.make(result);
+        if (hasNull) {
+            flats.unshift(FieldTypePrimitive.Null);
         }
-        return result;
+        return flats;
     }
 
     typescriptString(): string {
@@ -446,74 +415,24 @@ export class FieldTypeUnion extends FieldType {
                             .join(', ') + '])';
     }
     resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
+      : TerminalFieldType|null
     {
+        let result: TerminalFieldType|null = null;
         for (let variant of this.variants) {
             const r = variant.resolveType(schema, value);
             if (r !== null) {
-                return r;
+                assert(result === null,
+                   `Duplicate matching types for value`);
+                result = r;
             }
         }
-        return null;
+        return result;
     }
 }
 
-export class FieldTypeOpt extends FieldType {
-    readonly inner: FieldType;
-
-    constructor(typeId: number, inner: FieldType) {
-        super(typeId);
-        this.inner = inner;
-        Object.freeze(this);
-    }
-
-    static make(inner: FieldType): FieldTypeOpt {
-        const key = FieldTypeOpt.typeKey(inner);
-        return FieldType.lookupOr(key, (id: number) => {
-            return new FieldTypeOpt(id, inner);
-        });
-    }
-
-    kind(): FieldTypeKind {
-        return FieldTypeKind.Opt;
-    }
-    prettyString(): string {
-        return `Opt<${this.inner.prettyString()}>`;
-    }
-    static typeKey(inner: FieldType): string {
-        return `opt(${inner.typeId})`;
-    }
-
-    matchesValue(schema: TreeSchema, value: Value)
-      : boolean
-    {
-        return (value === null) ||
-               this.inner.matchesValue(schema, value);
-    }
-    protected flattenImpl(schema: TreeSchema): FieldType {
-        const flatInner = this.inner.flatten(schema);
-        return FieldTypeOpt.make(flatInner);
-    }
-
-    typescriptString(): string {
-        const innerStr = this.inner.typescriptString();
-        return `Opt<${innerStr}>`;
-    }
-    reflectedString() {
-        let innerStr = this.inner.reflectedString();
-        return `TOpt(${innerStr})`;
-    }
-    resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
-    {
-        if (value === null) {
-            return this;
-        }
-        return this.inner.resolveType(schema, value);
-    }
-}
-
-export class FieldTypeArray extends FieldType {
+export class FieldTypeArray
+  extends TerminalFieldType
+{
     readonly inner: FieldType;
 
     constructor(typeId: number, inner: FieldType) {
@@ -548,11 +467,6 @@ export class FieldTypeArray extends FieldType {
                     schema,
                     v as Value)));
     }
-    protected flattenImpl(schema: TreeSchema): FieldType {
-        const flatInner = this.inner.flatten(schema);
-        return FieldTypeArray.make(flatInner);
-    }
-
     typescriptString(): string {
         const innerStr = this.inner.typescriptString();
         return `RoArr<${innerStr}>`;
@@ -561,9 +475,100 @@ export class FieldTypeArray extends FieldType {
         let innerStr = this.inner.reflectedString();
         return `TArray(${innerStr})`;
     }
-    resolveType(schema: TreeSchema, value: Value)
-      : FieldType|null
+}
+
+export class FieldTypeIface
+  extends TerminalFieldType
+{
+    readonly name: TypeName;
+
+    constructor(typeId: number, name: TypeName) {
+        super(typeId);
+        this.name = name;
+        Object.freeze(this);
+    }
+
+    static make(name: TypeName): FieldTypeIface {
+        const key = FieldTypeIface.typeKey(name);
+        return FieldType.lookupOr(key, (id: number) => {
+            return new FieldTypeIface(id, name);
+        });
+    }
+
+    ifaceName(): string {
+        return this.name.name;
+    }
+
+    kind(): FieldTypeKind {
+        return FieldTypeKind.Iface;
+    }
+    prettyString(): string {
+        return `Iface<${this.ifaceName()}>`;
+    }
+    static typeKey(name: TypeName): string {
+        return `array(${name.name})`;
+    }
+
+    matchesValue(schema: TreeSchema, value: Value)
+      : boolean
     {
-        return (value instanceof Array) ? this : null;
+        const iface = schema.getDecl(this.name);
+        assert(iface instanceof Iface);
+        return iface.matchesValue(schema, value);
+    }
+
+    typescriptString(): string {
+        return this.ifaceName();
+    }
+    reflectedString() {
+        return `ReflectedSchema.${this.ifaceName()}`;
+    }
+}
+
+export class FieldTypeEnum
+  extends TerminalFieldType
+{
+    readonly name: TypeName;
+
+    constructor(typeId: number, name: TypeName) {
+        super(typeId);
+        this.name = name;
+        Object.freeze(this);
+    }
+
+    static make(name: TypeName): FieldTypeEnum {
+        const key = FieldTypeEnum.typeKey(name);
+        return FieldType.lookupOr(key, (id: number) => {
+            return new FieldTypeEnum(id, name);
+        });
+    }
+
+    enumName(): string {
+        return this.name.name;
+    }
+
+    kind(): FieldTypeKind {
+        return FieldTypeKind.Enum;
+    }
+    prettyString(): string {
+        return `Enum<${this.enumName()}>`;
+    }
+    static typeKey(name: TypeName): string {
+        return `array(${name.name})`;
+    }
+
+    matchesValue(schema: TreeSchema, value: Value)
+      : boolean
+    {
+        const enm = schema.getDecl(this.name);
+        assert(enm instanceof Enum);
+        return enm.matchesValue(schema, value);
+    }
+
+    typescriptString(): string {
+        return this.enumName();
+    }
+    reflectedString() {
+        return `ReflectedSchema.${this.enumName()}`;
     }
 }
