@@ -83,23 +83,6 @@ export abstract class FieldType {
         assert(!TYPE_CACHE.has(key));
         return TYPE_CACHE.set(key, ty);
     }
-
-    isKind(k: FieldTypeKind): boolean {
-        return this.kind() === k;
-    }
-
-    isPrimitive(): boolean {
-        return this.isKind(FieldTypeKind.Primitive);
-    }
-    isUnion(): boolean {
-        return this.isKind(FieldTypeKind.Union);
-    }
-    isArray(): boolean {
-        return this.isKind(FieldTypeKind.Array);
-    }
-    isIdent(): boolean {
-        return this.isKind(FieldTypeKind.Ident);
-    }
 }
 
 export abstract class TerminalFieldType

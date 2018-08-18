@@ -36,7 +36,7 @@ export class PrettyPrintHandler
 
         this.writeTabbedLines(...[
             `${key}: ${boundStr} = {`,
-            `    @ ${shapeStr};`,
+            `    @ ${shapeStr}`,
         ]);
         if (valueStr !== null) {
             this.writeTabbedLines(...[
