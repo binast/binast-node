@@ -19,7 +19,7 @@ import {analyzeStringWindows}
 const SCHEMA = TS.ReflectedSchema.schema;
 
 function main() {
-    const opts = minimist(process.argv.slice(2));
+    const opts:any = minimist(process.argv.slice(2));
     if (opts['_'].length !== 1) {
         usage(/* exit = */ true);
     }
@@ -40,12 +40,19 @@ function main() {
     const script = importer.liftScript(json);
     log("Done lifting shift-parsed JSON to typed schema.");
 
-    log("Analyzing string windows:");
-    analyzeStringWindows(SCHEMA, script);
+    if (opts['string-windows']) {
+        log("Analyzing string windows:");
+        analyzeStringWindows(SCHEMA, script);
+    }
+
+    if (opts['pretty-print']) {
+        log("Pretty printing:");
+        prettyPrint(SCHEMA, script);
+    }
 }
 
-const LOG_PREFIX = 'ANALYSIS.log: ';
-function log(msg) {
+const LOG_PREFIX = 'ANALYSIS: ';
+export function log(msg) {
     console.log(LOG_PREFIX
         + msg.replace(/\n/g, '\n' + LOG_PREFIX));
 }

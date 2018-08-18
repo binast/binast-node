@@ -38,12 +38,15 @@ function TNamed(name: string): S.FieldTypeNamed {
    return S.FieldTypeNamed.make(S.TypeName.make(name));
 }
 
+function TIdent(name: string): S.FieldTypeIdent {
+   return S.FieldTypeIdent.make(name);
+}
+
 const TBool = S.FieldTypePrimitive.Bool;
 const TUint = S.FieldTypePrimitive.Uint;
 const TInt = S.FieldTypePrimitive.Int;
 const TF64 = S.FieldTypePrimitive.F64;
 const TStr = S.FieldTypePrimitive.Str;
-const TIdent = S.FieldTypePrimitive.Ident;
 
 function mkEVN(enumName: string, name: string): S.EnumVariantName {
    const tn = S.TypeName.make(enumName);
@@ -69,7 +72,7 @@ export const ReflectedSchema = {
     get Identifier(): S.Typedef {
         if (!this["c_Identifier"]) {
             const typeName = S.TypeName.make("Identifier");
-            const aliased = TIdent;
+            const aliased = TIdent("Identifier");
             this["c_Identifier"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -84,7 +87,7 @@ export const ReflectedSchema = {
     get IdentifierName(): S.Typedef {
         if (!this["c_IdentifierName"]) {
             const typeName = S.TypeName.make("IdentifierName");
-            const aliased = TIdent;
+            const aliased = TIdent("IdentifierName");
             this["c_IdentifierName"] = new S.Typedef(
                                typeName, aliased)
         }

@@ -7,8 +7,9 @@ import {OrderedMap} from './ordered_map';
 import {TreeSchema, Declaration, TypeName, EnumVariantName,
         Typedef, Enum, Iface, IfaceField}
     from './tree_schema';
-import {FieldType, FieldTypePrimitive, FieldTypeNamed,
-        FieldTypeUnion, FieldTypeArray, FieldTypeOpt}
+import {FieldType, FieldTypePrimitive, FieldTypeIdent,
+        FieldTypeNamed, FieldTypeUnion, FieldTypeArray,
+        FieldTypeOpt}
     from './field_types';
 
 import {jsonStr} from './util';
@@ -117,6 +118,7 @@ class Lifter {
 
         // Check for the 'IdentifierType' attribute.
         let isIdentifier = false;
+        let identTag = '';
         const extAttrs = typedefDecl['extAttrs'];
         if (extAttrs) {
             for (let item of extAttrs['items']) {
@@ -124,6 +126,7 @@ class Lifter {
                     && (item['name'] == 'IdentifierType'))
                 {
                     isIdentifier = true;
+                    identTag = name;
                 }
             }
         }
@@ -133,7 +136,7 @@ class Lifter {
             // IdentifierType attributes are only
             // valid on string typedefs.
             assert(ft === FieldTypePrimitive.Str);
-            ft = FieldTypePrimitive.Ident;
+            ft = FieldTypeIdent.make(identTag);
         }
 
         const typeName = TypeName.make(name);

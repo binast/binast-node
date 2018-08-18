@@ -87,7 +87,13 @@ function valueString(value: S.Value, shape: S.PathShape)
         } else {
             return value.toString();
         }
+    } else if (shape instanceof S.FieldTypeIdent) {
+        const tag = shape.tag;
+        assert(value instanceof S.Identifier);
+        const ident = value as S.Identifier;
+        return `${tag}(${ident.name})`;
+    } else {
+        throw new Error("Bad PathShape: " + shape);
     }
-    throw new Error("Bad PathShape: " + shape);
 }
 

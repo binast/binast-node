@@ -47,7 +47,7 @@ export class StringWindowHandler
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
-        if (shape === S.FieldTypePrimitive.Ident) {
+        if (shape instanceof S.FieldTypeIdent) {
             assert(value instanceof S.Identifier);
             const name = (value as S.Identifier).name;
             const hitIdx = this.cache.lookup(name);

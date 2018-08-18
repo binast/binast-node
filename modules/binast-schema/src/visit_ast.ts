@@ -4,8 +4,9 @@ import * as assert from 'assert';
 import {TreeSchema, Typedef, Enum, Iface, Value, Instance}
     from './tree_schema';
 
-import {FieldType, FieldTypePrimitive, FieldTypeOpt,
-        FieldTypeNamed, FieldTypeUnion, FieldTypeArray}
+import {FieldType, FieldTypePrimitive, FieldTypeIdent,
+        FieldTypeOpt, FieldTypeNamed, FieldTypeUnion,
+        FieldTypeArray}
     from './field_types';
 
 import {jsonStr} from './util';
@@ -43,8 +44,8 @@ export type PathKey = string | number;
 // being encoded - a specific Iface, Enum, Array,
 // or primitive type.
 export type PathShape =
-    Iface | Enum | FieldTypePrimitive | FieldTypeOpt |
-    FieldTypeArray;
+    Iface | Enum | FieldTypePrimitive | FieldTypeIdent |
+    FieldTypeOpt | FieldTypeArray;
 
 // Bound describes the bounds on this type, which is
 // the set of allowable types at this location,
@@ -268,6 +269,8 @@ export class Visitor {
             this.walkEnum(shape);
         } else if (shape instanceof FieldTypePrimitive) {
             this.walkPrimitive(shape);
+        } else if (shape instanceof FieldTypeIdent) {
+            this.walkIdent(shape);
         } else if (shape instanceof FieldTypeOpt) {
             this.walkOpt(shape);
         } else if (shape instanceof FieldTypeArray) {
@@ -310,6 +313,11 @@ export class Visitor {
     }
 
     private walkPrimitive(ty: FieldTypePrimitive) {
+        const value = this.cursor.value;
+        assert(ty.matchesValue(this.schema, value));
+    }
+
+    private walkIdent(ty: FieldTypeIdent) {
         const value = this.cursor.value;
         assert(ty.matchesValue(this.schema, value));
     }
@@ -360,11 +368,10 @@ export class Visitor {
         // Otherwise, it should be one of the
         // allowed field types - not a union.
         assert((rty instanceof FieldTypePrimitive) ||
+               (rty instanceof FieldTypeIdent) ||
                (rty instanceof FieldTypeArray) ||
                (rty instanceof FieldTypeOpt));
 
-        return rty as (FieldTypePrimitive |
-                       FieldTypeArray |
-                       FieldTypeOpt);
+        return rty as PathShape;
     }
 }

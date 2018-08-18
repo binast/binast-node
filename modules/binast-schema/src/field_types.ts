@@ -5,6 +5,7 @@ import {OrderedMap} from './ordered_map';
 import {TreeSchema, TypeName, Declaration, Iface, Enum,
         Identifier, Value, Instance}
     from './tree_schema';
+import {jsonStr} from './util';
 
 // A FieldType is one of:
 //  1. A primitive type
@@ -15,7 +16,7 @@ import {TreeSchema, TypeName, Declaration, Iface, Enum,
 //  5. An array of a given type. ([T])
 
 export enum FieldTypeKind {
-    Primitive, Named, Union, Opt, Array
+    Primitive, Ident, Named, Union, Opt, Array
 };
 
 let NEXT_TYPE_ID: number = 1;
@@ -98,6 +99,9 @@ export abstract class FieldType {
     isArray(): boolean {
         return this.isKind(FieldTypeKind.Array);
     }
+    isIdent(): boolean {
+        return this.isKind(FieldTypeKind.Ident);
+    }
 }
 
 export class FieldTypePrimitive extends FieldType {
@@ -139,8 +143,6 @@ export class FieldTypePrimitive extends FieldType {
             return typeof(value) === 'number';
           case TN_STR:
             return typeof(value) === 'string';
-          case TN_IDENT:
-            return value instanceof Identifier;
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -156,7 +158,6 @@ export class FieldTypePrimitive extends FieldType {
           case TN_INT: return 'Int';
           case TN_F64: return 'number';
           case TN_STR: return 'string';
-          case TN_IDENT: return 'S.Identifier';
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -167,7 +168,6 @@ export class FieldTypePrimitive extends FieldType {
           case TN_INT: return 'TInt';
           case TN_F64: return 'TF64';
           case TN_STR: return 'TStr';
-          case TN_IDENT: return 'TIdent';
         }
         throw new Error(`Unknown primitive ${this.name}`);
     }
@@ -199,10 +199,6 @@ export class FieldTypePrimitive extends FieldType {
             matches = typeof(value) === 'string';
             break;
 
-          case TN_IDENT:
-            matches = value instanceof Identifier;
-            break;
-
           default:
             throw new Error(`Unknown primitive ` +
                             this.name);
@@ -230,9 +226,6 @@ export class FieldTypePrimitive extends FieldType {
     static get Str(): FieldTypePrimitive {
         return TN_STR;
     }
-    static get Ident(): FieldTypePrimitive {
-        return TN_IDENT;
-    }
 }
 
 const TN_BOOL = FieldTypePrimitive.make('bool');
@@ -240,7 +233,55 @@ const TN_UINT = FieldTypePrimitive.make('uint');
 const TN_INT = FieldTypePrimitive.make('int');
 const TN_F64 = FieldTypePrimitive.make('f64');
 const TN_STR = FieldTypePrimitive.make('str');
-const TN_IDENT = FieldTypePrimitive.make('ident');
+
+export class FieldTypeIdent extends FieldType {
+    readonly tag: string;
+
+    private constructor(typeId: number, tag: string) {
+        super(typeId);
+        this.tag = tag;
+        Object.freeze(this);
+    }
+
+    static make(tag: string): FieldTypeIdent {
+        const key = FieldTypeIdent.typeKey(tag);
+        return FieldType.lookupOr(key, (id: number) => {
+            return new FieldTypeIdent(id, tag);
+        });
+    }
+
+    kind(): FieldTypeKind {
+        return FieldTypeKind.Ident;
+    }
+    prettyString(): string {
+        return `id(${this.tag})`;
+    }
+    matchesValue(schema: TreeSchema, value: Value)
+      : boolean
+    {
+        return value instanceof Identifier;
+    }
+
+    protected flattenImpl(schema: TreeSchema): FieldType {
+        return this;
+    }
+
+    typescriptString(): string {
+        return 'S.Identifier';
+    }
+    reflectedString(): string {
+        return `TIdent(${jsonStr(this.tag)})`;
+    }
+    resolveType(schema: TreeSchema, value: Value)
+      : FieldType|null
+    {
+        return (value instanceof Identifier) ? this : null;
+    }
+
+    static typeKey(tag: string): string {
+        return `ident(${tag})`;
+    }
+}
 
 export class FieldTypeNamed extends FieldType {
     readonly name: TypeName;

@@ -165,12 +165,16 @@ export class TreeSchema {
                         "S.TypeName.make(name));",
             "}",
             "",
+            "function TIdent(name: string)"
+              + ": S.FieldTypeIdent {",
+            "   return S.FieldTypeIdent.make(name);",
+            "}",
+            "",
             "const TBool = S.FieldTypePrimitive.Bool;",
             "const TUint = S.FieldTypePrimitive.Uint;",
             "const TInt = S.FieldTypePrimitive.Int;",
             "const TF64 = S.FieldTypePrimitive.F64;",
             "const TStr = S.FieldTypePrimitive.Str;",
-            "const TIdent = S.FieldTypePrimitive.Ident;",
             "",
             "function mkEVN(enumName: string, name: string)"
               + ": S.EnumVariantName {",
