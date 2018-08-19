@@ -21,6 +21,7 @@ const SCHEMA = TS.ReflectedSchema.schema;
 
 function main() {
     const opts:any = minimist(process.argv.slice(2));
+    assert(opts instanceof Object);
 
     if (!opts['script-dir']) {
         usage(/* exit = */ true);
@@ -44,46 +45,44 @@ function main() {
     }
 
     runStoreSuite(SCHEMA, scriptStore, resultStore,
-                     analyses);
+                     analyses, opts as object);
 }
 
 function runStoreSuite(schema: S.TreeSchema,
                        scriptStore: FileStore,
                        resultStore: FileStore,
-                       analyses: Array<string>)
+                       analyses: Array<string>,
+                       opts: object)
 {
     // Create the appropriate analysis task for
     // each specified analysis.
     const analysisTasks: Array<Analysis> = [];
     for (let analysis of analyses) {
         analysisTasks.push(makeAnalysisTask(
-            analysis, schema, scriptStore, resultStore));
+            analysis, schema,
+            scriptStore, resultStore,
+            opts));
     }
-    
-    for (let subpath of scriptStore.subpaths()) {
-        // Skip all subpaths not ending in '.js'
-        if (! subpath.match(/\.js$/)) {
-            continue;
-        }
-        for (let task of analysisTasks) {
-            task.analyzeScriptFile(subpath);
-        }
+
+    for (let task of analysisTasks) {
+        task.analyzeFull();
     }
 }
 
 function makeAnalysisTask(name: string,
                           schema: S.TreeSchema,
                           scriptStore: FileStore,
-                          resultStore: FileStore)
+                          resultStore: FileStore,
+                          opts: object)
   : Analysis
 {
     switch (name) {
       case 'pretty-print':
         return new PrettyPrintAnalysis(
-                    schema, scriptStore, resultStore);
+                    schema, scriptStore, resultStore, opts);
       case 'string-window':
         return new StringWindowAnalysis(
-                    schema, scriptStore, resultStore);
+                    schema, scriptStore, resultStore, opts);
     }
     throw new Error(`Unknown analysis ${name}`);
 }
@@ -97,15 +96,18 @@ export function log(msg) {
 function usage(exit: boolean) {
     console.log("Usage: npm run analysis [opts]");
     console.log("Options:");
-    console.log("   --script-dir=<scriptDir>" +
+    console.log("   --script-dir=<scriptDir>            " +
                 "        Input scripts directory.");
-    console.log("   --result-dir=<outDir>   " +
+    console.log("   --result-dir=<outDir>               " +
                 "        Output data directory.");
     console.log("");
-    console.log("   --pretty-print          " +
+    console.log("   --pretty-print                      " +
                 "        Run pretty-print analysis.");
-    console.log("   --string-window         " +
+    console.log("");
+    console.log("   --string-window                     " +
                 "        Run string-window analysis.");
+    console.log("   --string-window-sizes=num,num,...   " +
+                "        Window sizes to analyze.");
     if (exit) {
         process.exit(1);
     }

@@ -14,9 +14,10 @@ export class PrettyPrintAnalysis
 {
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
-                resultStore: FileStore)
+                resultStore: FileStore,
+                opts: object)
     {
-        super(schema, scriptStore, resultStore);
+        super(schema, scriptStore, resultStore, opts);
     }
 
     get name(): string {

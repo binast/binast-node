@@ -7,22 +7,90 @@ import * as TS from '../typed_schema';
 import {Analysis} from '../analysis';
 import {FileStore} from '../file_store';
 
+export const MAX_WINDOW_SIZE: number = 4096;
+export const DEFAULT_WINDOW_SIZE: number = 64;
+
 export class StringWindowAnalysis
   extends Analysis
 {
+    readonly globalCounters: Map<number, HitCounter>;
+
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
-                resultStore: FileStore)
+                resultStore: FileStore,
+                opts: object)
     {
-        super(schema, scriptStore, resultStore);
+        super(schema, scriptStore, resultStore, opts);
+        this.globalCounters = new Map();
     }
 
     get name(): string {
         return 'string-window';
     }
 
+    getWindowSizes(): Array<number> {
+        if (! ('string-window-sizes' in this.opts)) {
+            return [DEFAULT_WINDOW_SIZE];
+        }
+        let sizes = this.opts['string-window-sizes'];
+        assert(typeof(sizes) === 'string');
+        return sizes.split(',').map(s => {
+            assert(s.match(/^[0-9]+$/));
+            const n = Number.parseInt(s);
+            assert(n <= MAX_WINDOW_SIZE,
+               `Window size ${n} >= ${MAX_WINDOW_SIZE}`);
+            return Number.parseInt(s);
+        });
+    }
+
+    endAnalysis() {
+        let sizes = Array.from(this.globalCounters.keys())
+                         .sort();
+        for (let s of sizes) {
+            this.summarizeWindowSize(s);
+        }
+    }
+
+    private summarizeWindowSize(windowSize: number) {
+        const hc = this.globalCounters.get(windowSize);
+        const results = hc.summarizeHits();
+
+        const jsonpath =
+            this.dataPath(`${windowSize}/ALL.json`);
+        this.resultStore.writeJSON(jsonpath, results);
+
+        const txtpath =
+            this.dataPath(`${windowSize}/ALL.txt`);
+        this.generateSummaryReport(txtpath, results);
+    }
+
+    private getGlobalCounter(windowSize: number)
+      : HitCounter
+    {
+        if (! this.globalCounters.has(windowSize)) {
+            let hc = new HitCounter(windowSize);
+            this.globalCounters.set(windowSize, hc);
+        }
+        return this.globalCounters.get(windowSize);
+    }
+
     analyzeAst(subpath: string, script: TS.Script) {
-        const handler = new StringWindowHandler(64);
+        for (let ws of this.getWindowSizes()) {
+            this.analyzeWindowSize(subpath, script, ws);
+        }
+    }
+
+    private analyzeWindowSize(subpath: string,
+                              script: TS.Script,
+                              windowSize: number)
+    {
+        const globalCounter =
+            this.getGlobalCounter(windowSize);
+
+        const handler =
+            new StringWindowHandler(windowSize,
+                                    globalCounter);
+
         const visitor = S.Visitor.make({
             schema: this.schema,
             root: script,
@@ -33,15 +101,21 @@ export class StringWindowAnalysis
 
         assert(subpath.match(/\.js$/));
 
-        const jsonpath = this.dataPath(
-            subpath.replace(/\.js$/, '.json'));
-
-        const txtpath = this.dataPath(
-            subpath.replace(/\.js$/, '.txt'));
+        const genpath = (rep:string) => {
+            return this.dataPath(`${windowSize}/` +
+                        subpath.replace(/\.js$/, rep));
+        };
+        const jsonpath = genpath('.json');
+        const txtpath = genpath('.txt');
 
         this.resultStore.writeJSON(jsonpath, results);
+        this.generateSummaryReport(txtpath, results);
+    }
 
-        this.resultStore.writeSinkString(txtpath, ss => {
+    private generateSummaryReport(path: string,
+                                  results: Array<HitResult>)
+    {
+        this.resultStore.writeSinkString(path, ss => {
             let sumProb = 0;
             for (let entry of results) {
                 const {index, count, prob} = entry;
@@ -68,11 +142,18 @@ export class StringWindowHandler
     readonly size: number;
     readonly cache: StringCache;
     readonly counter: HitCounter;
+    readonly globalCounter: HitCounter;
 
-    constructor(size: number) {
+    constructor(size: number, globalCounter: HitCounter) {
         this.size = size;
         this.cache = new StringCache(size);
         this.counter = new HitCounter(size);
+        this.globalCounter = globalCounter;
+    }
+
+    private recordHit(hitIdx: number) {
+        this.counter.recordHit(hitIdx);
+        this.globalCounter.recordHit(hitIdx);
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
@@ -81,7 +162,7 @@ export class StringWindowHandler
             assert(value instanceof S.Identifier);
             const name = (value as S.Identifier).name;
             const hitIdx = this.cache.lookup(name);
-            this.counter.recordHit(hitIdx);
+            this.recordHit(hitIdx);
         }
     }
 
