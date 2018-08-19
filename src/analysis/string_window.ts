@@ -7,31 +7,6 @@ import * as TS from '../typed_schema';
 import {Analysis} from '../analysis';
 import {FileStore} from '../file_store';
 
-export function analyzeStringWindows(
-    schema: S.TreeSchema,
-    root: TS.Script)
-{
-    const handler = new StringWindowHandler(64);
-    const visitor = S.Visitor.make({schema, root, handler});
-    visitor.visit();
-
-    let sumProb = 0;
-    for (let entry of handler.counter.summarizeHits()) {
-        const {index, count, prob} = entry;
-
-        sumProb += prob;
-
-        const rprob = ((prob * 1000)>>>0) / 10;
-        const rsum = ((sumProb * 1000)>>>0) / 10;
-
-        const bits = Math.log(1/prob) / Math.log(2);
-        const rbits = ((bits * 100)>>>0) / 100;
-
-        console.log(`HITS ${index} => ${count} ` +
-                    `{${rbits}} [${rprob} - ${rsum}]`);
-    }
-}
-
 export class StringWindowAnalysis
   extends Analysis
 {

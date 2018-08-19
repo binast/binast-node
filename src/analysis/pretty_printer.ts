@@ -9,16 +9,6 @@ import {FileStore} from '../file_store';
 import {StringSink, ConsoleStringSink}
     from '../data_sink';
 
-export function prettyPrint(schema: S.TreeSchema,
-                            root: TS.Script)
-{
-    const sink = new ConsoleStringSink();
-    const handler = new PrettyPrintHandler(sink);
-    const visitor = S.Visitor.make({schema, root, handler});
-    visitor.visit();
-    sink.flush();
-}
-
 export class PrettyPrintAnalysis
   extends Analysis
 {
