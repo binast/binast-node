@@ -372,7 +372,7 @@ export class FieldTypeUnion extends FieldType {
             for (let sf of subFlats) {
                 if (sf === FieldTypePrimitive.Null) {
                     hasNull = true;
-                    return;
+                    continue;
                 }
                 if (! flatSet.has(sf)) {
                     flats.push(sf);
