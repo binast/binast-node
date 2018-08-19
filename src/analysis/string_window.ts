@@ -158,7 +158,7 @@ export class StringWindowHandler
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
-        if (shape instanceof S.FieldTypeIdent) {
+        if (shape.ty instanceof S.FieldTypeIdent) {
             assert(value instanceof S.Identifier);
             const name = (value as S.Identifier).name;
             const hitIdx = this.cache.lookup(name);

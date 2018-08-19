@@ -249,18 +249,6 @@ export class TreeSchema {
         return accum.join('\n');
     }
 
-    // Called by Named primitive type to resolve named
-    // types.  For Ifaces and Enums it generates
-    // Named types, and for typedefs it substitutes
-    // the aliased type.
-    resolveType(typeName: TypeName, value: Value)
-      : TerminalFieldType|null
-    {
-        // Look up the type.
-        const decl = this.getDecl(typeName);
-        return decl.resolveType(this, value);
-    }
-
     prettyString(): string {
         const declArray = Array.from(this.decls.values());
 
@@ -295,8 +283,6 @@ export abstract class Declaration {
 
     abstract prettyString(): string;
     abstract intoFieldType(): FieldType;
-    abstract resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null;
     abstract dumpTypescript(defns: Array<string>);
     abstract dumpReflection(defns: Array<string>);
     abstract matchesValue(schema: TreeSchema, value: Value)
@@ -323,11 +309,6 @@ export class Typedef extends Declaration {
     intoFieldType(): FieldType {
         return this.aliased;
     }
-    resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null
-    {
-        return this.aliased.resolveType(schema, value);
-    }
 
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
@@ -338,7 +319,7 @@ export class Typedef extends Declaration {
     flattennedType(schema: TreeSchema)
       : Array<TerminalFieldType>
     {
-        return this.aliased.flatten(schema);
+        return this.aliased.flattenImpl(schema);
     }
 
     dumpTypescript(defns: Array<string>) {
@@ -499,16 +480,6 @@ export class Enum extends Declaration {
     intoFieldType(): FieldTypeEnum {
         return FieldTypeEnum.make(this.name);
     }
-    resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null
-    {
-        if (typeof(value) == 'string' &&
-            this.containsName(value as string))
-        {
-            return this.intoFieldType();
-        }
-        return null;
-    }
 
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
@@ -621,17 +592,6 @@ export class Iface extends Declaration {
 
     intoFieldType(): FieldTypeIface {
         return FieldTypeIface.make(this.name);
-    }
-    resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null
-    {
-        if (typeof(value) == 'object' &&
-            value !== null &&
-            value['iface$'] === this)
-        {
-            return this.intoFieldType();
-        }
-        return null;
     }
 
     matchesValue(schema: TreeSchema, value: Value)

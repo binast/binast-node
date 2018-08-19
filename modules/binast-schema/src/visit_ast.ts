@@ -7,7 +7,8 @@ import {TreeSchema, Typedef, Enum, Iface, Value, Instance}
 import {FieldType, TerminalFieldType,
         FieldTypePrimitive, FieldTypeIdent,
         FieldTypeNamed, FieldTypeUnion, FieldTypeArray,
-        FieldTypeIface, FieldTypeEnum}
+        FieldTypeIface, FieldTypeEnum,
+        TypeSet, ResolvedType}
     from './field_types';
 
 import {jsonStr} from './util';
@@ -44,7 +45,7 @@ export type PathKey = string | number;
 // Shape describes the represenation of the value
 // being encoded - a specific Iface, Enum, Array,
 // or primitive type.
-export type PathShape = TerminalFieldType;
+export type PathShape = ResolvedType;
 
 // Bound describes the bounds on this type, which is
 // the set of allowable types at this location,
@@ -207,8 +208,10 @@ export class Visitor {
     readonly schema: TreeSchema;
     readonly cursor: TreeCursor;
     readonly root: Instance;
+    readonly rootTy: FieldTypeIface;
     readonly handler: VisitHandler;
-    readonly stack: Array<() => void>
+    readonly stack: Array<() => void>;
+    readonly cachedTypeSets: Map<FieldType, TypeSet>;
 
     private constructor(
         schema: TreeSchema,
@@ -218,8 +221,11 @@ export class Visitor {
         this.schema = schema;
         this.cursor = new TreeCursor(new Path());
         this.root = root;
+        this.rootTy =
+            FieldTypeIface.make(this.root.iface$.name);
         this.handler = handler;
         this.stack = new Array();
+        this.cachedTypeSets = new Map();
     }
 
     static make(params: {schema: TreeSchema,
@@ -234,10 +240,9 @@ export class Visitor {
     private makeRootKey(): string {
         return '$Root'
     }
-    private makeRootShape(): FieldTypeIface {
+    private makeRootShape(): PathShape {
         // Just the root instance iface.
-        const iface = this.root.iface$;
-        return FieldTypeIface.make(iface.name);
+        return this.resolveShape(this.rootTy, this.root);
     }
     private makeRootBound(): FieldType {
         // Just a FieldType containing the type of
@@ -246,9 +251,12 @@ export class Visitor {
     }
 
     visit() {
-        this.visitItem(this.makeRootKey(),
-                       this.makeRootShape(),
-                       this.makeRootBound(),
+        const rootKey = '$Root';
+        const rootShape = this.resolveShape(this.rootTy,
+                                            this.root);
+        const rootBound = this.root.iface$.intoFieldType();
+        
+        this.visitItem(rootKey, rootShape, rootBound,
                        this.root);
     }
 
@@ -263,18 +271,18 @@ export class Visitor {
         // Begin this tree item.
         this.handler.begin(this.schema, this.cursor);
 
-        assert(shape instanceof TerminalFieldType);
+        assert(shape instanceof ResolvedType);
 
-        if (shape instanceof FieldTypeIface) {
-            this.walkIface(shape);
-        } else if (shape instanceof FieldTypeEnum) {
-            this.walkEnum(shape);
-        } else if (shape instanceof FieldTypePrimitive) {
-            this.walkPrimitive(shape);
-        } else if (shape instanceof FieldTypeIdent) {
-            this.walkIdent(shape);
-        } else if (shape instanceof FieldTypeArray) {
-            this.walkArray(shape);
+        if (shape.ty instanceof FieldTypeIface) {
+            this.walkIface(shape, shape.ty);
+        } else if (shape.ty instanceof FieldTypeEnum) {
+            this.walkEnum(shape, shape.ty);
+        } else if (shape.ty instanceof FieldTypePrimitive) {
+            this.walkPrimitive(shape, shape.ty);
+        } else if (shape.ty instanceof FieldTypeIdent) {
+            this.walkIdent(shape, shape.ty);
+        } else if (shape.ty instanceof FieldTypeArray) {
+            this.walkArray(shape, shape.ty);
         } else {
             throw new Error(`Unknown shape: ${shape}`);
         }
@@ -287,7 +295,9 @@ export class Visitor {
         this.cursor.pop(value);
     }
 
-    private walkIface(iface: FieldTypeIface) {
+    private walkIface(shape: PathShape,
+                      iface: FieldTypeIface)
+    {
         const schema = this.schema;
         const value = this.cursor.value;
         assert(iface.matchesValue(schema, value));
@@ -307,22 +317,30 @@ export class Visitor {
         }
     }
 
-    private walkEnum(enm: FieldTypeEnum) {
+    private walkEnum(shape: PathShape,
+                     enm: FieldTypeEnum)
+    {
         const value = this.cursor.value;
         assert(enm.matchesValue(this.schema, value));
     }
 
-    private walkPrimitive(ty: FieldTypePrimitive) {
+    private walkPrimitive(shape: PathShape,
+                          ty: FieldTypePrimitive)
+    {
         const value = this.cursor.value;
         assert(ty.matchesValue(this.schema, value));
     }
 
-    private walkIdent(ty: FieldTypeIdent) {
+    private walkIdent(shape: PathShape,
+                      ty: FieldTypeIdent)
+    {
         const value = this.cursor.value;
         assert(ty.matchesValue(this.schema, value));
     }
 
-    private walkArray(ty: FieldTypeArray) {
+    private walkArray(shape: PathShape,
+                      ty: FieldTypeArray)
+    {
         const schema = this.schema;
         assert(ty.matchesValue(schema, this.cursor.value));
 
@@ -340,15 +358,23 @@ export class Visitor {
         });
     }
 
+    private getTypeSetFor(ty: FieldType): TypeSet {
+        if (!this.cachedTypeSets.has(ty)) {
+            const tySet = ty.flatten(this.schema);
+            this.cachedTypeSets.set(ty, tySet);
+        }
+        return this.cachedTypeSets.get(ty);
+    }
+
     private resolveShape(ty: FieldType, value: Value)
-      : PathShape
+      : ResolvedType
     {
-        const rty = ty.resolveType(this.schema, value);
+        const tySet = this.getTypeSetFor(ty);
+        const rty = tySet.resolveType(this.schema, value);
         assert(rty !== null,
-            `Bad rty: ${rty} for: ${jsonStr(value)}\n` +
+            `Bad resolve for: ${jsonStr(value)}\n` +
             `ty=${ty.prettyString()}`);
 
-        assert(rty instanceof TerminalFieldType);
-        return rty as TerminalFieldType;
+        return rty;
     }
 }

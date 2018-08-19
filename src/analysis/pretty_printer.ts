@@ -55,17 +55,13 @@ export class PrettyPrintHandler
         const boundStr = bound.prettyString();
 
         const flattened = bound.flatten(schema);
-        assert(flattened instanceof Array,
+        assert(flattened instanceof S.TypeSet,
                `Bad flattened: '${flattened}'`);
 
         this.writeTabbedLines(...[
             `${key}: ${boundStr} = {`,
             `    @ ${shapeStr}`,
         ]);
-        for (let i = 0; i < flattened.length; i++) {
-            const s = shapeString(flattened[i]);
-            this.writeTabbedLines(`    ${i} - ${s}`);
-        }
         if (valueStr !== null) {
             this.writeTabbedLines(...[
                 `    value = ${valueStr}`
@@ -101,22 +97,23 @@ function shapeString(shape: S.PathShape): string {
 function valueString(value: S.Value, shape: S.PathShape)
   : string|null
 {
-    if ((shape instanceof S.FieldTypeIface) ||
-        (shape instanceof S.FieldTypeArray))
+    const ty = shape.ty;
+    if ((ty instanceof S.FieldTypeIface) ||
+        (ty instanceof S.FieldTypeArray))
     {
         return null;
-    } else if (shape instanceof S.FieldTypeEnum) {
+    } else if (ty instanceof S.FieldTypeEnum) {
         assert(typeof(value) === 'string');
         return value.toString();
-    } else if (shape instanceof S.FieldTypePrimitive) {
+    } else if (ty instanceof S.FieldTypePrimitive) {
         return `${value}`;
-    } else if (shape instanceof S.FieldTypeIdent) {
-        const tag = shape.tag;
+    } else if (ty instanceof S.FieldTypeIdent) {
+        const tag = ty.tag;
         assert(value instanceof S.Identifier);
         const ident = value as S.Identifier;
         return ident.name;
     } else {
-        throw new Error("Bad PathShape: " + shape);
+        throw new Error("Bad PathShape: " + ty);
     }
 }
 

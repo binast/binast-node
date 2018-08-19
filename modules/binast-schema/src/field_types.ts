@@ -23,41 +23,25 @@ export enum FieldTypeKind {
 let NEXT_TYPE_ID: number = 1;
 const TYPE_CACHE: Map<string, FieldType> = new Map();
 
-interface FlatCache {
-    tys: Array<TerminalFieldType>|null;
-    schema: TreeSchema|null;
-}
-
 export abstract class FieldType {
     readonly typeId: number;
-    private flatCache: FlatCache|null;
 
     protected constructor(typeId: number) {
         this.typeId = typeId;
-        this.flatCache = {tys:null, schema:null};
     }
 
     abstract prettyString(): string;
     abstract kind(): FieldTypeKind;
     abstract typescriptString(): string;
     abstract reflectedString(): string;
-    abstract resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null;
     abstract matchesValue(schema: TreeSchema, value: Value)
               : boolean;
 
-    protected abstract flattenImpl(schema: TreeSchema)
+    abstract flattenImpl(schema: TreeSchema)
       : Array<TerminalFieldType>;
 
-    flatten(schema: TreeSchema): Array<TerminalFieldType> {
-        if (this.flatCache.schema === schema) {
-            return this.flatCache.tys;
-        }
-
-        const tys = this.flattenImpl(schema);
-        this.flatCache.tys = tys;
-        this.flatCache.schema = schema;
-        return tys;
+    flatten(schema: TreeSchema): TypeSet {
+        return TypeSet.make(this.flattenImpl(schema));
     }
 
     protected static nextId(): number {
@@ -85,6 +69,56 @@ export abstract class FieldType {
     }
 }
 
+export class TypeSet {
+    readonly tys: ReadonlyArray<TerminalFieldType>;
+
+    private constructor(
+        tys: ReadonlyArray<TerminalFieldType>)
+    {
+        this.tys = tys;
+    }
+
+    static make(tys: ReadonlyArray<TerminalFieldType>) {
+        return new TypeSet(tys);
+    }
+
+    resolveType(schema: TreeSchema, value: Value)
+      : ResolvedType
+    {
+        let result: ResolvedType|null = null;
+        for (let i = 0; i < this.tys.length; i++) {
+            const ty = this.tys[i];
+            if (ty.matchesValue(schema, value)) {
+                assert(result === null,
+                   `Duplicate matching types for value`);
+                result = new ResolvedType(this, ty, i);
+            }
+        }
+        return result;
+    }
+}
+
+export class ResolvedType {
+    readonly typeSet: TypeSet;
+    readonly ty: TerminalFieldType;
+    readonly index: number;
+
+    constructor(typeSet: TypeSet,
+                ty: TerminalFieldType,
+                index: number)
+    {
+        this.typeSet = typeSet;
+        this.ty = ty;
+        this.index = index;
+        Object.freeze(this);
+    }
+
+    prettyString(): string {
+        const tyStr = this.ty.prettyString();
+        return `Resolved ${tyStr} - ${this.index}`;
+    }
+}
+
 export abstract class TerminalFieldType
   extends FieldType
 {
@@ -92,16 +126,8 @@ export abstract class TerminalFieldType
         super(typeId);
     }
 
-    // Terminal types all have a trivial resolve.
-    resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null
-    {
-        return this.matchesValue(schema, value)
-                            ? this : null;
-    }
-
     // And a trivial flatten
-    protected flattenImpl(schema: TreeSchema)
+    flattenImpl(schema: TreeSchema)
       : Array<TerminalFieldType>
     {
         // Array types are terminal.
@@ -274,19 +300,13 @@ export class FieldTypeNamed extends FieldType {
         const tstr = JSON.stringify(this.name.name);
         return `TNamed(${tstr})`;
     }
-    resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null
-    {
-        const decl = schema.getDecl(this.name);
-        return decl.resolveType(schema, value);
-    }
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
     {
         const decl = schema.getDecl(this.name);
         return decl.matchesValue(schema, value);
     }
-    protected flattenImpl(schema: TreeSchema)
+    flattenImpl(schema: TreeSchema)
       : Array<TerminalFieldType>
     {
         // Peek through the typedef and flatten the
@@ -356,7 +376,7 @@ export class FieldTypeUnion extends FieldType {
             return v.matchesValue(schema, value);
         });
     }
-    protected flattenImpl(schema: TreeSchema)
+    flattenImpl(schema: TreeSchema)
       : Array<TerminalFieldType>
     {
         // Flatten the constituent types.
@@ -368,7 +388,7 @@ export class FieldTypeUnion extends FieldType {
         for (let variant of this.variants) {
             // Get array of underlying flattened
             // types and promote it.
-            let subFlats = variant.flatten(schema);
+            let subFlats = variant.flattenImpl(schema);
             for (let sf of subFlats) {
                 if (sf === FieldTypePrimitive.Null) {
                     hasNull = true;
@@ -396,20 +416,6 @@ export class FieldTypeUnion extends FieldType {
         return `TUnion([` +
                 this.variants.map(v => v.reflectedString())
                             .join(', ') + '])';
-    }
-    resolveType(schema: TreeSchema, value: Value)
-      : TerminalFieldType|null
-    {
-        let result: TerminalFieldType|null = null;
-        for (let variant of this.variants) {
-            const r = variant.resolveType(schema, value);
-            if (r !== null) {
-                assert(result === null,
-                   `Duplicate matching types for value`);
-                result = r;
-            }
-        }
-        return result;
     }
 }
 
