@@ -29,12 +29,8 @@ export class PrettyPrintAnalysis
         super(schema, scriptStore, resultStore);
     }
 
-    name(): string {
+    get name(): string {
         return 'pretty-print';
-    }
-
-    private dataPath(sub: string): string {
-        return `pretty-print/${sub}`;
     }
 
     analyzeAst(subpath: string, script: TS.Script) {

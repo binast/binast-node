@@ -6,7 +6,8 @@ import * as shift_parser from 'shift-parser';
 import {Importer} from './lift_es6';
 import * as TS from './typed_schema';
 
-import {FileStringSink} from './data_sink';
+import {FileStringSink, FileByteSink}
+    from './data_sink';
 
 /**
  * A simple API for treating a directory of files
@@ -34,6 +35,8 @@ export class FileStore {
     }
 
     isValidSubpath(subpath: string): boolean {
+        assert(subpath.match(/^[-_a-zA-Z0-9\.\/]*$/),
+               "subpath=" + JSON.stringify(subpath));
         if (subpath === 'WRITABLE') {
             return false;
         }
@@ -184,6 +187,21 @@ export class FileStore {
         const fss = new FileStringSink(fd);
         try {
             cb(fss);
+            fss.flush();
+        } finally {
+            fs.closeSync(fd);
+        }
+    }
+
+    writeSinkBytes(subpath: string,
+                   cb: (FileByteSink) => any)
+    {
+        const fullPath = this.checkWritable(subpath);
+        const fd = fs.openSync(fullPath, 'w');
+        const fbs = new FileByteSink(fd);
+        try {
+            cb(fbs);
+            fbs.flush();
         } finally {
             fs.closeSync(fd);
         }

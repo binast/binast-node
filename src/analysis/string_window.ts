@@ -42,7 +42,7 @@ export class StringWindowAnalysis
         super(schema, scriptStore, resultStore);
     }
 
-    name(): string {
+    get name(): string {
         return 'string-window';
     }
 
@@ -54,22 +54,36 @@ export class StringWindowAnalysis
             handler: handler
         });
         visitor.visit();
+        const results = handler.counter.summarizeHits();
 
-        let sumProb = 0;
-        for (let entry of handler.counter.summarizeHits()) {
-            const {index, count, prob} = entry;
+        assert(subpath.match(/\.js$/));
 
-            sumProb += prob;
+        const jsonpath = this.dataPath(
+            subpath.replace(/\.js$/, '.json'));
 
-            const rprob = ((prob * 1000)>>>0) / 10;
-            const rsum = ((sumProb * 1000)>>>0) / 10;
+        const txtpath = this.dataPath(
+            subpath.replace(/\.js$/, '.txt'));
 
-            const bits = Math.log(1/prob) / Math.log(2);
-            const rbits = ((bits * 100)>>>0) / 100;
+        this.resultStore.writeJSON(jsonpath, results);
 
-            console.log(`HITS ${index} => ${count} ` +
-                        `{${rbits}} [${rprob} - ${rsum}]`);
-        }
+        this.resultStore.writeSinkString(txtpath, ss => {
+            let sumProb = 0;
+            for (let entry of results) {
+                const {index, count, prob} = entry;
+
+                sumProb += prob;
+
+                const rprob = ((prob * 1000)>>>0) / 10;
+                const rsum = ((sumProb * 1000)>>>0) / 10;
+
+                const bits = Math.log(1/prob) / Math.log(2);
+                const rbits = ((bits * 100)>>>0) / 100;
+
+                ss.write(
+                    `HITS ${index} => ${count} ` +
+                    `{${rbits}} [${rprob} - ${rsum}]\n`);
+            }
+        });
     }
 }
 

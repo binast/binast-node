@@ -19,11 +19,14 @@ export abstract class Analysis {
         this.resultStore = resultStore;
     }
 
-    abstract name(): string;
+    abstract get name(): string;
+
+    protected dataPath(sub: string): string {
+        return `${this.name}/${sub}`;
+    }
 
     analyzeScriptFile(subpath: string) {
-        const name = this.name();
-        this.log(`Analyzing ${subpath} with ${name}`);
+        this.log(`Analyzing ${subpath} with ${this.name}`);
 
         const script = this.scriptStore.readAst(subpath);
         this.analyzeAst(subpath, script);
