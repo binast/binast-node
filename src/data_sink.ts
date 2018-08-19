@@ -1,5 +1,8 @@
 
 import * as assert from 'assert';
+import * as fs from 'fs';
+
+import * as wtf8 from './wtf8';
 
 export type ByteData =
     Uint8Array          // Typed array of bytes
@@ -163,5 +166,81 @@ export class ConsoleStringSink implements StringSink {
 
     private logLine(line: string) {
         console.log(this.prefix + line);
+    }
+}
+
+const FILE_SINK_ACCUM_MAX = 64 * 1024;
+
+export class FileByteSink implements ByteSink {
+    readonly fd: number;
+    accum: Array<ByteData>;
+    accumSize: number;
+
+    constructor(fd: number) {
+        this.fd = fd;
+        this.accum = [];
+        this.accumSize = 0;
+    }
+
+    write(...data: Array<ByteData>): number {
+        let sum: number = 0;
+        for (let piece of data) {
+            this.accum.push(piece);
+            if ((piece instanceof Uint8Array) ||
+                (piece instanceof Array))
+            {
+                sum += piece.length;
+            } else {
+                assert(typeof(piece) === 'number');
+                sum += 1;
+            }
+        }
+        this.accumSize += sum;
+        if (this.accumSize > FILE_SINK_ACCUM_MAX) {
+            this.flush();
+        }
+        return sum;
+    }
+
+    flush() {
+        const bytes = new Uint8Array(this.accumSize);
+        let offset: number = 0;
+        for (let piece of this.accum) {
+            if ((piece instanceof Uint8Array) ||
+                (piece instanceof Array))
+            {
+                for (let i = 0; i < piece.length; i++) {
+                    bytes[offset++] = piece[i];
+                }
+            } else {
+                assert(typeof(piece) === 'number');
+                bytes[offset++] = piece;
+            }
+        }
+        assert(offset === bytes.length,
+               `Offset ${offset} !== ${bytes.length}`);
+
+        fs.writeSync(this.fd, bytes);
+
+        this.accum = [];
+        this.accumSize = 0;
+    }
+}
+
+export class FileStringSink implements StringSink {
+    readonly byteSink: FileByteSink;
+
+    constructor(fd: number) {
+        this.byteSink = new FileByteSink(fd);
+    }
+
+    write(...data: Array<StringData>): number {
+        return this.byteSink.write(... data.map(d => {
+            return wtf8.jsStringToWtf8Bytes(d);
+        }));
+    }
+
+    flush() {
+        this.byteSink.flush();
     }
 }

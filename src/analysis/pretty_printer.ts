@@ -33,15 +33,20 @@ export class PrettyPrintAnalysis
         return 'pretty-print';
     }
 
+    private dataPath(sub: string): string {
+        return `pretty-print/${sub}`;
+    }
+
     analyzeAst(subpath: string, script: TS.Script) {
-        const sink = new ConsoleStringSink();
-        const visitor = S.Visitor.make({
-            schema: this.schema,
-            root: script,
-            handler: new PrettyPrintHandler(sink)
+        const datapath = this.dataPath(subpath);
+        this.resultStore.writeSinkString(datapath, ss => {
+            const visitor = S.Visitor.make({
+                schema: this.schema,
+                root: script,
+                handler: new PrettyPrintHandler(ss)
+            });
+            visitor.visit();
         });
-        visitor.visit();
-        sink.flush();
     }
 }
 

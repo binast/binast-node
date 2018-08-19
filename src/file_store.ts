@@ -6,6 +6,8 @@ import * as shift_parser from 'shift-parser';
 import {Importer} from './lift_es6';
 import * as TS from './typed_schema';
 
+import {FileStringSink} from './data_sink';
+
 /**
  * A simple API for treating a directory of files
  * as a map from 
@@ -172,6 +174,19 @@ export class FileStore {
     writeJSON(subpath: string, data: any) {
         this.writeString(subpath,
                 JSON.stringify(data, null, 2));
+    }
+
+    writeSinkString(subpath: string,
+                    cb: (FileStringSink) => any)
+    {
+        const fullPath = this.checkWritable(subpath);
+        const fd = fs.openSync(fullPath, 'w');
+        const fss = new FileStringSink(fd);
+        try {
+            cb(fss);
+        } finally {
+            fs.closeSync(fd);
+        }
     }
 
     static openForRead(dir: string) {
