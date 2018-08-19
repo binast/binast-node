@@ -1,6 +1,10 @@
 
 import * as assert from 'assert';
 import * as fs from 'fs';
+import * as shift_parser from 'shift-parser';
+
+import {Importer} from './lift_es6';
+import * as TS from './typed_schema';
 
 /**
  * A simple API for treating a directory of files
@@ -19,10 +23,8 @@ export class FileStore {
             this.filePaths.has('WRITABLE');
     }
 
-    *subpaths(): Iterator<string> {
-        for (let path of new Set(this.filePaths)) {
-            yield path;
-        }
+    subpaths(): Set<string> {
+        return new Set(this.filePaths);
     }
 
     private fullPath(subpath: string): string {
@@ -60,6 +62,13 @@ export class FileStore {
         }
         return fs.readFileSync(this.fullPath(subpath),
                                "utf8");
+    }
+
+    readAst(subpath: string): TS.Script {
+        const str = this.readString(subpath);
+        const astJson = shift_parser.parseScript(str);
+        const importer = new Importer();
+        return importer.liftScript(astJson);
     }
 
     readLines(subpath: string): Array<string> {

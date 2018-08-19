@@ -4,6 +4,8 @@ import * as S from 'binast-schema';
 
 import * as TS from '../typed_schema';
 
+import {Analysis} from '../analysis';
+import {FileStore} from '../file_store';
 import {StringSink, ConsoleStringSink}
     from '../data_sink';
 
@@ -15,6 +17,32 @@ export function prettyPrint(schema: S.TreeSchema,
     const visitor = S.Visitor.make({schema, root, handler});
     visitor.visit();
     sink.flush();
+}
+
+export class PrettyPrintAnalysis
+  extends Analysis
+{
+    constructor(schema: S.TreeSchema,
+                scriptStore: FileStore,
+                resultStore: FileStore)
+    {
+        super(schema, scriptStore, resultStore);
+    }
+
+    name(): string {
+        return 'pretty-print';
+    }
+
+    analyzeAst(subpath: string, script: TS.Script) {
+        const sink = new ConsoleStringSink();
+        const visitor = S.Visitor.make({
+            schema: this.schema,
+            root: script,
+            handler: new PrettyPrintHandler(sink)
+        });
+        visitor.visit();
+        sink.flush();
+    }
 }
 
 export class PrettyPrintHandler
@@ -34,10 +62,18 @@ export class PrettyPrintHandler
         const valueStr = valueString(value, shape);
         const boundStr = bound.prettyString();
 
+        const flattened = bound.flatten(schema);
+        assert(flattened instanceof Array,
+               `Bad flattened: '${flattened}'`);
+
         this.writeTabbedLines(...[
             `${key}: ${boundStr} = {`,
             `    @ ${shapeStr}`,
         ]);
+        for (let i = 0; i < flattened.length; i++) {
+            const s = shapeString(flattened[i]);
+            this.writeTabbedLines(`    ${i} - ${s}`);
+        }
         if (valueStr !== null) {
             this.writeTabbedLines(...[
                 `    value = ${valueStr}`
