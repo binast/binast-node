@@ -584,7 +584,9 @@ export class Iface extends Declaration {
     }
 
     prettyString() {
-        return `iface ${this.name.prettyString()} {\n` +
+        const nodeTag = this.isNode ? "$" : "";
+        const nameStr = this.name.prettyString();
+        return `iface ${nodeTag}${nameStr} {\n` +
              this.fields.map(f => f.prettyString())
                         .join("\n") + "\n" +
              `}`;

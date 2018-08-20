@@ -163,8 +163,7 @@ class TreeCursor implements TreeLocation {
     }
 
     ancestors(): PathIterator {
-        const idx = Math.max(this.path.length - 1, 0);
-        return new PathIterator(this.path, idx);
+        return new PathIterator(this.path);
     }
 }
 
@@ -172,29 +171,34 @@ export class PathIterator {
     readonly path: Path;
     index: number;
 
-    constructor(path: Path, index: number) {
+    constructor(path: Path) {
         this.path = path;
-        this.index = index;
+        this.index = path.length - 1;
     }
 
-    next(): boolean {
-        if (this.index === 0) {
-            return false;
-        }
+    get done(): boolean {
+        return this.index < 0;
+    }
+
+    next() {
+        assert( ! this.done);
         --this.index;
-        return true;
     }
 
     get key(): PathKey {
+        assert( ! this.done);
         return this.path.keys[this.index];
     }
     get shape(): PathShape {
+        assert( ! this.done);
         return this.path.shapes[this.index];
     }
     get bound(): PathBound {
+        assert( ! this.done);
         return this.path.bounds[this.index];
     }
     get value(): Value {
+        assert( ! this.done);
         return this.path.values[this.index];
     }
 }

@@ -4,6 +4,7 @@ import * as S from 'binast-schema';
 
 import {FileStore} from './file_store';
 import * as TS from './typed_schema';
+import * as logger from './logger';
 
 export abstract class Analysis {
     readonly schema: S.TreeSchema;
@@ -52,6 +53,7 @@ export abstract class Analysis {
 
         const script = this.scriptStore.readAst(subpath);
         this.analyzeAst(subpath, script);
+        this.log(` ...done`);
     }
 
     abstract analyzeAst(subpath: string,
@@ -59,6 +61,6 @@ export abstract class Analysis {
 
     protected log(msg: string) {
         const p = 'ANALYSIS:';
-        console.log(p + msg.replace(/\n/g, '\n' + p));
+        logger.log(p + msg.replace(/\n/g, '\n' + p));
     }
 }

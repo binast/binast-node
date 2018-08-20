@@ -61,6 +61,7 @@ export class PrettyPrintHandler
         this.writeTabbedLines(...[
             `${key}: ${boundStr} = {`,
             `    @ ${shapeStr}`,
+            ``,
         ]);
         if (valueStr !== null) {
             this.writeTabbedLines(...[
@@ -85,10 +86,11 @@ export class PrettyPrintHandler
 }
 
 function shapeString(shape: S.PathShape): string {
-    if (shape instanceof S.Iface) {
-        return `iface(${shape.name.prettyString()})`;
-    } else if (shape instanceof S.Enum) {
-        return `enum(${shape.name.prettyString()})`;
+    const ty = shape.ty;
+    if (ty instanceof S.FieldTypeIface) {
+        return `iface(${ty.name.prettyString()})`;
+    } else if (ty instanceof S.FieldTypeEnum) {
+        return `enum(${ty.name.prettyString()})`;
     } else {
         return shape.prettyString();
     }

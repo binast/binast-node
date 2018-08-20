@@ -3,9 +3,10 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as minimist from 'minimist';
-
 import * as S from 'binast-schema';
+
 import * as TS from '../typed_schema';
+import * as logger from '../logger';
 
 import {FileStore} from '../file_store';
 
@@ -16,6 +17,9 @@ import {PrettyPrintAnalysis}
 
 import {StringWindowAnalysis}
     from '../analysis/string_window';
+
+import {PathSuffixAnalysis}
+    from '../analysis/path_suffix';
 
 const SCHEMA = TS.ReflectedSchema.schema;
 
@@ -42,6 +46,9 @@ function main() {
     }
     if (opts['pretty-print']) {
         analyses.push('pretty-print');
+    }
+    if (opts['path-suffix']) {
+        analyses.push('path-suffix');
     }
 
     runStoreSuite(SCHEMA, scriptStore, resultStore,
@@ -83,31 +90,33 @@ function makeAnalysisTask(name: string,
       case 'string-window':
         return new StringWindowAnalysis(
                     schema, scriptStore, resultStore, opts);
+      case 'path-suffix':
+        return new PathSuffixAnalysis(
+                    schema, scriptStore, resultStore, opts);
     }
     throw new Error(`Unknown analysis ${name}`);
 }
 
-const LOG_PREFIX = 'ANALYSIS: ';
-export function log(msg) {
-    console.log(LOG_PREFIX
-        + msg.replace(/\n/g, '\n' + LOG_PREFIX));
-}
-
 function usage(exit: boolean) {
-    console.log("Usage: npm run analysis [opts]");
-    console.log("Options:");
-    console.log("   --script-dir=<scriptDir>            " +
-                "        Input scripts directory.");
-    console.log("   --result-dir=<outDir>               " +
-                "        Output data directory.");
-    console.log("");
-    console.log("   --pretty-print                      " +
-                "        Run pretty-print analysis.");
-    console.log("");
-    console.log("   --string-window                     " +
-                "        Run string-window analysis.");
-    console.log("   --string-window-sizes=num,num,...   " +
-                "        Window sizes to analyze.");
+    logger.log("Usage: npm run analysis [opts]");
+    logger.log("Options:");
+    logger.log("   --script-dir=<scriptDir>            " +
+               "        Input scripts directory.");
+    logger.log("   --result-dir=<outDir>               " +
+               "        Output data directory.");
+    logger.log("");
+    logger.log("   --pretty-print                      " +
+               "        Run pretty-print analysis.");
+    logger.log("");
+    logger.log("   --string-window                     " +
+               "        Run string-window analysis.");
+    logger.log("   --string-window-sizes=num,num,...   " +
+               "        Window sizes to analyze.");
+    logger.log("");
+    logger.log("   --path-suffix                       " +
+               "        Run path-suffix analysis.");
+    logger.log("   --path-suffix-length=length         " +
+               "        Suffix length to use.");
     if (exit) {
         process.exit(1);
     }

@@ -82,6 +82,10 @@ export class TypeSet {
         return new TypeSet(tys);
     }
 
+    get size(): number {
+        return this.tys.length;
+    }
+
     resolveType(schema: TreeSchema, value: Value)
       : ResolvedType
     {
@@ -115,7 +119,9 @@ export class ResolvedType {
 
     prettyString(): string {
         const tyStr = this.ty.prettyString();
-        return `Resolved ${tyStr} - ${this.index}`;
+        const index = this.index;
+        const total = this.typeSet.size
+        return `Resolved ${tyStr} - ${index}/${total}`;
     }
 }
 

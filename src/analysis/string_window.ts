@@ -37,6 +37,7 @@ export class StringWindowAnalysis
         return sizes.split(',').map(s => {
             assert(s.match(/^[0-9]+$/));
             const n = Number.parseInt(s);
+            assert(n > 0);
             assert(n <= MAX_WINDOW_SIZE,
                `Window size ${n} >= ${MAX_WINDOW_SIZE}`);
             return Number.parseInt(s);
@@ -129,8 +130,10 @@ export class StringWindowAnalysis
                 const rbits = ((bits * 100)>>>0) / 100;
 
                 ss.write(
-                    `HITS ${index} => ${count} ` +
-                    `{${rbits}} [${rprob} - ${rsum}]\n`);
+                    `HITS ${index} => ${count},` +
+                    ` bits=${rbits},` +
+                    ` prob = ${rprob},` +
+                    ` accum = ${rsum}\n`);
             }
         });
     }
