@@ -426,8 +426,9 @@ export class PathSuffixAnalysis
                     ((pctHits * 10000)>>>0) / 100;
 
                 ss.write(`Suffix ${suffix}\n` +
-                         `  [hits=${totalHits}` +
-                         ` ${rpctHits}%]\n`);
+                         `  [hits=${totalHits}/` +
+                                 `${symbolsEmitted}]` +
+                            ` ${rpctHits}%]\n`);
 
                 let sumProb = 0;
                 for (let freq of freqs) {
