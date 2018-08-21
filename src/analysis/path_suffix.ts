@@ -307,8 +307,8 @@ class PathSuffix {
         // Must be at a whole number of pieces when
         // we stop.
         assert(symAccum.length == 1);
-        while (sliceAccum.length < length) {
-            sliceAccum.push(null);
+        if (sliceAccum.length < length) {
+            return null;
         }
         Object.freeze(sliceAccum.reverse());
         return PathSuffix.make(sliceAccum);
@@ -498,16 +498,18 @@ export class PathSuffixHandler
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
-        const suffix = PathSuffix.forLocation(
-                            schema, loc, this.suffixLength);
-        if (suffix === null) {
-            return;
-        }
+        for (let len = 1; len <= this.suffixLength; len++) {
+            const suffix = PathSuffix.forLocation(
+                                        schema, loc, len);
+            if (suffix === null) {
+                return;
+            }
 
-        this.updateFreqTables(schema, shape, suffix, value,
-            this.globalFreqMap);
-        this.updateFreqTables(schema, shape, suffix, value,
-            this.suffixFreqMap);
+            this.updateFreqTables(schema, shape, suffix,
+                value, this.globalFreqMap);
+            this.updateFreqTables(schema, shape, suffix,
+                value, this.suffixFreqMap);
+        }
     }
 
     private updateFreqTables(
