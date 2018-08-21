@@ -252,14 +252,16 @@ class PathSuffix {
 
         const iter = loc.ancestors();
 
-        if ((typeof(iter.key) === 'number') &&
-            (iter.key > 4))
-        {
-            return null;
-        };
+        // Number keys are only ever array indices.
+        // At leaves, predict the first 4 indices of
+        // arrays, but lump the rest into an `index` slot.
+        const leafKey =
+            (typeof(iter.key) === 'number')
+              ? ((iter.key < 4) ? iter.key : 'index')
+              : iter.key;
 
         // Start off with the key for the current symbol.
-        let symAccum: Array<Sym> = [iter.key];
+        let symAccum: Array<Sym> = [leafKey];
 
         // Skip the symbol being visited.
         iter.next();
@@ -336,6 +338,7 @@ export class PathSuffixAnalysis
   extends Analysis
 {
     readonly globalFreqMap: Map<string, FreqTable>;
+    totalSymbolsEmitted: number;
 
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
@@ -344,6 +347,7 @@ export class PathSuffixAnalysis
     {
         super(schema, scriptStore, resultStore, opts);
         this.globalFreqMap = new Map();
+        this.totalSymbolsEmitted = 0;
     }
 
     get name(): string {
@@ -364,7 +368,8 @@ export class PathSuffixAnalysis
 
     endAnalysis() {
         const suffixLength = this.getSuffixLength();
-        const results = summarizeFreqs(this.globalFreqMap);
+        const results = summarizeFreqs(this.globalFreqMap,
+                                this.totalSymbolsEmitted);
 
         const jsonpath =
             this.dataPath(`${suffixLength}/ALL.json`);
@@ -372,7 +377,8 @@ export class PathSuffixAnalysis
 
         const txtpath =
             this.dataPath(`${suffixLength}/ALL.txt`);
-        this.generateSummaryReport(txtpath, results);
+        this.generateSummaryReport(txtpath, results,
+                                this.totalSymbolsEmitted);
     }
 
     analyzeAst(subpath: string, script: TS.Script)
@@ -388,8 +394,11 @@ export class PathSuffixAnalysis
         });
         visitor.visit();
 
-        const results = handler.summarizeFreqs();
+        const results = handler.summarizeFreqs(
+                                    handler.symbolsEmitted);
+
         assert(subpath.match(/\.js$/));
+        this.totalSymbolsEmitted += handler.symbolsEmitted;
 
         const genpath = (rep:string) => {
             return this.dataPath(`${suffixLength}/` +
@@ -399,18 +408,26 @@ export class PathSuffixAnalysis
         const txtpath = genpath('.txt');
 
         this.resultStore.writeJSON(jsonpath, results);
-        this.generateSummaryReport(txtpath, results);
+        this.generateSummaryReport(txtpath, results,
+                                   handler.symbolsEmitted);
     }
 
-    private generateSummaryReport(path: string,
-                              results: Array<FreqResult>)
+    private generateSummaryReport(
+        path: string,
+        results: Array<FreqResult>,
+        symbolsEmitted: number)
     {
         this.resultStore.writeSinkString(path, ss => {
             for (let entry of results) {
                 const {suffix, totalHits, freqs} = entry;
 
-                ss.write(`Suffix ${suffix}` +
-                         `  [hits=${totalHits}]\n`);
+                const pctHits = totalHits / symbolsEmitted;
+                const rpctHits =
+                    ((pctHits * 10000)>>>0) / 100;
+
+                ss.write(`Suffix ${suffix}\n` +
+                         `  [hits=${totalHits}` +
+                         ` ${rpctHits}%]\n`);
 
                 let sumProb = 0;
                 for (let freq of freqs) {
@@ -441,7 +458,8 @@ export class PathSuffixAnalysis
     }
 }
 
-function summarizeFreqs(freqMap: Map<string, FreqTable>)
+function summarizeFreqs(freqMap: Map<string, FreqTable>,
+                        totalSymbols: number)
   : Array<FreqResult>
 {
     // Sort the suffixes by freqTable totals,
@@ -459,6 +477,7 @@ function summarizeFreqs(freqMap: Map<string, FreqTable>)
         result.push({
             suffix: suffix,
             totalHits: ftable.totalHits,
+            totalSymbols: totalSymbols,
             freqs: ftable.summarizeFreqs()
         });
     }
@@ -473,6 +492,7 @@ export type HitResult = {
 export type FreqResult = {
     suffix: string,
     totalHits: number,
+    totalSymbols: number,
     freqs: Array<HitResult>
 };
 
@@ -485,6 +505,7 @@ export class PathSuffixHandler
     readonly alphabetCache: Map<S.PathShape, Alphabet>;
     readonly valueAlphabetCache:
         Map<string, Alphabet>;
+    symbolsEmitted: number;
 
     constructor(suffixLength: number,
                 globalFreqMap: Map<string, FreqTable>)
@@ -494,9 +515,11 @@ export class PathSuffixHandler
         this.suffixFreqMap = new Map();
         this.alphabetCache = new Map();
         this.valueAlphabetCache = new Map();
+        this.symbolsEmitted = 0;
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
+        ++this.symbolsEmitted;
         const {key, shape, bound, value} = loc;
         for (let len = 1; len <= this.suffixLength; len++) {
             const suffix = PathSuffix.forLocation(
@@ -541,8 +564,10 @@ export class PathSuffixHandler
     end(schema: S.TreeSchema, loc: S.TreeLocation) {
     }
 
-    summarizeFreqs(): Array<FreqResult> {
-        return summarizeFreqs(this.suffixFreqMap);
+    summarizeFreqs(totalSymbols: number): Array<FreqResult>
+    {
+        return summarizeFreqs(this.suffixFreqMap,
+                              totalSymbols);
     }
 
     private getFreqsFrom(

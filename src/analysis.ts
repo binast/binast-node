@@ -36,6 +36,8 @@ export abstract class Analysis {
     endAnalysis() {}
 
     analyzeFull() {
+        this.log(`Running ${this.name} analysis.`);
+
         this.beginAnalysis();
         for (let subpath of this.scriptStore.subpaths()) {
             // Skip all subpaths not ending in '.js'
@@ -49,7 +51,7 @@ export abstract class Analysis {
     }
 
     private analyzeScriptFile(subpath: string) {
-        this.log(`Analyzing ${subpath} with ${this.name}`);
+        this.log(`Analyzing ${subpath}`);
 
         const script = this.scriptStore.readAst(subpath);
         this.analyzeAst(subpath, script);
@@ -60,7 +62,7 @@ export abstract class Analysis {
                         script: TS.Script);
 
     protected log(msg: string) {
-        const p = 'ANALYSIS:';
+        const p = 'ANALYSIS: ';
         logger.log(p + msg.replace(/\n/g, '\n' + p));
     }
 }
