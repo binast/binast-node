@@ -457,12 +457,9 @@ export class Enum extends Declaration {
         return this.variantMap.has(name);
     }
 
-    lookupValue<E>(value: string): E {
-        assert(this.valueMap.has(value));
-        const idx = this.valueMap.get(value);
-
-        assert(idx >= 0 && idx < this.variants.length);
-        return (this.variants[idx] as any) as E;
+    indexOfName(name: string): number {
+        assert(this.variantMap.has(name));
+        return this.variantMap.get(name);
     }
 
     prettyString(): string {

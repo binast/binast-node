@@ -18,92 +18,64 @@ import {FileStore} from '../file_store';
 export type Sym = number | string;
 
 abstract class Alphabet {
-    abstract map(sym: Sym): number | undefined;
-    abstract get size(): number;
-    abstract symbols(): Iterator<[Sym, number]>;
+    readonly size: number;
+
+    protected constructor(size: number) {
+        assert(Number.isInteger(size) && (size > 0));
+        this.size = size;
+    }
+
+    abstract names(): Iterator<[number, Sym]>;
 }
 
-class SetAlphabet extends Alphabet {
+class NamedAlphabet extends Alphabet {
     readonly alphas: ReadonlyArray<Sym>;
-    readonly alphaMap: ReadonlyMap<Sym, number>;
 
-    constructor(alphas: Array<Sym>) {
-        super();
-        this.alphas = Object.freeze(alphas);
-
-        let ents = alphas.map((sym, i) => {
-            return [sym as Sym, i] as [Sym, number];
-        });
-        this.alphaMap = new Map(ents);
-
+    constructor(alphas: ReadonlyArray<Sym>) {
+        super(alphas.length);
+        this.alphas = alphas;
+        Object.freeze(alphas);
         Object.freeze(this);
     }
 
-    map(sym: Sym): number | undefined {
-        return this.alphaMap.get(sym);
-    }
-
-    get size(): number {
-        return this.alphas.length;
-    }
-
-    symbols(): Iterator<[Sym, number]> {
-        const alphas = this.alphas;
-        let i = 0;
-        return {
-            next() {
-                const [value, done] =
-                    (i >= alphas.length)
-                        ? [undefined, true]
-                        : [[alphas[i], i] as [Sym, number],
-                           false];
-                return {value, done};
-            }
-        };
+    names(): Iterator<[number, Sym]> {
+        return this.alphas.entries();
     }
 }
-class RangeAlphabet extends Alphabet {
-    readonly limit: number;
-
-    constructor(limit: number) {
-        super();
-
-        assert(Number.isInteger(limit) && (limit > 0));
-        this.limit = limit;
+class NumberedAlphabet extends Alphabet {
+    constructor(size: number) {
+        super(size);
     }
 
-    map(sym: Sym): number | undefined {
-        if ((typeof(sym) === 'number') &&
-            Number.isInteger(sym))
-        {
-            if ((sym >= 0) && (sym < this.limit)) {
-                return sym as number;
-            }
-        }
-    }
-
-    get size(): number {
-        return this.limit;
-    }
-
-    symbols(): Iterator<[Sym, number]> {
-        const limit = this.limit;
+    names(): Iterator<[number, Sym]> {
+        const size = this.size;
         let i = 0;
         return {
-            next() {
-                const [value, done] =
-                    (i >= this.limit)
-                        ? [undefined, true]
-                        : [[i, i] as [number, number],
-                           false]
-                return {value, done};
+            next(): IteratorResult<[number, Sym]> {
+                if (i < size) {
+                    return {value: [i, i], done:false};
+                } else {
+                    return {value: undefined, done:true};
+                }
             }
         };
     }
 }
 
 abstract class FreqCounter {
-    abstract recordHit(sym: Sym);
+    totalHits: number;
+
+    constructor() {
+        this.totalHits = 0;
+    }
+
+    recordHit(idx: number) {
+        this.totalHits++;
+        this.recordHitImpl(idx);
+    }
+    abstract hitCount(idx: number): number;
+
+    protected abstract recordHitImpl(idx: number);
 }
 
 class SparseFreqCounter extends FreqCounter {
@@ -112,11 +84,14 @@ class SparseFreqCounter extends FreqCounter {
     constructor() {
         super();
         this.freqs = new Map();
-        Object.freeze(this);
     }
 
-    recordHit(key: number) {
-        this.freqs.set(key, (this.freqs.get(key) || 1) + 1);
+    hitCount(idx: number): number {
+        return this.freqs.get(idx) || 0;
+    }
+
+    recordHitImpl(idx: number) {
+        this.freqs.set(idx, (this.freqs.get(idx) || 0) + 1);
     }
 }
 
@@ -126,12 +101,14 @@ class DenseFreqCounter extends FreqCounter {
     constructor(limit: number) {
         super();
         this.freqs = new Uint32Array(limit);
-        Object.freeze(this);
     }
 
-    recordHit(key: number) {
-        assert(key < this.freqs.length);
-        this.freqs[key]++;
+    hitCount(idx: number): number {
+        return this.freqs[idx];
+    }
+
+    recordHitImpl(idx: number) {
+        this.freqs[idx]++;
     }
 }
 
@@ -145,10 +122,41 @@ class FreqTable {
             FreqTable.makeFreqCounter(alphabet.size);
         Object.freeze(this);
     }
+
+    recordHit(idx: number) {
+        assert(idx < this.alphabet.size);
+        this.counter.recordHit(idx);
+    }
+
+    get totalHits(): number {
+        return this.counter.totalHits;
+    }
     
     static makeFreqCounter(size: number): FreqCounter {
         return (size <= 256) ? new DenseFreqCounter(size)
                              : new SparseFreqCounter();
+    }
+
+    summarizeFreqs(): Array<HitResult> {
+        let result: Array<HitResult> = [];
+        let namesIter = this.alphabet.names();
+        for (let next = namesIter.next();
+             !next.done;
+             next = namesIter.next())
+        {
+            const [index, name] = next.value;
+            const hits = this.counter.hitCount(index);
+            result.push({name, index, hits});
+        }
+        result.sort((a, b) => {
+            return b.hits - a.hits;
+        });
+        result.unshift({
+            name: 'ALL',
+            index: -1,
+            hits: this.totalHits
+        });
+        return result;
     }
 }
 
@@ -242,13 +250,18 @@ class PathSuffix {
     static forLocation(schema: S.TreeSchema,
                        loc: S.TreeLocation,
                        length: number)
-      : PathSuffix
+      : PathSuffix|null
     {
         assert(Number.isInteger(length) && (length > 0));
         const sliceAccum: Array<PathSlice|null> = [];
 
-        logger.log("KVKV Begin Iter!");
         const iter = loc.ancestors();
+
+        if ((typeof(iter.key) === 'number') &&
+            (iter.key > 4))
+        {
+            return null;
+        };
 
         // Start off with the key for the current symbol.
         let symAccum: Array<Sym> = [iter.key];
@@ -257,27 +270,33 @@ class PathSuffix {
         iter.next();
 
         for (/**/; !iter.done; iter.next()) {
-            logger.log(`KVKV     LEN=${sliceAccum.length}!`);
             if (sliceAccum.length == length) {
-                logger.log(`KVKV Accum done!`);
                 break;
             }
+            const key = iter.key;
+
+            // Number keys are only ever array indices.
+            // Generalize through them (don't use them
+            // for predictive specificity in paths except
+            // at the leaves).
+            if (typeof(key) === 'number') {
+                return null;
+            }
+
             const shape = iter.shape;
-            logger.log(`KVKV     Got Shape=${shape.prettyString()}`);
             const shapeTy = shape.ty;
+
+
             if (! (shapeTy instanceof S.FieldTypeIface)) {
-                logger.log(`KVKV     Got Inner!`);
-                symAccum.push(iter.key);
+                symAccum.push(key);
                 continue;
             }
             // Get the iface and check for node flag.
             const decl = schema.getDecl(shapeTy.name);
             assert(decl instanceof S.Iface);
             const iface = decl as S.Iface;
-            logger.log(`KVKV     Got Iface!`);
 
             if ((iface as S.Iface).isNode) {
-                logger.log(`KVKV     Got Node, slicing!`);
                 // Arrived at a piece.  Push it.
                 const syms = symAccum.reverse();
                 symAccum = [iter.key];
@@ -286,7 +305,6 @@ class PathSuffix {
                 sliceAccum.push(
                     PathSlice.make(iface, syms));
             } else {
-                logger.log(`KVKV     Pushing Non-Node Iface!`);
                 symAccum.push(iter.key);
             }
         }
@@ -298,7 +316,7 @@ class PathSuffix {
             sliceAccum.push(null);
         }
         Object.freeze(sliceAccum.reverse());
-        return new PathSuffix(sliceAccum);
+        return PathSuffix.make(sliceAccum);
     }
                             
 
@@ -361,27 +379,305 @@ export class PathSuffixAnalysis
             handler: handler
         });
         visitor.visit();
+
+        const results = handler.summarizeFreqs();
+        assert(subpath.match(/\.js$/));
+
+        const genpath = (rep:string) => {
+            return this.dataPath(`${suffixLength}/` +
+                        subpath.replace(/\.js$/, rep));
+        };
+        const jsonpath = genpath('.json');
+
+        this.resultStore.writeJSON(jsonpath, results);
     }
 }
+
+export type HitResult = {
+    name: Sym,
+    index: number,
+    hits: number
+};
+export type FreqResult = {
+    suffix: string,
+    totalHits: number,
+    freqs: Array<HitResult>
+};
 
 export class PathSuffixHandler
   implements S.VisitHandler
 {
-    readonly length: number;
+    readonly suffixLength: number;
+    readonly suffixFreqMap: Map<string, FreqTable>;
+    readonly alphabetCache: Map<S.PathShape, Alphabet>;
+    readonly valueAlphabetCache:
+        Map<string, Alphabet>;
 
-    constructor(length: number) {
-        this.length = length;
+    constructor(suffixLength: number) {
+        this.suffixLength = suffixLength;
+        this.suffixFreqMap = new Map();
+        this.alphabetCache = new Map();
+        this.valueAlphabetCache = new Map();
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
         const suffix = PathSuffix.forLocation(
-                            schema, loc, this.length);
+                            schema, loc, this.suffixLength);
+        if (suffix === null) {
+            return;
+        }
+
         const suffixStr = suffix.keyString();
         const shapeStr = shape.prettyString();
-        logger.log(`Suffix ${suffixStr} => ${shapeStr}`);
+        // logger.log(`KVKV Suffix ${suffixStr} => ${shapeStr}`);
+
+        const freqs = this.getFreqs(schema, shape, suffix,
+                                    'type');
+        if (freqs !== null) {
+            freqs.recordHit(shape.index);
+        }
+
+        const valFreqs = this.getValueFreqs(
+            schema, shape, suffix);
+        if (valFreqs !== null) {
+            this.recordValueHit(
+                schema, shape.ty, value, valFreqs);
+        }
     }
 
     end(schema: S.TreeSchema, loc: S.TreeLocation) {
+    }
+
+    summarizeFreqs(): Array<FreqResult> {
+        // Sort the suffixes by freqTable totals,
+        // largest to smallest.
+        const taggedSuffixes =
+            Array.from(this.suffixFreqMap.keys())
+                .sort((a, b) => {
+                    const ax = this.suffixFreqMap.get(a);
+                    const bx = this.suffixFreqMap.get(b);
+                    return bx.totalHits - ax.totalHits;
+                });
+        const result: Array<FreqResult> = [];
+        for (let suffix of taggedSuffixes) {
+            const ftable = this.suffixFreqMap.get(suffix);
+            result.push({
+                suffix: suffix,
+                totalHits: ftable.totalHits,
+                freqs: ftable.summarizeFreqs()
+            });
+        }
+        return result;
+    }
+
+    private getFreqs(schema: S.TreeSchema,
+                     shape: S.PathShape,
+                     suffix: PathSuffix,
+                     tag: string)
+      : FreqTable|null
+    {
+        const suffixStr = suffix.keyString();
+        const suffixTag = `${suffixStr}#${tag}`;
+        const existing = this.suffixFreqMap.get(suffixTag);
+        if (existing) {
+            return existing;
+        }
+        const alphabet = this.getAlphabet(schema, shape);
+        if (alphabet.size === 1) {
+            return null;
+        }
+        const freqTable = new FreqTable(alphabet);
+        this.suffixFreqMap.set(suffixTag, freqTable);
+        return freqTable;
+    }
+
+    private getAlphabet(schema: S.TreeSchema,
+                        shape: S.PathShape)
+      : Alphabet
+    {
+        const existing = this.alphabetCache.get(shape);
+        if (existing) {
+            return existing;
+        }
+        const symbols = shape.typeSet.tys.map(ty => {
+            return ty.prettyString();
+        });
+        const created = new NamedAlphabet(symbols);
+        this.alphabetCache.set(shape, created);
+        return created;
+    }
+
+    private getValueFreqs(schema: S.TreeSchema,
+                          shape: S.PathShape,
+                          suffix: PathSuffix)
+      : FreqTable|null
+    {
+        const suffixStr = suffix.keyString();
+        const tag = this.getValueAlphabetKey(schema,
+                                             shape.ty);
+        if (tag === null) {
+            return null;
+        }
+        const suffixTag = `${suffixStr}#${tag}`;
+
+        const existing = this.suffixFreqMap.get(suffixTag);
+        if (existing) {
+            return existing;
+        }
+
+        const alphabet =
+            this.getValueAlphabet(schema, shape.ty);
+        if (alphabet === null) {
+            return;
+        }
+        const freqTable = new FreqTable(alphabet);
+        this.suffixFreqMap.set(suffixTag, freqTable);
+        return freqTable;
+    }
+
+    private recordValueHit(schema: S.TreeSchema,
+                           ty: S.TerminalFieldType,
+                           value: S.Value,
+                           freqs: FreqTable)
+    {
+        const alphaSize = freqs.alphabet.size;
+        if (ty instanceof S.FieldTypePrimitive) {
+            switch (ty) {
+              case S.FieldTypePrimitive.Bool:
+                assert(typeof(value) == 'boolean');
+                freqs.recordHit(value ? 1 : 0);
+                break;
+              case S.FieldTypePrimitive.Uint:
+                assert(typeof(value) == 'number');
+                if (value < alphaSize - 1) {
+                    freqs.recordHit(value as number);
+                } else {
+                    freqs.recordHit(alphaSize - 1);
+                }
+                break;
+              case S.FieldTypePrimitive.Int:
+                assert(typeof(value) == 'number');
+                const num = value as number;
+                if ((num >= -1) && (num < (alphaSize - 2)))
+                {
+                    freqs.recordHit((num + 1) as number);
+                } else {
+                    freqs.recordHit(alphaSize - 1);
+                }
+                break;
+              default:
+                throw new Error('Bad primitive type.');
+            }
+        } else if (ty instanceof S.FieldTypeArray) {
+            assert(value instanceof Array);
+            let len = (value as Array<any>).length;
+            if (len < (alphaSize - 1)) {
+                freqs.recordHit(len);
+            } else {
+                freqs.recordHit(alphaSize - 1);
+            }
+        } else if (ty instanceof S.FieldTypeEnum) {
+            assert(typeof(value) === 'string');
+            const en = schema.getDecl(ty.name) as S.Enum;
+            assert(en instanceof S.Enum);
+            const idx = en.indexOfName(value as string);
+            freqs.recordHit(idx);
+        } else {
+            throw new Error('Bad terminal field type.');
+        }
+    }
+
+    private getValueAlphabet(schema: S.TreeSchema,
+                             ty: S.TerminalFieldType)
+      : Alphabet|null
+    {
+        let key: string|null =
+            this.getValueAlphabetKey(schema, ty);
+        if (key === null) {
+            return null;
+        }
+        const existing = this.valueAlphabetCache.get(key);
+        if (existing) {
+            return existing;
+        }
+
+        let alphaValues: Array<Sym>;
+        if (ty instanceof S.FieldTypePrimitive) {
+            switch (ty) {
+              case S.FieldTypePrimitive.Bool:
+                alphaValues = ['true', 'false'];
+                break;
+              case S.FieldTypePrimitive.Uint:
+                alphaValues = [0, 1, 2, 3, 4, 5, 6, 7,
+                               'MISS'];
+                break;
+              case S.FieldTypePrimitive.Int:
+                alphaValues = [-1, 0, 1, 2, 3, 4, 5, 6,
+                               'MISS'];
+                break;
+              default:
+                throw new Error('Bad primitive type.');
+            }
+        } else if (ty instanceof S.FieldTypeArray) {
+            const arr = new Array<Sym>();
+            for (let i = 0; i < 16; i++) { arr.push(i); }
+            arr.push('MISS');
+            alphaValues = arr;
+        } else if (ty instanceof S.FieldTypeEnum) {
+            let decl = schema.getDecl(ty.name) as S.Enum;
+            assert(decl instanceof S.Enum);
+            let en = decl as S.Enum;
+            alphaValues = en.variants.map(v => {
+                return v.name.fullName;
+            });
+        } else {
+            throw new Error('Bad terminal field type.');
+        }
+
+        assert(alphaValues.length > 1);
+        const created = new NamedAlphabet(alphaValues);
+        this.valueAlphabetCache.set(key, created);
+        return created;
+    }
+
+    private getValueAlphabetKey(schema: S.TreeSchema,
+                                ty: S.TerminalFieldType)
+      : string|null
+    {
+        if (ty instanceof S.FieldTypePrimitive) {
+            switch (ty) {
+              case S.FieldTypePrimitive.Null:
+              case S.FieldTypePrimitive.F64:
+              case S.FieldTypePrimitive.Str:
+                // Single-entry, no value.
+                return null;
+              case S.FieldTypePrimitive.Bool:
+                return 'bool';
+              case S.FieldTypePrimitive.Uint:
+                return 'uint';
+              case S.FieldTypePrimitive.Int:
+                return 'int';
+              default:
+                throw new Error('Unknown primitive type.');
+            }
+        } else if (ty instanceof S.FieldTypeArray) {
+            return 'arrayLength';
+        } else if (ty instanceof S.FieldTypeEnum) {
+            return ty.name.name;
+        } else if ((ty instanceof S.FieldTypeIface) ||
+                   (ty instanceof S.FieldTypeIdent))
+        {
+            // Ifaces have no value to encode (their
+            // components will be encoded under their
+            // own context).
+
+            // Idents are encoded through a sequential
+            // probability model, ignored in context model.
+
+            return null;
+        } else {
+            throw new Error('Bad terminal field type.');
+        }
     }
 }
