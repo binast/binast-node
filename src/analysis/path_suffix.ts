@@ -131,7 +131,7 @@ class FreqTable {
     get totalHits(): number {
         return this.counter.totalHits;
     }
-    
+
     static makeFreqCounter(size: number): FreqCounter {
         return (size <= 256) ? new DenseFreqCounter(size)
                              : new SparseFreqCounter();
@@ -150,11 +150,6 @@ class FreqTable {
         }
         result.sort((a, b) => {
             return b.hits - a.hits;
-        });
-        result.unshift({
-            name: 'ALL',
-            index: -1,
-            hits: this.totalHits
         });
         return result;
     }
@@ -318,7 +313,6 @@ class PathSuffix {
         Object.freeze(sliceAccum.reverse());
         return PathSuffix.make(sliceAccum);
     }
-                            
 
     keyString(): string {
         return PathSuffix.makeKey(this.slices);
@@ -341,12 +335,15 @@ const MAX_PATH_SUFFIX_LENGTH: number = 3;
 export class PathSuffixAnalysis
   extends Analysis
 {
+    readonly globalFreqMap: Map<string, FreqTable>;
+
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
                 resultStore: FileStore,
                 opts: object)
     {
         super(schema, scriptStore, resultStore, opts);
+        this.globalFreqMap = new Map();
     }
 
     get name(): string {
@@ -366,12 +363,23 @@ export class PathSuffixAnalysis
     }
 
     endAnalysis() {
+        const suffixLength = this.getSuffixLength();
+        const results = summarizeFreqs(this.globalFreqMap);
+
+        const jsonpath =
+            this.dataPath(`${suffixLength}/ALL.json`);
+        this.resultStore.writeJSON(jsonpath, results);
+
+        const txtpath =
+            this.dataPath(`${suffixLength}/ALL.txt`);
+        this.generateSummaryReport(txtpath, results);
     }
 
     analyzeAst(subpath: string, script: TS.Script)
     {
         const suffixLength = this.getSuffixLength();
-        const handler = new PathSuffixHandler(suffixLength);
+        const handler = new PathSuffixHandler(suffixLength,
+                                    this.globalFreqMap);
 
         const visitor = S.Visitor.make({
             schema: this.schema,
@@ -388,9 +396,73 @@ export class PathSuffixAnalysis
                         subpath.replace(/\.js$/, rep));
         };
         const jsonpath = genpath('.json');
+        const txtpath = genpath('.txt');
 
         this.resultStore.writeJSON(jsonpath, results);
+        this.generateSummaryReport(txtpath, results);
     }
+
+    private generateSummaryReport(path: string,
+                              results: Array<FreqResult>)
+    {
+        this.resultStore.writeSinkString(path, ss => {
+            for (let entry of results) {
+                const {suffix, totalHits, freqs} = entry;
+
+                ss.write(`Suffix ${suffix}` +
+                         `  [hits=${totalHits}]\n`);
+
+                let sumProb = 0;
+                for (let freq of freqs) {
+                    let {name, index, hits} = freq;
+
+                    const prob = hits / totalHits;
+                    sumProb += prob;
+
+                    const rprob =
+                        ((prob * 10000)>>>0) / 100;
+                    const rsum =
+                        ((sumProb * 10000)>>>0) / 100;
+
+                    const bits =
+                        Math.log(1/prob) / Math.log(2);
+                    const rbits =
+                        ((bits * 100)>>>0) / 100;
+
+                    ss.write(
+                        `    ${name}\n` +
+                        `        hits=${hits},` +
+                        ` bits=${rbits},` +
+                        ` prob = ${rprob},` +
+                        ` accum = ${rsum}\n\n`);
+                }
+            }
+        });
+    }
+}
+
+function summarizeFreqs(freqMap: Map<string, FreqTable>)
+  : Array<FreqResult>
+{
+    // Sort the suffixes by freqTable totals,
+    // largest to smallest.
+    const taggedSuffixes =
+        Array.from(freqMap.keys())
+            .sort((a:string , b:string) => {
+                const ax = freqMap.get(a);
+                const bx = freqMap.get(b);
+                return bx.totalHits - ax.totalHits;
+            });
+    const result: Array<FreqResult> = [];
+    for (let suffix of taggedSuffixes) {
+        const ftable = freqMap.get(suffix);
+        result.push({
+            suffix: suffix,
+            totalHits: ftable.totalHits,
+            freqs: ftable.summarizeFreqs()
+        });
+    }
+    return result;
 }
 
 export type HitResult = {
@@ -408,13 +480,17 @@ export class PathSuffixHandler
   implements S.VisitHandler
 {
     readonly suffixLength: number;
+    readonly globalFreqMap: Map<string, FreqTable>;
     readonly suffixFreqMap: Map<string, FreqTable>;
     readonly alphabetCache: Map<S.PathShape, Alphabet>;
     readonly valueAlphabetCache:
         Map<string, Alphabet>;
 
-    constructor(suffixLength: number) {
+    constructor(suffixLength: number,
+                globalFreqMap: Map<string, FreqTable>)
+    {
         this.suffixLength = suffixLength;
+        this.globalFreqMap = globalFreqMap;
         this.suffixFreqMap = new Map();
         this.alphabetCache = new Map();
         this.valueAlphabetCache = new Map();
@@ -428,18 +504,32 @@ export class PathSuffixHandler
             return;
         }
 
+        this.updateFreqTables(schema, shape, suffix, value,
+            this.globalFreqMap);
+        this.updateFreqTables(schema, shape, suffix, value,
+            this.suffixFreqMap);
+    }
+
+    private updateFreqTables(
+        schema: S.TreeSchema,
+        shape: S.PathShape,
+        suffix: PathSuffix,
+        value: S.Value,
+        freqMap: Map<string, FreqTable>)
+    {
         const suffixStr = suffix.keyString();
         const shapeStr = shape.prettyString();
         // logger.log(`KVKV Suffix ${suffixStr} => ${shapeStr}`);
+        const freqs =
+            this.getFreqsFrom(schema, shape, suffix,
+                              'type', freqMap);
 
-        const freqs = this.getFreqs(schema, shape, suffix,
-                                    'type');
         if (freqs !== null) {
             freqs.recordHit(shape.index);
         }
 
-        const valFreqs = this.getValueFreqs(
-            schema, shape, suffix);
+        const valFreqs = this.getValueFreqsFrom(
+            schema, shape, suffix, freqMap);
         if (valFreqs !== null) {
             this.recordValueHit(
                 schema, shape.ty, value, valFreqs);
@@ -450,36 +540,20 @@ export class PathSuffixHandler
     }
 
     summarizeFreqs(): Array<FreqResult> {
-        // Sort the suffixes by freqTable totals,
-        // largest to smallest.
-        const taggedSuffixes =
-            Array.from(this.suffixFreqMap.keys())
-                .sort((a, b) => {
-                    const ax = this.suffixFreqMap.get(a);
-                    const bx = this.suffixFreqMap.get(b);
-                    return bx.totalHits - ax.totalHits;
-                });
-        const result: Array<FreqResult> = [];
-        for (let suffix of taggedSuffixes) {
-            const ftable = this.suffixFreqMap.get(suffix);
-            result.push({
-                suffix: suffix,
-                totalHits: ftable.totalHits,
-                freqs: ftable.summarizeFreqs()
-            });
-        }
-        return result;
+        return summarizeFreqs(this.suffixFreqMap);
     }
 
-    private getFreqs(schema: S.TreeSchema,
-                     shape: S.PathShape,
-                     suffix: PathSuffix,
-                     tag: string)
+    private getFreqsFrom(
+        schema: S.TreeSchema,
+        shape: S.PathShape,
+        suffix: PathSuffix,
+        tag: string,
+        freqMap: Map<string, FreqTable>)
       : FreqTable|null
     {
         const suffixStr = suffix.keyString();
         const suffixTag = `${suffixStr}#${tag}`;
-        const existing = this.suffixFreqMap.get(suffixTag);
+        const existing = freqMap.get(suffixTag);
         if (existing) {
             return existing;
         }
@@ -488,7 +562,7 @@ export class PathSuffixHandler
             return null;
         }
         const freqTable = new FreqTable(alphabet);
-        this.suffixFreqMap.set(suffixTag, freqTable);
+        freqMap.set(suffixTag, freqTable);
         return freqTable;
     }
 
@@ -508,9 +582,11 @@ export class PathSuffixHandler
         return created;
     }
 
-    private getValueFreqs(schema: S.TreeSchema,
-                          shape: S.PathShape,
-                          suffix: PathSuffix)
+    private getValueFreqsFrom(
+        schema: S.TreeSchema,
+        shape: S.PathShape,
+        suffix: PathSuffix,
+        freqMap: Map<string, FreqTable>)
       : FreqTable|null
     {
         const suffixStr = suffix.keyString();
@@ -521,7 +597,7 @@ export class PathSuffixHandler
         }
         const suffixTag = `${suffixStr}#${tag}`;
 
-        const existing = this.suffixFreqMap.get(suffixTag);
+        const existing = freqMap.get(suffixTag);
         if (existing) {
             return existing;
         }
@@ -532,7 +608,7 @@ export class PathSuffixHandler
             return;
         }
         const freqTable = new FreqTable(alphabet);
-        this.suffixFreqMap.set(suffixTag, freqTable);
+        freqMap.set(suffixTag, freqTable);
         return freqTable;
     }
 
