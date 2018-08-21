@@ -5,6 +5,7 @@ import * as S from 'binast-schema';
 import * as TS from '../typed_schema';
 
 import {Analysis} from '../analysis';
+import {StringSink} from '../data_sink';
 import {FileStore} from '../file_store';
 
 export const MAX_WINDOW_SIZE: number = 4096;
@@ -13,7 +14,7 @@ export const DEFAULT_WINDOW_SIZE: number = 64;
 export class StringWindowAnalysis
   extends Analysis
 {
-    readonly globalCounters: Map<number, HitCounter>;
+    readonly globalCounters: Map<number, CounterGroup>;
 
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
@@ -53,8 +54,9 @@ export class StringWindowAnalysis
     }
 
     private summarizeWindowSize(windowSize: number) {
-        const hc = this.globalCounters.get(windowSize);
-        const results = hc.summarizeHits();
+        const group = this.globalCounters.get(windowSize);
+        const results: GroupResult =
+            group.summarizeHits();
 
         const jsonpath =
             this.dataPath(`${windowSize}/ALL.json`);
@@ -65,12 +67,12 @@ export class StringWindowAnalysis
         this.generateSummaryReport(txtpath, results);
     }
 
-    private getGlobalCounter(windowSize: number)
-      : HitCounter
+    private getGlobalCounters(windowSize: number)
+      : CounterGroup
     {
         if (! this.globalCounters.has(windowSize)) {
-            let hc = new HitCounter(windowSize);
-            this.globalCounters.set(windowSize, hc);
+            let group = new CounterGroup(windowSize);
+            this.globalCounters.set(windowSize, group);
         }
         return this.globalCounters.get(windowSize);
     }
@@ -85,12 +87,12 @@ export class StringWindowAnalysis
                               script: TS.Script,
                               windowSize: number)
     {
-        const globalCounter =
-            this.getGlobalCounter(windowSize);
+        const globalCounters =
+            this.getGlobalCounters(windowSize);
 
         const handler =
             new StringWindowHandler(windowSize,
-                                    globalCounter);
+                                    globalCounters);
 
         const visitor = S.Visitor.make({
             schema: this.schema,
@@ -114,28 +116,48 @@ export class StringWindowAnalysis
     }
 
     private generateSummaryReport(path: string,
-                                  results: Array<HitResult>)
+                                  results: GroupResult)
     {
         this.resultStore.writeSinkString(path, ss => {
-            let sumProb = 0;
-            for (let entry of results) {
-                const {index, count, prob} = entry;
+            ss.write(`WindowSize=${results.windowSize}\n`);
 
-                sumProb += prob;
+            this.generateTableReport(ss, 'idents',
+                                     results.idents);
 
-                const rprob = ((prob * 1000)>>>0) / 10;
-                const rsum = ((sumProb * 1000)>>>0) / 10;
+            this.generateTableReport(ss, 'props',
+                                     results.props);
 
-                const bits = Math.log(1/prob) / Math.log(2);
-                const rbits = ((bits * 100)>>>0) / 100;
-
-                ss.write(
-                    `HITS ${index} => ${count},` +
-                    ` bits=${rbits},` +
-                    ` prob = ${rprob},` +
-                    ` accum = ${rsum}\n`);
-            }
+            this.generateTableReport(ss, 'strings',
+                                     results.strings);
         });
+    }
+
+    private generateTableReport(ss: StringSink,
+                                name: string,
+                                hits: Array<HitResult>)
+    {
+        ss.write(`Table ${name}:\n`);
+
+        let sumProb: number = 0;
+
+        for (let entry of hits) {
+            const {index, count, prob} = entry;
+
+            sumProb += prob;
+
+            const rprob = ((prob * 1000)>>>0) / 10;
+            const rsum = ((sumProb * 1000)>>>0) / 10;
+
+            const bits = Math.log(1/prob) / Math.log(2);
+            const rbits = ((bits * 100)>>>0) / 100;
+
+            ss.write(
+                `    INDEX ${index}\n` +
+                `        hits=${count},` +
+                ` bits=${rbits},` +
+                ` prob=${rprob},` +
+                ` accum=${rsum}\n`);
+        }
     }
 }
 
@@ -143,20 +165,19 @@ export class StringWindowHandler
   implements S.VisitHandler
 {
     readonly size: number;
-    readonly cache: StringCache;
-    readonly counter: HitCounter;
-    readonly globalCounter: HitCounter;
+    readonly identCache: StringCache;
+    readonly propCache: StringCache;
+    readonly stringCache: StringCache;
+    readonly counter: CounterGroup;
+    readonly globalCounter: CounterGroup;
 
-    constructor(size: number, globalCounter: HitCounter) {
+    constructor(size: number, globalCounter: CounterGroup) {
         this.size = size;
-        this.cache = new StringCache(size);
-        this.counter = new HitCounter(size);
+        this.identCache = new StringCache(size);
+        this.propCache = new StringCache(size);
+        this.stringCache = new StringCache(size);
+        this.counter = new CounterGroup(size);
         this.globalCounter = globalCounter;
-    }
-
-    private recordHit(hitIdx: number) {
-        this.counter.recordHit(hitIdx);
-        this.globalCounter.recordHit(hitIdx);
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
@@ -164,8 +185,27 @@ export class StringWindowHandler
         if (shape.ty instanceof S.FieldTypeIdent) {
             assert(value instanceof S.Identifier);
             const name = (value as S.Identifier).name;
-            const hitIdx = this.cache.lookup(name);
-            this.recordHit(hitIdx);
+            const tag = shape.ty.tag;
+            if (tag === 'ident') {
+                const idx = this.identCache.lookup(name);
+                this.counter.recordIdentHit(idx);
+                this.globalCounter.recordIdentHit(idx);
+            } else if (tag === 'prop') {
+                const idx = this.propCache.lookup(name);
+                this.counter.recordPropHit(idx);
+                this.globalCounter.recordPropHit(idx);
+            } else {
+                throw new Error(`Unrecognized prop name ` +
+                                            name);
+            }
+        } else if (shape.ty === S.FieldTypePrimitive.Str) {
+            assert(typeof(value) === 'string');
+
+            const idx =
+                this.stringCache.lookup(value as string);
+
+            this.counter.recordStringHit(idx);
+            this.globalCounter.recordStringHit(idx);
         }
     }
 
@@ -209,6 +249,46 @@ export class StringCache {
         if (elems.length >= (this.limit * 2)) {
             elems.splice(this.limit);
         }
+    }
+}
+
+export type GroupResult = {
+    windowSize: number,
+    idents: Array<HitResult>,
+    props: Array<HitResult>,
+    strings: Array<HitResult>,
+};
+
+export class CounterGroup {
+    readonly windowSize: number;
+    readonly identCounter: HitCounter;
+    readonly propCounter: HitCounter;
+    readonly stringCounter: HitCounter;
+
+    constructor(windowSize: number) {
+        this.windowSize = windowSize;
+        this.identCounter = new HitCounter(windowSize);
+        this.propCounter = new HitCounter(windowSize);
+        this.stringCounter = new HitCounter(windowSize);
+    }
+
+    recordIdentHit(index: number) {
+        this.identCounter.recordHit(index);
+    }
+    recordPropHit(index: number) {
+        this.propCounter.recordHit(index);
+    }
+    recordStringHit(index: number) {
+        this.stringCounter.recordHit(index);
+    }
+
+    summarizeHits(): GroupResult {
+        return {
+            windowSize: this.windowSize,
+            idents: this.identCounter.summarizeHits(),
+            props: this.propCounter.summarizeHits(),
+            strings: this.stringCounter.summarizeHits()
+        };
     }
 }
 

@@ -125,7 +125,16 @@ class Lifter {
                     && (item['name'] == 'IdentifierType'))
                 {
                     isIdentifier = true;
-                    identTag = name;
+                    if (item['rhs']) {
+                        assert(item['rhs']['type']
+                                    === 'identifier');
+                        assert(item['rhs']['value'].length
+                                    > 0);
+                        identTag = item['rhs']['value'] as
+                                                    string;
+                    } else {
+                        identTag = name;
+                    }
                 }
             }
         }

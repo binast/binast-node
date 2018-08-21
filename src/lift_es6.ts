@@ -1653,14 +1653,20 @@ export class Importer {
         }
     }
 
+    liftPropertyString(str: string): TS.PropertyString {
+        const prop = S.Identifier.make(str);
+        this.ids.note(prop);
+        return prop;
+    }
+
     liftStaticPropertyName(json: any)
       : TS.LiteralPropertyName
     {
         assertNodeType(json, 'StaticPropertyName');
         assertType(json.value, 'string');
 
-        const value = json.value as string;
-        this.strings.note(value);
+        const value = this.liftPropertyString(
+                                   json.value as string);
 
         return TS.LiteralPropertyName.make({value});
     }

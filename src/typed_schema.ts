@@ -78,7 +78,7 @@ export const ReflectedSchema = {
     get Identifier(): S.Typedef {
         if (!this["c_Identifier"]) {
             const typeName = S.TypeName.make("Identifier");
-            const aliased = TIdent("Identifier");
+            const aliased = TIdent("ident");
             this["c_Identifier"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -93,7 +93,7 @@ export const ReflectedSchema = {
     get IdentifierName(): S.Typedef {
         if (!this["c_IdentifierName"]) {
             const typeName = S.TypeName.make("IdentifierName");
-            const aliased = TIdent("IdentifierName");
+            const aliased = TIdent("ident");
             this["c_IdentifierName"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -102,6 +102,21 @@ export const ReflectedSchema = {
     },
     get typeof_IdentifierName(): S.FieldType {
         return this.IdentifierName.aliased;
+    },
+
+
+    get PropertyString(): S.Typedef {
+        if (!this["c_PropertyString"]) {
+            const typeName = S.TypeName.make("PropertyString");
+            const aliased = TIdent("ident");
+            this["c_PropertyString"] = new S.Typedef(
+                               typeName, aliased)
+        }
+        assert(this["c_PropertyString"] instanceof S.Typedef);
+        return this["c_PropertyString"] as S.Typedef;
+    },
+    get typeof_PropertyString(): S.FieldType {
+        return this.PropertyString.aliased;
     },
 
 
@@ -1886,7 +1901,7 @@ export const ReflectedSchema = {
             const fields: Array<S.IfaceField> = [
             new S.IfaceField(
                 /* name = */ "value",
-                /* ty = */ TStr,
+                /* ty = */ TNamed("PropertyString"),
                 /* isLazy = */ false),
             ];
             this["c_LiteralPropertyName"] = new S.Iface(typeName, fields, true);
@@ -3526,6 +3541,7 @@ export const ReflectedSchema = {
             d.push(ReflectedSchema.Arguments);
             d.push(ReflectedSchema.Identifier);
             d.push(ReflectedSchema.IdentifierName);
+            d.push(ReflectedSchema.PropertyString);
             d.push(ReflectedSchema.Label);
             d.push(ReflectedSchema.VariableDeclarationKind);
             d.push(ReflectedSchema.CompoundAssignmentOperator);
@@ -3688,6 +3704,9 @@ export type Identifier = S.Identifier;
 
 
 export type IdentifierName = S.Identifier;
+
+
+export type PropertyString = S.Identifier;
 
 
 export type Label = string;
@@ -5484,7 +5503,7 @@ export class ComputedPropertyName
 
 
 export interface I_LiteralPropertyName {
-    readonly value: string;
+    readonly value: PropertyString;
 } // I_LiteralPropertyName
 
 export class LiteralPropertyName
@@ -5506,7 +5525,7 @@ export class LiteralPropertyName
         return new LiteralPropertyName(data);
     }
 
-    get value(): string {
+    get value(): PropertyString {
        return this.data$.value;
     }
 }

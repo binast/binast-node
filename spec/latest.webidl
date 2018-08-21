@@ -3,11 +3,14 @@
 typedef FrozenArray<(SpreadElement or Expression)> Arguments;
 typedef DOMString string;
 
-[IdentifierType]
+[IdentifierType=ident]
 typedef string Identifier;
 
-[IdentifierType]
+[IdentifierType=ident]
 typedef string IdentifierName;
+
+[IdentifierType=prop]
+typedef string PropertyString;
 
 typedef string Label;
 
@@ -517,7 +520,7 @@ interface ComputedPropertyName : Node {
 
 // `LiteralPropertyName`
 interface LiteralPropertyName : Node {
-  attribute string value;
+  attribute PropertyString value;
 };
 
 
