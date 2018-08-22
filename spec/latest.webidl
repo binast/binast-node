@@ -696,7 +696,7 @@ interface StaticMemberExpression : Node {
   // The object whose property is being accessed.
   attribute (Expression or Super) _object;
   // The name of the property to be accessed.
-  attribute IdentifierName property;
+  attribute PropertyString property;
 };
 
 // `TemplateLiteral`,
