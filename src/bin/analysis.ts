@@ -21,6 +21,9 @@ import {StringWindowAnalysis}
 import {PathSuffixAnalysis}
     from '../analysis/path_suffix';
 
+import {GlobalStringsAnalysis}
+    from '../analysis/global_strings';
+
 const SCHEMA = TS.ReflectedSchema.schema;
 
 function main() {
@@ -49,6 +52,9 @@ function main() {
     }
     if (opts['path-suffix']) {
         analyses.push('path-suffix');
+    }
+    if (opts['global-strings']) {
+        analyses.push('global-strings');
     }
 
     runStoreSuite(SCHEMA, scriptStore, resultStore,
@@ -92,6 +98,9 @@ function makeAnalysisTask(name: string,
                     schema, scriptStore, resultStore, opts);
       case 'path-suffix':
         return new PathSuffixAnalysis(
+                    schema, scriptStore, resultStore, opts);
+      case 'global-strings':
+        return new GlobalStringsAnalysis(
                     schema, scriptStore, resultStore, opts);
     }
     throw new Error(`Unknown analysis ${name}`);
