@@ -344,8 +344,12 @@ class Context {
     ): T
     {
         this.scopeStack.push(scope);
-        const result = f(scope);
-        this.scopeStack.pop();
+        let result;
+        try {
+            result = f(scope);
+        } finally {
+            this.scopeStack.pop();
+        }
         return result;
     }
 
@@ -376,6 +380,9 @@ class Context {
     }
     bindParameters<T>(f: () => T): T {
         return this.bind<T>(ScopeBindMode.Parameter, f);
+    }
+    bindCatchClause<T>(f: () => T): T {
+        return this.bind<T>(ScopeBindMode.CatchClause, f);
     }
     private bind<T>(mode: ScopeBindMode, f: () => T): T {
         this.bindStack.push(mode);
@@ -658,8 +665,11 @@ export class Importer {
             return this.liftLabeledStatement(json);
           case 'EmptyStatement':
             return this.liftEmptyStatement(json);
+          case 'WithStatement':
+            return this.liftWithStatement(json);
           default:
-            throw new MatchError('Statement', json.type);
+            throw new MatchError('Statement',
+                        summarizeNode(json));
         }
     }
 
@@ -1030,8 +1040,7 @@ export class Importer {
         assertNodeType(json, 'CatchClause');
 
         return this.cx.enterBoundNamesScope(bs => {
-
-            const binding = this.cx.bindParameters(() => {
+            const binding = this.cx.bindCatchClause(() => {
                 return this.liftBindingIdentifier(
                                         json.binding);
             });
@@ -1144,6 +1153,14 @@ export class Importer {
         assertNodeType(json, 'EmptyStatement');
 
         return TS.EmptyStatement.make({});
+    }
+    liftWithStatement(json: any): TS.WithStatement {
+        assertNodeType(json, 'WithStatement');
+
+        const object = this.liftExpression(json.object);
+        const body = this.liftStatement(json.body);
+
+        return TS.WithStatement.make({object, body});
     }
 
     liftExpression(json: any): TS.Expression {
@@ -1291,11 +1308,22 @@ export class Importer {
           case 'Setter':
             return this.liftSetter(json);
           case 'ShorthandProperty':
+            return this.liftShorthandProperty(json);
           default:
             throw new MatchError('ObjectProperty',
                                  summarizeNode(json));
 
         }
+    }
+
+    liftDataProperty(json: any): TS.DataProperty {
+        assertNodeType(json, 'DataProperty');
+
+        const name = this.liftPropertyName(json.name);
+        const expression = this.liftExpression(
+                                        json.expression);
+
+        return TS.DataProperty.make({name, expression});
     }
 
     liftGetter(json: any): TS.Getter {
@@ -1371,14 +1399,13 @@ export class Importer {
         });
     }
 
-    liftDataProperty(json: any): TS.DataProperty {
-        assertNodeType(json, 'DataProperty');
+    liftShorthandProperty(json: any): TS.ShorthandProperty {
+        assertNodeType(json, 'ShorthandProperty');
 
-        const name = this.liftPropertyName(json.name);
-        const expression = this.liftExpression(
-                                        json.expression);
+        const name =
+            this.liftIdentifierExpression(json.name);
 
-        return TS.DataProperty.make({name, expression});
+        return TS.ShorthandProperty.make({name});
     }
 
     liftArrayExpression(json: any): TS.ArrayExpression {
