@@ -3,7 +3,6 @@ import * as assert from 'assert';
 import * as S from 'binast-schema';
 
 import * as TS from '../typed_schema';
-
 import * as logger from '../logger';
 import {Analysis} from '../analysis';
 import {FileStore} from '../file_store';
@@ -545,7 +544,8 @@ export class PathSuffixHandler
     {
         const suffixStr = suffix.keyString();
         const shapeStr = shape.prettyString();
-        // logger.log(`KVKV Suffix ${suffixStr} => ${shapeStr}`);
+        // logger.log(`KVKV Suffix ${suffixStr}` +
+        //            ` => ${shapeStr}`);
         const freqs =
             this.getFreqsFrom(schema, shape, suffix,
                               'type', freqMap);

@@ -108,7 +108,7 @@ export const ReflectedSchema = {
     get PropertyString(): S.Typedef {
         if (!this["c_PropertyString"]) {
             const typeName = S.TypeName.make("PropertyString");
-            const aliased = TIdent("ident");
+            const aliased = TIdent("prop");
             this["c_PropertyString"] = new S.Typedef(
                                typeName, aliased)
         }
@@ -2521,7 +2521,7 @@ export const ReflectedSchema = {
                 /* isLazy = */ false),
             new S.IfaceField(
                 /* name = */ "property",
-                /* ty = */ TNamed("IdentifierName"),
+                /* ty = */ TNamed("PropertyString"),
                 /* isLazy = */ false),
             ];
             this["c_StaticMemberExpression"] = new S.Iface(typeName, fields, true);
@@ -6345,7 +6345,7 @@ export class UnaryExpression
 
 export interface I_StaticMemberExpression {
     readonly object: (Expression | Super);
-    readonly property: IdentifierName;
+    readonly property: PropertyString;
 } // I_StaticMemberExpression
 
 export class StaticMemberExpression
@@ -6370,7 +6370,7 @@ export class StaticMemberExpression
     get object(): (Expression | Super) {
        return this.data$.object;
     }
-    get property(): IdentifierName {
+    get property(): PropertyString {
        return this.data$.property;
     }
 }

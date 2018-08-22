@@ -2,10 +2,16 @@
 "use strict";
 
 import * as assert from 'assert';
-
 import * as S from 'binast-schema';
+
+import * as logger from './logger';
 import * as TS from './typed_schema';
+
 const RS = TS.ReflectedSchema;
+
+function jsonStr(val: any): string {
+    return JSON.stringify(val, null, 2);
+}
 
 
 class MatchError extends Error {
@@ -14,7 +20,7 @@ class MatchError extends Error {
 
     constructor(matchType, unrecognizedValue) {
         super(`MatchError(${matchType}) -` +
-              ` ${unrecognizedValue}`);
+              ` ${jsonStr(unrecognizedValue)}`);
         this.matchType = matchType;
         this.unrecognizedValue = unrecognizedValue;
     }
@@ -1223,7 +1229,8 @@ export class Importer {
 
         // TODO: Check for |super| in object_.
         const object = this.liftExpression(json.object);
-        const property = this.liftIdentifier(json.property);
+        const property = this.liftPropertyString(
+                                        json.property);
         return TS.StaticMemberExpression.make({
             object, property
         });
@@ -1279,12 +1286,89 @@ export class Importer {
         switch (json.type as string) {
           case 'DataProperty':
             return this.liftDataProperty(json);
-          case 'MethodDefinition':
+          case 'Getter':
+            return this.liftGetter(json);
+          case 'Setter':
+            return this.liftSetter(json);
           case 'ShorthandProperty':
           default:
             throw new MatchError('ObjectProperty',
-                                 json.type);
+                                 summarizeNode(json));
+
         }
+    }
+
+    liftGetter(json: any): TS.Getter {
+        assertNodeType(json, 'Getter');
+
+        const name = this.liftPropertyName(json.name);
+        const directives = json.body.directives.map(
+                            d => this.liftDirective(d));
+
+        // TODO: Handle isThisCaptured properly.
+        const isThisCaptured = false;
+
+        return this.cx.enterVarScope(bs => {
+            // ASSERT: FunctionBody is Array<Statement>
+            const body =
+                json.body.statements.map(
+                    s => this.liftStatement(s));
+
+            const bodyScope = bs.extractVarScope();
+
+            const contents =
+                TS.GetterContents.make({
+                    isThisCaptured, bodyScope, body
+                });
+
+            // TODO: Emit LazyGetter when appropriate.
+            return TS.EagerGetter.make({
+                name, directives, contents
+            });
+        });
+    }
+
+    liftSetter(json: any): TS.Setter {
+        assertNodeType(json, 'Setter');
+
+        const name = this.liftPropertyName(json.name);
+        const directives = json.body.directives.map(
+                            d => this.liftDirective(d));
+
+        // TODO: Handle isThisCaptured properly.
+        const isThisCaptured = false;
+
+        return this.cx.enterParameterScope(ps => {
+            const param = this.cx.bindParameters(() => {
+                return json.param !== null ?
+                    this.liftBindingIdentifier(json.param)
+                  : null;
+            });
+
+            const parameterScope =
+                    ps.extractParameterScope();
+
+            return this.cx.enterVarScope(bs => {
+                // ASSERT: FunctionBody is Array<Statement>
+                const body =
+                    json.body.statements.map(
+                        s => this.liftStatement(s));
+
+                const bodyScope = bs.extractVarScope();
+
+                const contents =
+                    TS.SetterContents.make({
+                        isThisCaptured,
+                        parameterScope, param,
+                        bodyScope, body
+                    });
+
+                // TODO: Emit LazySetter when appropriate.
+                return TS.EagerSetter.make({
+                    name, directives, contents
+                });
+            });
+        });
     }
 
     liftDataProperty(json: any): TS.DataProperty {
