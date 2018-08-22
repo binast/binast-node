@@ -375,10 +375,7 @@ export class Visitor {
     {
         const tySet = this.getTypeSetFor(ty);
         const rty = tySet.resolveType(this.schema, value);
-        assert(rty !== null,
-            `Bad resolve for: ${jsonStr(value)}\n` +
-            `ty=${ty.prettyString()}`);
-
+        assert(rty !== null);
         return rty;
     }
 }
