@@ -203,6 +203,176 @@ export class PathIterator {
     }
 }
 
+/**
+ * PathSlice represents a slice of a path from
+ * the root to a given entry in the tree.  A slice
+ * consists of a sequence:
+ *
+ *      NodeIfaceType, PathKey, PathKey, ...
+ *
+ * This specifies a path from a given node type
+ * to a field value within it, without crossing
+ * into any other AST nodes.
+ */
+const PATH_SLICES: Map<string, PathSlice> = new Map();
+export class PathSlice {
+    readonly iface: Iface;
+    readonly subscript: ReadonlyArray<PathKey>;
+
+    private constructor(iface: Iface,
+                        subscript: ReadonlyArray<PathKey>)
+    {
+        this.iface = iface;
+        this.subscript = subscript;
+        Object.freeze(this.subscript);
+        Object.freeze(this);
+    }
+
+    keyString(): string {
+        return PathSlice.makeKey(this.iface,
+                                 this.subscript);
+    }
+
+    static make(iface: Iface,
+                subscript: ReadonlyArray<PathKey>)
+      : PathSlice
+    {
+        const key = PathSlice.makeKey(iface, subscript);
+        if (! PATH_SLICES.has(key)) {
+            const slice = new PathSlice(iface, subscript);
+            PATH_SLICES.set(key, slice);
+            return slice;
+        }
+        return PATH_SLICES.get(key);
+    }
+
+    static makeKey(iface: Iface,
+                   subscript: ReadonlyArray<PathKey>)
+      : string
+    {
+        const ifaceName = iface.name.name;
+        return `${ifaceName}.${subscript.join('.')}`;
+    }
+}
+
+/**
+ * PathSuffix is an array of path slices, representing
+ * some suffix of the path from the root to a node.
+ */
+const PATH_SUFFIXES: Map<string, PathSuffix> = new Map();
+export class PathSuffix {
+    readonly slices: ReadonlyArray<PathSlice|null>;
+
+    private constructor(
+        slices: ReadonlyArray<PathSlice|null>)
+    {
+        this.slices = slices;
+        Object.freeze(this.slices);
+        Object.freeze(this);
+    }
+
+    static make(slices: ReadonlyArray<PathSlice|null>)
+      : PathSuffix
+    {
+        const key = PathSuffix.makeKey(slices);
+        if (! PATH_SUFFIXES.has(key)) {
+            const suffix = new PathSuffix(slices);
+            PATH_SUFFIXES.set(key, suffix);
+            return suffix;
+        }
+        return PATH_SUFFIXES.get(key);
+    }
+
+    static forLocation(schema: TreeSchema,
+                       loc: TreeLocation,
+                       length: number)
+      : PathSuffix|null
+    {
+        assert(Number.isInteger(length) && (length > 0));
+        const sliceAccum: Array<PathSlice|null> = [];
+
+        const iter = loc.ancestors();
+
+        // Number keys are only ever array indices.
+        // At leaves, predict the first 4 indices of
+        // arrays, but lump the rest into an `index` slot.
+        const leafKey =
+            (typeof(iter.key) === 'number')
+              ? ((iter.key < 4) ? iter.key : 'index')
+              : iter.key;
+
+        // Start off with the key for the current symbol.
+        let symAccum: Array<PathKey> = [leafKey];
+
+        // Skip the symbol being visited.
+        iter.next();
+
+        for (/**/; !iter.done; iter.next()) {
+            if (sliceAccum.length == length) {
+                break;
+            }
+            const key = iter.key;
+
+            // Number keys are only ever array indices.
+            // Generalize through them (don't use them
+            // for predictive specificity in paths except
+            // at the leaves).
+            if (typeof(key) === 'number') {
+                return null;
+            }
+
+            const shape = iter.shape;
+            const shapeTy = shape.ty;
+
+
+            if (! (shapeTy instanceof FieldTypeIface)) {
+                symAccum.push(key);
+                continue;
+            }
+            // Get the iface and check for node flag.
+            const decl = schema.getDecl(shapeTy.name);
+            assert(decl instanceof Iface);
+            const iface = decl as Iface;
+
+            if ((iface as Iface).isNode) {
+                // Arrived at a piece.  Push it.
+                const syms = symAccum.reverse();
+                symAccum = [iter.key];
+
+                Object.freeze(syms);
+                sliceAccum.push(
+                    PathSlice.make(iface, syms));
+            } else {
+                symAccum.push(iter.key);
+            }
+        }
+
+        // Must be at a whole number of pieces when
+        // we stop.
+        assert(symAccum.length == 1);
+        if (sliceAccum.length < length) {
+            return null;
+        }
+        Object.freeze(sliceAccum.reverse());
+        return PathSuffix.make(sliceAccum);
+    }
+
+    keyString(): string {
+        return PathSuffix.makeKey(this.slices);
+    }
+
+    static makeKey(slices: ReadonlyArray<PathSlice|null>)
+      : string
+    {
+        return slices.map((v:PathSlice|null) => {
+            return (v === null)
+                ? '!'
+                : v.keyString();
+        }).join('/');
+    }
+}
+
+
 export interface VisitHandler {
     begin(schema: TreeSchema, loc: TreeLocation);
     end(schema: TreeSchema, loc: TreeLocation);
