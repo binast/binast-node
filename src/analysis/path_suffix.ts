@@ -14,8 +14,6 @@ import {FileStore} from '../file_store';
  * leading to the symbol.
  */
 
-export type Sym = number | string;
-
 abstract class Alphabet {
     readonly size: number;
 
@@ -24,20 +22,20 @@ abstract class Alphabet {
         this.size = size;
     }
 
-    abstract names(): Iterator<[number, Sym]>;
+    abstract names(): Iterator<[number, S.PathKey]>;
 }
 
 class NamedAlphabet extends Alphabet {
-    readonly alphas: ReadonlyArray<Sym>;
+    readonly alphas: ReadonlyArray<S.PathKey>;
 
-    constructor(alphas: ReadonlyArray<Sym>) {
+    constructor(alphas: ReadonlyArray<S.PathKey>) {
         super(alphas.length);
         this.alphas = alphas;
         Object.freeze(alphas);
         Object.freeze(this);
     }
 
-    names(): Iterator<[number, Sym]> {
+    names(): Iterator<[number, S.PathKey]> {
         return this.alphas.entries();
     }
 }
@@ -46,11 +44,11 @@ class NumberedAlphabet extends Alphabet {
         super(size);
     }
 
-    names(): Iterator<[number, Sym]> {
+    names(): Iterator<[number, S.PathKey]> {
         const size = this.size;
         let i = 0;
         return {
-            next(): IteratorResult<[number, Sym]> {
+            next(): IteratorResult<[number, S.PathKey]> {
                 if (i < size) {
                     return {value: [i, i], done:false};
                 } else {
@@ -309,7 +307,7 @@ function summarizeFreqs(freqMap: Map<string, FreqTable>,
 }
 
 type HitResult = {
-    name: Sym,
+    name: S.PathKey,
     index: number,
     hits: number
 };
@@ -530,7 +528,7 @@ class PathSuffixHandler
             return existing;
         }
 
-        let alphaValues: Array<Sym>;
+        let alphaValues: Array<S.PathKey>;
         if (ty instanceof S.FieldTypePrimitive) {
             switch (ty) {
               case S.FieldTypePrimitive.Bool:
@@ -548,7 +546,7 @@ class PathSuffixHandler
                 throw new Error('Bad primitive type.');
             }
         } else if (ty instanceof S.FieldTypeArray) {
-            const arr = new Array<Sym>();
+            const arr = new Array<S.PathKey>();
             for (let i = 0; i < 16; i++) { arr.push(i); }
             arr.push('MISS');
             alphaValues = arr;
