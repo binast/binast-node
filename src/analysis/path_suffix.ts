@@ -289,6 +289,15 @@ function summarizeFreqs(freqMap: Map<string, FreqTable>,
     const taggedSuffixes =
         Array.from(freqMap.keys())
             .sort((a:string , b:string) => {
+                const al = a.replace(/[^\/]/g, '').length;
+                const bl = b.replace(/[^\/]/g, '').length;
+
+                // Order more specific contexts over
+                // less specific ones.
+                if (al !== bl) {
+                    return bl - al;
+                }
+
                 const ax = freqMap.get(a);
                 const bx = freqMap.get(b);
                 return bx.totalHits - ax.totalHits;
@@ -296,6 +305,11 @@ function summarizeFreqs(freqMap: Map<string, FreqTable>,
     const result: Array<FreqResult> = [];
     for (let suffix of taggedSuffixes) {
         const ftable = freqMap.get(suffix);
+        // Don't print out tables for alphabets of
+        // size 1.  They are always perfectly predicted.
+        if (ftable.alphabet.size === 1) {
+            continue;
+        }
         result.push({
             suffix: suffix,
             totalHits: ftable.totalHits,
@@ -324,7 +338,7 @@ class PathSuffixHandler
     readonly suffixLength: number;
     readonly globalFreqMap: Map<string, FreqTable>;
     readonly suffixFreqMap: Map<string, FreqTable>;
-    readonly alphabetCache: Map<S.PathShape, Alphabet>;
+    readonly alphabetCache: Map<S.TypeSet, Alphabet>;
     readonly valueAlphabetCache:
         Map<string, Alphabet>;
     symbolsEmitted: number;
@@ -343,6 +357,7 @@ class PathSuffixHandler
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         ++this.symbolsEmitted;
         const {key, shape, bound, value} = loc;
+
         for (let len = 1; len <= this.suffixLength; len++) {
             const suffix = S.PathSuffix.forLocation(
                                         schema, loc, len);
@@ -355,6 +370,10 @@ class PathSuffixHandler
             this.updateFreqTables(schema, shape, suffix,
                 value, this.suffixFreqMap);
         }
+    }
+
+    end(schema: S.TreeSchema, loc: S.TreeLocation) {
+        // const {key, shape, bound, value} = loc;
     }
 
     private updateFreqTables(
@@ -373,7 +392,18 @@ class PathSuffixHandler
                               'type', freqMap);
 
         if (freqs !== null) {
-            freqs.recordHit(shape.index);
+            try {
+                freqs.recordHit(shape.index);
+            } catch (err) {
+                const tyStr = shape.ty.prettyString();
+                const tySetStr = shape.typeSet.tys.map(
+                    ty => ty.prettyString()).join(', ');
+                const ix = shape.index;
+                const sz = freqs.alphabet.size;
+                logger.log(`Failed recordHit ${ix}/:${sz} ` +
+                    `${suffixStr}\n${tySetStr}\n\n`);
+                throw err;
+            }
         }
 
         const valFreqs = this.getValueFreqsFrom(
@@ -382,9 +412,6 @@ class PathSuffixHandler
             this.recordValueHit(
                 schema, shape.ty, value, valFreqs);
         }
-    }
-
-    end(schema: S.TreeSchema, loc: S.TreeLocation) {
     }
 
     summarizeFreqs(totalSymbols: number): Array<FreqResult>
@@ -407,20 +434,20 @@ class PathSuffixHandler
         if (existing) {
             return existing;
         }
-        const alphabet = this.getAlphabet(schema, shape);
-        if (alphabet.size === 1) {
-            return null;
-        }
+        const alphabet = this.getAlphabet(schema, suffix,
+                                          shape);
         const freqTable = new FreqTable(alphabet);
         freqMap.set(suffixTag, freqTable);
         return freqTable;
     }
 
     private getAlphabet(schema: S.TreeSchema,
+                        suffix: S.PathSuffix,
                         shape: S.PathShape)
       : Alphabet
     {
-        const existing = this.alphabetCache.get(shape);
+        const tySet = shape.typeSet;
+        const existing = this.alphabetCache.get(tySet);
         if (existing) {
             return existing;
         }
@@ -428,7 +455,7 @@ class PathSuffixHandler
             return ty.prettyString();
         });
         const created = new NamedAlphabet(symbols);
-        this.alphabetCache.set(shape, created);
+        this.alphabetCache.set(tySet, created);
         return created;
     }
 

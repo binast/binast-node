@@ -24,6 +24,9 @@ import {PathSuffixAnalysis}
 import {GlobalStringsAnalysis}
     from '../analysis/global_strings';
 
+import {EntropyCodeAnalysis}
+    from '../analysis/entropy_code';
+
 const SCHEMA = TS.ReflectedSchema.schema;
 
 function main() {
@@ -55,6 +58,9 @@ function main() {
     }
     if (opts['global-strings']) {
         analyses.push('global-strings');
+    }
+    if (opts['entropy-code']) {
+        analyses.push('entropy-code');
     }
 
     runStoreSuite(SCHEMA, scriptStore, resultStore,
@@ -102,6 +108,9 @@ function makeAnalysisTask(name: string,
       case 'global-strings':
         return new GlobalStringsAnalysis(
                     schema, scriptStore, resultStore, opts);
+      case 'entropy-code':
+        return new EntropyCodeAnalysis(
+                    schema, scriptStore, resultStore, opts);
     }
     throw new Error(`Unknown analysis ${name}`);
 }
@@ -126,6 +135,9 @@ function usage(exit: boolean) {
                "        Run path-suffix analysis.");
     logger.log("   --path-suffix-length=length         " +
                "        Suffix length to use.");
+    logger.log("");
+    logger.log("   --entropy-code                      " +
+               "        Run the entropy coder.");
     if (exit) {
         process.exit(1);
     }

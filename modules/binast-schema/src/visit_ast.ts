@@ -292,38 +292,41 @@ export class PathSuffix {
         const sliceAccum: Array<PathSlice|null> = [];
 
         const iter = loc.ancestors();
+        let leafKey: PathKey = iter.key;
+        iter.next();
 
         // Number keys are only ever array indices.
         // At leaves, predict the first 4 indices of
         // arrays, but lump the rest into an `index` slot.
-        const leafKey =
-            (typeof(iter.key) === 'number')
-              ? ((iter.key < 4) ? iter.key : 'index')
-              : iter.key;
+        if (typeof(leafKey) === 'number') {
+            assert(iter.value instanceof Array);
+            const arr = iter.value as Array<Value>;
+            if (arr.length <= 4) {
+                leafKey = `${leafKey}-of-${arr.length}`;
+            } else if (leafKey <= 4) {
+                leafKey = `${leafKey}-of-many`;
+            }
+        }
 
         // Start off with the key for the current symbol.
         let symAccum: Array<PathKey> = [leafKey];
-
-        // Skip the symbol being visited.
-        iter.next();
 
         for (/**/; !iter.done; iter.next()) {
             if (sliceAccum.length == length) {
                 break;
             }
-            const key = iter.key;
+
+            let key = iter.key;
 
             // Number keys are only ever array indices.
-            // Generalize through them (don't use them
-            // for predictive specificity in paths except
-            // at the leaves).
+            // Generalize through all of them as special
+            // index keys ('#').
             if (typeof(key) === 'number') {
-                return null;
+                key = '*';
             }
 
             const shape = iter.shape;
             const shapeTy = shape.ty;
-
 
             if (! (shapeTy instanceof FieldTypeIface)) {
                 symAccum.push(key);
@@ -334,16 +337,16 @@ export class PathSuffix {
             assert(decl instanceof Iface);
             const iface = decl as Iface;
 
-            if ((iface as Iface).isNode) {
+            if (iface.isNode) {
                 // Arrived at a piece.  Push it.
                 const syms = symAccum.reverse();
-                symAccum = [iter.key];
+                symAccum = [key];
 
                 Object.freeze(syms);
                 sliceAccum.push(
                     PathSlice.make(iface, syms));
             } else {
-                symAccum.push(iter.key);
+                symAccum.push(`${key}=${iface.name.name}`);
             }
         }
 

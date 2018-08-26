@@ -31,6 +31,7 @@ export abstract class FieldType {
     }
 
     abstract prettyString(): string;
+    abstract keyString(): string;
     abstract kind(): FieldTypeKind;
     abstract typescriptString(): string;
     abstract reflectedString(): string;
@@ -69,6 +70,7 @@ export abstract class FieldType {
     }
 }
 
+const TYPE_SET_CACHE: Map<string, TypeSet> = new Map();
 export class TypeSet {
     readonly tys: ReadonlyArray<TerminalFieldType>;
 
@@ -79,11 +81,25 @@ export class TypeSet {
     }
 
     static make(tys: ReadonlyArray<TerminalFieldType>) {
-        return new TypeSet(tys);
+        tys = tys.slice().sort((a, b) => {
+            return a.compareTo(b);
+        });
+        const keyStr = TypeSet.keyString(tys);
+        if (! TYPE_SET_CACHE.has(keyStr)) {
+            const tySet = new TypeSet(tys);
+            TYPE_SET_CACHE.set(keyStr, tySet);
+        }
+        return TYPE_SET_CACHE.get(keyStr);
     }
 
     get size(): number {
         return this.tys.length;
+    }
+
+    static keyString(
+        tys: ReadonlyArray<TerminalFieldType>)
+    {
+        return `TypeSet(${tys.map(ty => ty.keyString())})`;
     }
 
     resolveType(schema: TreeSchema, value: Value)
@@ -139,6 +155,8 @@ export abstract class TerminalFieldType
         // Array types are terminal.
         return [this];
     }
+
+    abstract compareTo(other: TerminalFieldType): number;
 }
 
 export class FieldTypePrimitive
@@ -164,6 +182,9 @@ export class FieldTypePrimitive
     }
     prettyString(): string {
         return this.name;
+    }
+    keyString(): string {
+        return FieldTypePrimitive.typeKey(this.name);
     }
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
@@ -209,6 +230,24 @@ export class FieldTypePrimitive
           case TN_STR: return 'TStr';
         }
         throw new Error(`Unknown primitive ${this.name}`);
+    }
+
+    private primRank(): number {
+        switch (this) {
+          case TN_NULL: return 0;
+          case TN_BOOL: return 1;
+          case TN_UINT: return 2;
+          case TN_INT: return 3;
+          case TN_F64: return 4;
+          case TN_STR: return 5;
+        }
+    }
+    compareTo(other: TerminalFieldType): number {
+        if (other instanceof FieldTypePrimitive) {
+            return this.primRank() - other.primRank();
+        } else {
+            return -1;
+        }
     }
 
     static typeKey(name: string): string {
@@ -266,10 +305,28 @@ export class FieldTypeIdent
     prettyString(): string {
         return `id(${this.tag})`;
     }
+    keyString(): string {
+        return FieldTypeIdent.typeKey(this.tag);
+    }
     matchesValue(schema: TreeSchema, value: Value)
       : boolean
     {
         return value instanceof Identifier;
+    }
+    compareTo(other: TerminalFieldType): number {
+        if (other instanceof FieldTypePrimitive) {
+            return 1;
+        } else if (other instanceof FieldTypeIdent) {
+            if (this.tag === other.tag) {
+                return 0;
+            } else if (this.tag < other.tag) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            return -1;
+        }
     }
 
     typescriptString(): string {
@@ -327,6 +384,9 @@ export class FieldTypeNamed extends FieldType {
     prettyString(): string {
         return this.name.prettyString();
     }
+    keyString(): string {
+        return FieldTypeNamed.typeKey(this.name);
+    }
     static typeKey(name: TypeName): string {
         return `named(${name.name})`;
     }
@@ -366,6 +426,9 @@ export class FieldTypeUnion extends FieldType {
     prettyString(): string {
         let mstr = this.variants.map(m => m.prettyString());
         return `Union<${mstr.join(' | ')}>`;
+    }
+    keyString(): string {
+        return FieldTypeUnion.typeKey(this.variants);
     }
 
     static typeKey(variants: ReadonlyArray<FieldType>)
@@ -449,8 +512,30 @@ export class FieldTypeArray
     prettyString(): string {
         return `Array<${this.inner.prettyString()}>`;
     }
+    keyString(): string {
+        return FieldTypeArray.typeKey(this.inner);
+    }
     static typeKey(inner: FieldType): string {
         return `array(${inner.typeId})`;
+    }
+    compareTo(other: TerminalFieldType): number {
+        if ((other instanceof FieldTypePrimitive) ||
+            (other instanceof FieldTypeIdent))
+        {
+            return 1;
+        } else if (other instanceof FieldTypeArray) {
+            const thisKey = this.inner.keyString();
+            const otherKey = other.inner.keyString();
+            if (thisKey === otherKey) {
+                return 0;
+            } else if (thisKey < otherKey) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            return -1;
+        }
     }
 
     matchesValue(schema: TreeSchema, value: Value)
@@ -500,8 +585,31 @@ export class FieldTypeIface
     prettyString(): string {
         return `Iface<${this.ifaceName()}>`;
     }
+    keyString(): string {
+        return FieldTypeIface.typeKey(this.name);
+    }
     static typeKey(name: TypeName): string {
-        return `array(${name.name})`;
+        return `iface(${name.name})`;
+    }
+    compareTo(other: TerminalFieldType): number {
+        if ((other instanceof FieldTypePrimitive) ||
+            (other instanceof FieldTypeIdent) ||
+            (other instanceof FieldTypeArray))
+        {
+            return 1;
+        } else if (other instanceof FieldTypeIface) {
+            const thisKey = this.name.name;
+            const otherKey = other.name.name;
+            if (thisKey === otherKey) {
+                return 0;
+            } else if (thisKey < otherKey) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            return -1;
+        }
     }
 
     matchesValue(schema: TreeSchema, value: Value)
@@ -548,8 +656,33 @@ export class FieldTypeEnum
     prettyString(): string {
         return `Enum<${this.enumName()}>`;
     }
+    keyString(): string {
+        return FieldTypeEnum.typeKey(this.name);
+    }
     static typeKey(name: TypeName): string {
         return `array(${name.name})`;
+    }
+    compareTo(other: TerminalFieldType): number {
+        if ((other instanceof FieldTypePrimitive) ||
+            (other instanceof FieldTypeIdent) ||
+            (other instanceof FieldTypeArray) ||
+            (other instanceof FieldTypeIface))
+        {
+            return 1;
+        } else if (other instanceof FieldTypeEnum) {
+            const thisKey = this.name.name;
+            const otherKey = other.name.name;
+            if (thisKey === otherKey) {
+                return 0;
+            } else if (thisKey < otherKey) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            assert(false, "UNREACHABLE!");
+            return -1;
+        }
     }
 
     matchesValue(schema: TreeSchema, value: Value)
