@@ -324,7 +324,7 @@ export class PathSuffix {
 
             // Number keys are only ever array indices.
             // Generalize through all of them as special
-            // index keys ('#').
+            // index keys ('*').
             if (typeof(key) === 'number') {
                 key = '*';
             }
