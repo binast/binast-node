@@ -14,6 +14,8 @@ import {FileStore} from '../file_store';
  * leading to the symbol.
  */
 
+export type Sym = string|number;
+
 abstract class Alphabet {
     readonly size: number;
 
@@ -22,20 +24,20 @@ abstract class Alphabet {
         this.size = size;
     }
 
-    abstract names(): Iterator<[number, S.PathKey]>;
+    abstract names(): Iterator<[number, Sym]>;
 }
 
 class NamedAlphabet extends Alphabet {
-    readonly alphas: ReadonlyArray<S.PathKey>;
+    readonly alphas: ReadonlyArray<Sym>;
 
-    constructor(alphas: ReadonlyArray<S.PathKey>) {
+    constructor(alphas: ReadonlyArray<Sym>) {
         super(alphas.length);
         this.alphas = alphas;
         Object.freeze(alphas);
         Object.freeze(this);
     }
 
-    names(): Iterator<[number, S.PathKey]> {
+    names(): Iterator<[number, Sym]> {
         return this.alphas.entries();
     }
 }
@@ -44,11 +46,11 @@ class NumberedAlphabet extends Alphabet {
         super(size);
     }
 
-    names(): Iterator<[number, S.PathKey]> {
+    names(): Iterator<[number, Sym]> {
         const size = this.size;
         let i = 0;
         return {
-            next(): IteratorResult<[number, S.PathKey]> {
+            next(): IteratorResult<[number, Sym]> {
                 if (i < size) {
                     return {value: [i, i], done:false};
                 } else {
@@ -321,7 +323,7 @@ function summarizeFreqs(freqMap: Map<string, FreqTable>,
 }
 
 type HitResult = {
-    name: S.PathKey,
+    name: Sym,
     index: number,
     hits: number
 };
@@ -384,34 +386,40 @@ class PathSuffixHandler
         freqMap: Map<string, FreqTable>)
     {
         const suffixStr = suffix.keyString();
-        const shapeStr = shape.prettyString();
-        // logger.log(`KVKV Suffix ${suffixStr}` +
-        //            ` => ${shapeStr}`);
         const freqs =
-            this.getFreqsFrom(schema, shape, suffix,
-                              'type', freqMap);
+            this.getFreqsFrom(
+                schema, suffix, shape, 'type', freqMap,
+                // Alphabet generator.
+                () => {
+                    return this.getAlphabet(
+                            schema, suffix, shape);
+                });
 
+        // No type to encode.
         if (freqs !== null) {
-            try {
-                freqs.recordHit(shape.index);
-            } catch (err) {
-                const tyStr = shape.ty.prettyString();
-                const tySetStr = shape.typeSet.tys.map(
-                    ty => ty.prettyString()).join(', ');
-                const ix = shape.index;
-                const sz = freqs.alphabet.size;
-                logger.log(`Failed recordHit ${ix}/:${sz} ` +
-                    `${suffixStr}\n${tySetStr}\n\n`);
-                throw err;
-            }
+            freqs.recordHit(shape.index);
         }
 
-        const valFreqs = this.getValueFreqsFrom(
-            schema, shape, suffix, freqMap);
-        if (valFreqs !== null) {
-            this.recordValueHit(
-                schema, shape.ty, value, valFreqs);
+        const tagValIdx = suffix.valueTagAndIndex(
+                            schema, shape.ty, value);
+        if (tagValIdx === null) {
+            return;
         }
+        const [valTag, valIdx, alphaChars] = tagValIdx;
+
+        const valFreqs =
+            this.getFreqsFrom(
+                schema, suffix, shape, valTag, freqMap,
+                // Alphabet generator.
+                () => {
+                    return this.getValueAlphabet(
+                            schema, valTag, alphaChars);
+                });
+
+        if (valFreqs === null) {
+            return;
+        }
+        valFreqs.recordHit(valIdx);
     }
 
     summarizeFreqs(totalSymbols: number): Array<FreqResult>
@@ -422,10 +430,11 @@ class PathSuffixHandler
 
     private getFreqsFrom(
         schema: S.TreeSchema,
-        shape: S.PathShape,
         suffix: S.PathSuffix,
+        shape: S.PathShape,
         tag: string,
-        freqMap: Map<string, FreqTable>)
+        freqMap: Map<string, FreqTable>,
+        alphaF: () => Alphabet)
       : FreqTable|null
     {
         const suffixStr = suffix.keyString();
@@ -434,8 +443,7 @@ class PathSuffixHandler
         if (existing) {
             return existing;
         }
-        const alphabet = this.getAlphabet(schema, suffix,
-                                          shape);
+        const alphabet = alphaF();
         const freqTable = new FreqTable(alphabet);
         freqMap.set(suffixTag, freqTable);
         return freqTable;
@@ -459,178 +467,18 @@ class PathSuffixHandler
         return created;
     }
 
-    private getValueFreqsFrom(
-        schema: S.TreeSchema,
-        shape: S.PathShape,
-        suffix: S.PathSuffix,
-        freqMap: Map<string, FreqTable>)
-      : FreqTable|null
+    private getValueAlphabet(
+                schema: S.TreeSchema,
+                tag: string,
+                alphaChars: Array<string|number>)
+      : Alphabet
     {
-        const suffixStr = suffix.keyString();
-        const tag = this.getValueAlphabetKey(schema,
-                                             shape.ty);
-        if (tag === null) {
-            return null;
-        }
-        const suffixTag = `${suffixStr}#${tag}`;
-
-        const existing = freqMap.get(suffixTag);
+        const existing = this.valueAlphabetCache.get(tag);
         if (existing) {
             return existing;
         }
-
-        const alphabet =
-            this.getValueAlphabet(schema, shape.ty);
-        if (alphabet === null) {
-            return;
-        }
-        const freqTable = new FreqTable(alphabet);
-        freqMap.set(suffixTag, freqTable);
-        return freqTable;
-    }
-
-    private recordValueHit(schema: S.TreeSchema,
-                           ty: S.TerminalFieldType,
-                           value: S.Value,
-                           freqs: FreqTable)
-    {
-        const alphaSize = freqs.alphabet.size;
-        if (ty instanceof S.FieldTypePrimitive) {
-            switch (ty) {
-              case S.FieldTypePrimitive.Bool:
-                assert(typeof(value) == 'boolean');
-                freqs.recordHit(value ? 1 : 0);
-                break;
-              case S.FieldTypePrimitive.Uint:
-                assert(typeof(value) == 'number');
-                if (value < alphaSize - 1) {
-                    freqs.recordHit(value as number);
-                } else {
-                    freqs.recordHit(alphaSize - 1);
-                }
-                break;
-              case S.FieldTypePrimitive.Int:
-                assert(typeof(value) == 'number');
-                const num = value as number;
-                if ((num >= -1) && (num < (alphaSize - 2)))
-                {
-                    freqs.recordHit((num + 1) as number);
-                } else {
-                    freqs.recordHit(alphaSize - 1);
-                }
-                break;
-              default:
-                throw new Error('Bad primitive type.');
-            }
-        } else if (ty instanceof S.FieldTypeArray) {
-            assert(value instanceof Array);
-            let len = (value as Array<any>).length;
-            if (len < (alphaSize - 1)) {
-                freqs.recordHit(len);
-            } else {
-                freqs.recordHit(alphaSize - 1);
-            }
-        } else if (ty instanceof S.FieldTypeEnum) {
-            assert(typeof(value) === 'string');
-            const en = schema.getDecl(ty.name) as S.Enum;
-            assert(en instanceof S.Enum);
-            const idx = en.indexOfName(value as string);
-            freqs.recordHit(idx);
-        } else {
-            throw new Error('Bad terminal field type.');
-        }
-    }
-
-    private getValueAlphabet(schema: S.TreeSchema,
-                             ty: S.TerminalFieldType)
-      : Alphabet|null
-    {
-        let key: string|null =
-            this.getValueAlphabetKey(schema, ty);
-        if (key === null) {
-            return null;
-        }
-        const existing = this.valueAlphabetCache.get(key);
-        if (existing) {
-            return existing;
-        }
-
-        let alphaValues: Array<S.PathKey>;
-        if (ty instanceof S.FieldTypePrimitive) {
-            switch (ty) {
-              case S.FieldTypePrimitive.Bool:
-                alphaValues = ['true', 'false'];
-                break;
-              case S.FieldTypePrimitive.Uint:
-                alphaValues = [0, 1, 2, 3, 4, 5, 6, 7,
-                               'MISS'];
-                break;
-              case S.FieldTypePrimitive.Int:
-                alphaValues = [-1, 0, 1, 2, 3, 4, 5, 6,
-                               'MISS'];
-                break;
-              default:
-                throw new Error('Bad primitive type.');
-            }
-        } else if (ty instanceof S.FieldTypeArray) {
-            const arr = new Array<S.PathKey>();
-            for (let i = 0; i < 16; i++) { arr.push(i); }
-            arr.push('MISS');
-            alphaValues = arr;
-        } else if (ty instanceof S.FieldTypeEnum) {
-            let decl = schema.getDecl(ty.name) as S.Enum;
-            assert(decl instanceof S.Enum);
-            let en = decl as S.Enum;
-            alphaValues = en.variants.map(v => {
-                return v.name.fullName;
-            });
-        } else {
-            throw new Error('Bad terminal field type.');
-        }
-
-        assert(alphaValues.length > 1);
-        const created = new NamedAlphabet(alphaValues);
-        this.valueAlphabetCache.set(key, created);
+        const created = new NamedAlphabet(alphaChars);
+        this.valueAlphabetCache.set(tag, created);
         return created;
-    }
-
-    private getValueAlphabetKey(schema: S.TreeSchema,
-                                ty: S.TerminalFieldType)
-      : string|null
-    {
-        if (ty instanceof S.FieldTypePrimitive) {
-            switch (ty) {
-              case S.FieldTypePrimitive.Null:
-              case S.FieldTypePrimitive.F64:
-              case S.FieldTypePrimitive.Str:
-                // Single-entry, no value.
-                return null;
-              case S.FieldTypePrimitive.Bool:
-                return 'bool';
-              case S.FieldTypePrimitive.Uint:
-                return 'uint';
-              case S.FieldTypePrimitive.Int:
-                return 'int';
-              default:
-                throw new Error('Unknown primitive type.');
-            }
-        } else if (ty instanceof S.FieldTypeArray) {
-            return 'arrayLength';
-        } else if (ty instanceof S.FieldTypeEnum) {
-            return ty.name.name;
-        } else if ((ty instanceof S.FieldTypeIface) ||
-                   (ty instanceof S.FieldTypeIdent))
-        {
-            // Ifaces have no value to encode (their
-            // components will be encoded under their
-            // own context).
-
-            // Idents are encoded through a sequential
-            // probability model, ignored in context model.
-
-            return null;
-        } else {
-            throw new Error('Bad terminal field type.');
-        }
     }
 }

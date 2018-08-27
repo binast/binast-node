@@ -305,7 +305,11 @@ export class PathSuffix {
                 leafKey = `${leafKey}-of-${arr.length}`;
             } else if (leafKey <= 4) {
                 leafKey = `${leafKey}-of-many`;
+            } else {
+                leafKey = '*';
             }
+        } else {
+            assert(! leafKey.match(/^[0-9]+$/));
         }
 
         // Start off with the key for the current symbol.
@@ -372,6 +376,110 @@ export class PathSuffix {
                 ? '!'
                 : v.keyString();
         }).join('/');
+    }
+
+    valueTagAndIndex(schema: TreeSchema,
+                     ty: TerminalFieldType,
+                     value: Value)
+      : [string, number, Array<string|number>]|null
+    {
+        if (ty instanceof FieldTypePrimitive) {
+            return this.primValueTag(schema, ty, value);
+        } else if (ty instanceof FieldTypeArray) {
+            return this.arrayValueTag(schema, ty, value);
+        } else if (ty instanceof FieldTypeEnum) {
+            return this.enumValueTag(schema, ty, value);
+        } else if ((ty instanceof FieldTypeIface) ||
+                   (ty instanceof FieldTypeIdent))
+        {
+            // Ifaces have no value to encode (their
+            // components will be encoded under their
+            // own context).
+
+            // Idents are encoded through a sequential
+            // probability model, ignored in context model.
+
+            return null;
+        } else {
+            throw new Error('Bad terminal field type.');
+        }
+    }
+
+    private primValueTag(schema: TreeSchema,
+                         ty: FieldTypePrimitive,
+                         value: Value)
+      : [string, number, Array<string|number>]|null
+    {
+        switch (ty) {
+            case FieldTypePrimitive.Null:
+            case FieldTypePrimitive.F64:
+            case FieldTypePrimitive.Str:
+                // Single-entry, or not-predicted.
+                return null;
+
+            case FieldTypePrimitive.Bool:
+                assert(typeof(value) === 'boolean');
+                return ['bool',
+                        (value as boolean) ? 1 : 0,
+                        ['false', 'true']];
+
+            case FieldTypePrimitive.Uint:
+                assert((typeof(value) === 'number') &&
+                       Number.isInteger(value) &&
+                       (value >= 0));
+                return ['uint',
+                        Math.min(
+                            value as number, 8),
+                        [0, 1, 2, 3, 4, 5, 6, 7, 'MISS']];
+
+            case FieldTypePrimitive.Int: {
+                assert((typeof(value) === 'number') &&
+                       Number.isInteger(value));
+                const num = value as number;
+                const alpha: Array<string|number> =
+                    [-1, 0, 1, 2, 3, 4, 5, 6, 'MISS'];
+                if ((num < -1) || (num > 6)) {
+                    return ['int', 8, alpha];
+                }
+                return ['int', num + 1, alpha];
+            }
+            default:
+                throw new Error('Unknown primitive type.');
+        }
+    }
+
+    private arrayValueTag(schema: TreeSchema,
+                          ty: FieldTypeArray,
+                          value: Value)
+      : [string, number, Array<string|number>]|null
+    {
+        assert(value instanceof Array);
+        const arr = value as Array<Value>;
+        const alpha: Array<string|number> =
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+             11, 12, 13, 14, 15, 'MISS'];
+        assert(alpha.length == 17);
+        if (arr.length <= 15) {
+            return ['arrayLength', arr.length, alpha];
+        }
+        return ['arrayLength', 16, alpha];
+    }
+
+    private enumValueTag(schema: TreeSchema,
+                         ty: FieldTypeEnum,
+                         value: Value)
+      : [string, number, Array<string|number>]|null
+    {
+        assert(typeof(value) === 'string');
+        const enm = schema.getDecl(ty.name) as Enum;
+        assert(enm instanceof Enum);
+
+        const idx = enm.indexOfName(value as string);
+
+        const alpha = enm.variants.map(v => {
+            return v.name.name;
+        });
+        return [ty.name.name, idx, alpha];
     }
 }
 

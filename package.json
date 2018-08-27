@@ -6,7 +6,7 @@
     "build-schema-module": "(cd ./modules/binast-schema/; npm install; npm run build);",
     "generate-tsc-schema": "binast-generate-ts-schema ./spec/latest.webidl >./src/typed_schema.ts",
     "build-tsc": "tsc",
-    "build": "npm run build-schema-module; npm install; npm run generate-tsc-schema; npm run build-tsc;"
+    "build": "npm run build-schema-module; npm install ./modules/binast-schema; npm run generate-tsc-schema; npm run build-tsc;"
   },
   "author": "",
   "license": "GPLv3",
@@ -22,6 +22,6 @@
   },
   "devDependencies": {
     "@types/node": "^10.1.3",
-    "binast-schema": "file:./modules/binast-schema"
+    "binast-schema": "file:modules/binast-schema"
   }
 }
