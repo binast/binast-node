@@ -11,6 +11,9 @@ export class EntropyCodeAnalysis
   extends Analysis
 {
     readonly probTableMap: Map<string, ProbTable>;
+    readonly identWindowTable: ProbTable;
+    readonly propWindowTable: ProbTable;
+    readonly stringWindowTable: ProbTable;
 
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
@@ -19,10 +22,19 @@ export class EntropyCodeAnalysis
     {
         super(schema, scriptStore, resultStore, opts);
 
-        const json = resultStore.readJSON(
+        const suffixJson = resultStore.readJSON(
                         "path-suffix/2/ALL.json");
         this.probTableMap =
-            ProbTable.fromSuffixArrayJson(json);
+            ProbTable.fromSuffixArrayJson(suffixJson);
+
+        const strWindowJson = resultStore.readJSON(
+                        "string-window/64/ALL.json");
+        const {idents, props, strings} =
+            ProbTable.fromStringWindowJson(strWindowJson);
+
+        this.identWindowTable = idents;
+        this.propWindowTable = props;
+        this.stringWindowTable = strings;
     }
 
     get name(): string {
@@ -43,7 +55,15 @@ export class EntropyCodeAnalysis
         });
         visitor.visit();
 
-        for (let label of ['sym', 'sym/type']) {
+        const {bitsEmitted, symsEmitted} = handler;
+
+        const labels = Array.from(bitsEmitted.keys()).sort(
+        (a, b) => {
+            return symsEmitted.get(b) - symsEmitted.get(a);
+        });
+
+        logger.log("REPORT");
+        for (let label of labels) {
             const bits = handler.bitsEmitted.get(label);
             const syms = handler.symsEmitted.get(label);
             const bitsPerSym = (bits / syms);
@@ -108,13 +128,16 @@ class EntropyCodeHandler
                  loc: S.TreeLocation,
                  suffix: S.PathSuffix)
     {
-        const {shape} = loc;
+        const {shape, value} = loc;
         const tySet = shape.typeSet;
         assert(tySet.tys.length > 0);
 
-        // Only emit type tags for locations which
-        // have non-singleton type-sets.
+        // Emit the type tag.
         this.emitType(schema, loc, suffix, tySet);
+
+        // Emit the value tag, if needed.
+        this.emitValue(schema, loc, suffix,
+                       shape, value);
     }
 
     private emitType(schema: S.TreeSchema,
@@ -126,7 +149,7 @@ class EntropyCodeHandler
         const {typeSet, ty} = shape;
         const tyStr = ty.prettyString();
 
-        logger.log(`Emit type ${tyStr}`);
+        logger.log(`Skip implicit type ${tyStr}`);
         if (typeSet.tys.length == 1) {
             // Trivially skip encodings for types coming
             // from a singleton typeset.
@@ -140,10 +163,62 @@ class EntropyCodeHandler
         const probTable = this.probTableMap.get(pathKey);
         assert(probTable, "Failed to get ProbTable.");
 
+        logger.log(`Emit type ${tyStr}`);
+        this.encodeWith(probTable, shape.index,
+                        ['type', tyStr]);
+    }
+
+    private emitValue(schema: S.TreeSchema,
+                     loc: S.TreeLocation,
+                     suffix: S.PathSuffix,
+                     shape: S.PathShape,
+                     value: S.Value)
+    {
+        // Get the suffix tag for the given value.
+        const ty = shape.ty;
+        const tyStr = ty.prettyString();
+
+        const valtag = suffix.valueTagAndIndex(
+                                    schema, ty, value);
+        if (valtag === null) {
+            // No value to encode, either an iface or
+            // an identifier.
+            assert((ty instanceof S.FieldTypeIface) ||
+                   (ty instanceof S.FieldTypeIdent) ||
+                   (ty === S.FieldTypePrimitive.F64) ||
+                   (ty === S.FieldTypePrimitive.Str) ||
+                   (ty === S.FieldTypePrimitive.Null),
+                "TY=" + ty.prettyString());
+            if (! ((ty instanceof S.FieldTypeIface) ||
+                   (ty === S.FieldTypePrimitive.Null)))
+            {
+                logger.log(`TODO: Emit ${tyStr} value`);
+            }
+            return;
+        }
+
+        const [tag, index, alpha] = valtag;
+        const pathStr = `${suffix.keyString()}#${tag}`;
+
+        const probTable = this.probTableMap.get(pathStr);
+        assert(probTable);
+
+        logger.log(`Emit value ${tyStr}`);
+        this.encodeWith(probTable, index, ['value', tyStr]);
+    }
+
+    private encodeWith(probTable: ProbTable,
+                       index: number,
+                       name: Array<string>)
+    {
         const offsetSizeTotal =
-            probTable.getOffsetSizeTotal(shape.index);
+            probTable.getOffsetSizeTotal(index);
         assert(offsetSizeTotal);
         const [offset, size, total] = offsetSizeTotal;
+
+        // TODO: Handle size === 0 by encoding an escape
+        // followed by literal symbol code.
+        assert(size > 0);
 
         const prob = size / total;
         const pct = roundN(prob * 100);
@@ -152,7 +227,7 @@ class EntropyCodeHandler
 
         logger.log(`    pct=${pct}% bits=${rbits}`);
 
-        this.noteEmittedSym(['type'], bits);
+        this.noteEmittedSym(name, bits);
         logger.log(``);
     }
 
@@ -284,7 +359,21 @@ class ProbTable {
                 this.probSum];
     }
 
-    static fromSuffixJson(json: any): ProbTable {
+    static fromSuffixArrayJson(json: any)
+      : Map<string, ProbTable>
+    {
+        const result = new Map<string, ProbTable>();
+        assert(json instanceof Array);
+        for (let entryJson of json) {
+            const probTable =
+                ProbTable.fromSuffixJson(entryJson);
+            // logger.log("ADDED: `" + probTable.key + "`");
+            result.set(probTable.key, probTable);
+        }
+        return result;
+    }
+
+    private static fromSuffixJson(json: any): ProbTable {
         assert(json instanceof Object);
         assert(typeof(json['suffix']) === 'string');
         const key = json['suffix'] as string;
@@ -310,17 +399,52 @@ class ProbTable {
         return new ProbTable(key, names, probs);
     }
 
-    static fromSuffixArrayJson(json: any)
-      : Map<string, ProbTable>
+    static fromStringWindowJson(json: any)
+      : { idents: ProbTable,
+          props: ProbTable,
+          strings: ProbTable }
     {
-        const result = new Map<string, ProbTable>();
-        assert(json instanceof Array);
-        for (let entryJson of json) {
-            const probTable =
-                ProbTable.fromSuffixJson(entryJson);
-            // logger.log("ADDED: `" + probTable.key + "`");
-            result.set(probTable.key, probTable);
-        }
-        return result;
+        assert(typeof(json.windowSize) === 'number');
+        const windowSize = json.windowSize as number;
+
+        const _lift = (key: string, val: any) => {
+            assert(val instanceof Array);
+
+            const arr = val as Array<any>;
+            assert(arr.length === windowSize + 3);
+
+            const indexArr =
+                new Array<[number, number]>();
+            let misses: number = -1;
+            for (let v of arr) {
+                if (typeof(v.index) === 'number') {
+                    assert(typeof(v.count) === 'number');
+                    indexArr.push([v.index as number,
+                                   v.count as number]);
+                } else if (v.index === 'MISSES') {
+                    misses = v.count;
+                }
+            }
+            indexArr.sort((a, b) => (a[0] - b[0]));
+            assert(misses >= 0);
+
+            indexArr.push([-1, misses] as [number, number]);
+
+            const probArray = indexArr.map(ia => ia[1]) as
+                                        Array<number>;
+            const probs = new Uint32Array(probArray);
+
+            const names = indexArr.map(ia => ia[0]) as
+                                    Array<string|number>;
+            names[names.length - 1] = 'MISSES';
+
+            return new ProbTable(key, names, probs);
+        };
+
+        return {
+            idents: _lift('idents', json.idents),
+            props: _lift('props', json.idents),
+            strings: _lift('strings', json.strings)
+        };
     }
 }
