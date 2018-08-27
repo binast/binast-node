@@ -6,14 +6,18 @@ import * as TS from '../typed_schema';
 import * as logger from '../logger';
 import {Analysis} from '../analysis';
 import {FileStore} from '../file_store';
+import {StringCache} from '../string_cache';
 
 export class EntropyCodeAnalysis
   extends Analysis
 {
     readonly probTableMap: Map<string, ProbTable>;
-    readonly identWindowTable: ProbTable;
-    readonly propWindowTable: ProbTable;
-    readonly stringWindowTable: ProbTable;
+
+    readonly identModel: StringModel;
+    readonly propModel: StringModel;
+    readonly rawModel: StringModel;
+
+    readonly stringTable: StringTable;
 
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
@@ -32,9 +36,16 @@ export class EntropyCodeAnalysis
         const {idents, props, strings} =
             ProbTable.fromStringWindowJson(strWindowJson);
 
-        this.identWindowTable = idents;
-        this.propWindowTable = props;
-        this.stringWindowTable = strings;
+        this.identModel = new StringModel('ident', idents,
+                new StringCache(idents.numEntries - 1));
+
+        this.propModel = new StringModel('prop', props,
+                new StringCache(props.numEntries - 1));
+
+        this.rawModel = new StringModel('raw', strings,
+                new StringCache(strings.numEntries - 1));
+
+        this.stringTable = new StringTable();
     }
 
     get name(): string {
@@ -46,8 +57,8 @@ export class EntropyCodeAnalysis
 
     analyzeAst(subpath: string, script: TS.Script)
     {
-        const handler = new EntropyCodeHandler(script,
-                                this.probTableMap);
+        const handler = new EntropyCodeHandler(
+                                        script, this);
         const visitor = S.Visitor.make({
             schema: this.schema,
             root: script,
@@ -88,14 +99,23 @@ class EntropyCodeHandler
     readonly probTableMap: Map<string, ProbTable>;
     readonly symsEmitted: Map<string, number>;
     readonly bitsEmitted: Map<string, number>;
+    readonly identModel: StringModel;
+    readonly propModel: StringModel;
+    readonly rawModel: StringModel;
+    readonly stringTable: StringTable;
 
     constructor(root: S.Instance,
-                probTableMap: Map<string, ProbTable>)
+                analysis: EntropyCodeAnalysis)
     {
         this.root = root;
-        this.probTableMap = probTableMap;
+        this.probTableMap = analysis.probTableMap;
         this.symsEmitted = new Map();
         this.bitsEmitted = new Map();
+
+        this.identModel = analysis.identModel;
+        this.propModel = analysis.propModel;
+        this.rawModel = analysis.rawModel;
+        this.stringTable = analysis.stringTable;
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
@@ -183,17 +203,42 @@ class EntropyCodeHandler
         if (valtag === null) {
             // No value to encode, either an iface or
             // an identifier.
+
+            if (ty instanceof S.FieldTypeIdent) {
+                assert(value instanceof S.Identifier);
+                const valueStr =
+                    (value as S.Identifier).name;
+
+                if (ty.tag === 'ident') {
+                    this.emitStringRef(
+                        this.identModel, valueStr);
+                } else if (ty.tag === 'prop') {
+                    this.emitStringRef(
+                        this.propModel, valueStr);
+                } else {
+                    throw new Error(`Unknon ident tag ` +
+                                    ty.tag);
+                }
+                return;
+            }
+
+            if (ty === S.FieldTypePrimitive.Str) {
+                this.emitStringRef(this.rawModel,
+                                   value as string);
+                return;
+            }
+
+            if (ty === S.FieldTypePrimitive.F64) {
+                this.emitF64(value as number);
+                return;
+            }
+
+            // Don't need to handle either of these.
+            // Ifaces will have their structure walked,
+            // and Nulls don't have any value to encode.
             assert((ty instanceof S.FieldTypeIface) ||
-                   (ty instanceof S.FieldTypeIdent) ||
-                   (ty === S.FieldTypePrimitive.F64) ||
-                   (ty === S.FieldTypePrimitive.Str) ||
                    (ty === S.FieldTypePrimitive.Null),
                 "TY=" + ty.prettyString());
-            if (! ((ty instanceof S.FieldTypeIface) ||
-                   (ty === S.FieldTypePrimitive.Null)))
-            {
-                logger.log(`TODO: Emit ${tyStr} value`);
-            }
             return;
         }
 
@@ -207,9 +252,41 @@ class EntropyCodeHandler
         this.encodeWith(probTable, index, ['value', tyStr]);
     }
 
+    private emitStringRef(model: StringModel, val: string) {
+        const {cache, table} = model;
+
+        const lookup = cache.lookup(val);
+        assert(lookup < (table.numEntries - 1));
+        const idx = (lookup < 0) ? table.numEntries - 1
+                                 : lookup;
+        logger.log(`Emit string ${lookup} - ${model.kind}`);
+        this.encodeWith(table, idx, ['string', model.kind]);
+
+        // Handle a miss by emitting a raw string ref.
+        if (lookup < 0) {
+            this.emitRawStringRef(model, val);
+        }
+    }
+
+    private emitRawStringRef(model: StringModel,
+                             val: string)
+    {
+        const idx = this.stringTable.indexOf(val);
+        const {kind} = model;
+        
+        logger.log(`Emit escape string ${idx} - ${kind}`);
+        this.encodeVarUint(idx, ['string', 'escape', kind]);
+    }
+
+    private emitF64(val: number) {
+        assert(typeof(val) === 'number');
+        logger.log(`Emit escape f64`);
+        this.encodeRaw64(val, ['value', 'f64']);
+    }
+
     private encodeWith(probTable: ProbTable,
                        index: number,
-                       name: Array<string>)
+                       category: Array<string>)
     {
         const offsetSizeTotal =
             probTable.getOffsetSizeTotal(index);
@@ -226,8 +303,36 @@ class EntropyCodeHandler
         const rbits = roundN(bits, 1000 * 1000 * 1000);
 
         logger.log(`    pct=${pct}% bits=${rbits}`);
+        this.noteEmittedSym(category, bits);
+        logger.log(``);
+    }
 
-        this.noteEmittedSym(name, bits);
+    private encodeRaw64(value: number,
+                        category: Array<string>)
+    {
+        logger.log(`    raw64 bits=64`);
+        this.noteEmittedSym(category, 64);
+        logger.log(``);
+    }
+
+    private encodeVarUint(value: number,
+                          category: Array<string>)
+    {
+        let bits: number = 0;
+        if (value < 0x80) { // 7 bits
+            bits = 8;
+        } else if (value < 0x4000) { // 14 bits
+            bits = 16;
+        } else if (value < 0x20000) { // 21 bits.
+            bits = 24;
+        } else if (value < 0x10000000) { // 28 bits.
+            bits = 28;
+        } else {
+            throw new Error('Unhandled uint size');
+        }
+
+        logger.log(`    varuint bits=${bits}`);
+        this.noteEmittedSym(category, bits);
         logger.log(``);
     }
 
@@ -259,6 +364,43 @@ function incrMapEntry(s: Map<string, number>, key: string,
     // logger.log(`MAP ${key} ::: ${num} + ${incr} => ${newNum}`);
     s.set(key, newNum);
     return newNum;
+}
+
+class StringTable {
+    readonly strings: Array<string>;
+    readonly indexMap: Map<string, number>;
+
+    constructor() {
+        this.strings = [];
+        this.indexMap = new Map();
+    }
+
+    indexOf(str: string): number {
+        let idx: number = this.indexMap.get(str);
+        if (typeof(idx) === 'number') {
+            return idx;
+        }
+        idx = this.strings.length;
+        this.strings.push(str);
+        this.indexMap.set(str, idx);
+        return idx;
+    }
+}
+
+class StringModel {
+    readonly kind: string;
+    readonly table: ProbTable;
+    readonly cache: StringCache;
+
+    constructor(kind: string,
+                table: ProbTable,
+                cache: StringCache)
+    {
+        this.kind = kind;
+        this.table = table;
+        this.cache = cache;
+        Object.freeze(this);
+    }
 }
 
 /**
