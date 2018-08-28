@@ -9,6 +9,9 @@ import * as TS from './typed_schema';
 import {FileStringSink, FileByteSink}
     from './data_sink';
 
+import {gzipFile, brotliFile}
+    from './the_competition';
+
 /**
  * A simple API for treating a directory of files
  * as a map from 
@@ -69,6 +72,27 @@ export class FileStore {
                                "utf8");
     }
 
+    readCompressedBytes(subpath: string, method: string)
+      : Uint8Array
+    {
+        assert(this.isValidSubpath(subpath));
+        if (! this.filePaths.has(subpath)) {
+            throw new Error(`Bad subpath ${subpath}`);
+        }
+
+        const fullPath = this.fullPath(subpath);
+
+        switch (method) {
+          case 'gzip':
+            return gzipFile(fullPath);
+          case 'brotli':
+            return brotliFile(fullPath);
+          default:
+            throw new Error(`Bad compression` +
+                            ` method ${method}`);
+        }
+    }
+
     readAst(subpath: string): TS.Script {
         const str = this.readString(subpath);
         const astJson = shift_parser.parseScript(str);
@@ -86,6 +110,13 @@ export class FileStore {
         assert(this.isValidSubpath(subpath));
         const str = this.readString(subpath);
         return JSON.parse(str);
+    }
+
+    sizeOfFile(subpath: string): number {
+        assert(this.isValidSubpath(subpath));
+
+        const fullPath = this.fullPath(subpath);
+        return fs.statSync(fullPath).size;
     }
 
     listAll(subpath: string): Array<string> {

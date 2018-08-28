@@ -7,17 +7,18 @@ import * as logger from '../logger';
 import {Analysis} from '../analysis';
 import {FileStore} from '../file_store';
 import {StringCache} from '../string_cache';
+import {brotliBytes} from '../the_competition';
+import {jsStringToWtf8Bytes} from '../wtf8';
 
 export class EntropyCodeAnalysis
   extends Analysis
 {
     readonly probTableMap: Map<string, ProbTable>;
 
+    readonly globalStrings: Map<string, number>;
     readonly identModel: StringModel;
     readonly propModel: StringModel;
     readonly rawModel: StringModel;
-
-    readonly stringTable: StringTable;
 
     constructor(schema: S.TreeSchema,
                 scriptStore: FileStore,
@@ -33,6 +34,16 @@ export class EntropyCodeAnalysis
 
         const strWindowJson = resultStore.readJSON(
                         "string-window/64/ALL.json");
+
+        const globalStringsJson = resultStore.readJSON(
+                        "global-strings/ALL.json");
+        assert(globalStringsJson instanceof Array);
+        this.globalStrings = new Map<string, number>(
+            globalStringsJson.slice(0, 4096).map((e,i) => {
+                assert(typeof(e['str']) == 'string');
+                return [e['str'] as string, i];
+            }));
+
         const {idents, props, strings} =
             ProbTable.fromStringWindowJson(strWindowJson);
 
@@ -44,8 +55,6 @@ export class EntropyCodeAnalysis
 
         this.rawModel = new StringModel('raw', strings,
                 new StringCache(strings.numEntries - 1));
-
-        this.stringTable = new StringTable();
     }
 
     get name(): string {
@@ -57,6 +66,9 @@ export class EntropyCodeAnalysis
 
     analyzeAst(subpath: string, script: TS.Script)
     {
+        const fileSize =
+            this.scriptStore.sizeOfFile(subpath);
+
         const handler = new EntropyCodeHandler(
                                         script, this);
         const visitor = S.Visitor.make({
@@ -66,15 +78,44 @@ export class EntropyCodeAnalysis
         });
         visitor.visit();
 
-        const {bitsEmitted, symsEmitted} = handler;
+        const {bitsEmitted, symsEmitted, stringTable} =
+            handler;
 
         const labels = Array.from(bitsEmitted.keys()).sort(
         (a, b) => {
-            return symsEmitted.get(b) - symsEmitted.get(a);
+            return bitsEmitted.get(b) - bitsEmitted.get(a);
         });
 
-        logger.log("REPORT");
+        const gzipData =
+            this.scriptStore.readCompressedBytes(
+                                        subpath, 'gzip');
+        const brotliData =
+            this.scriptStore.readCompressedBytes(
+                                        subpath, 'brotli');
+
+        const brotliStringsSize =
+            brotliBytes(stringTable.encodedData()).length;
+
+        logger.log(`REPORT ${fileSize} - ${subpath}`);
+        logger.log(`    StringTable ${stringTable.numEntries} entries of size ${stringTable.totalSize} -- brotli ${brotliStringsSize}`);
+
+        const totalBits = handler.bitsEmitted.get('sym');
+        const totalBytes = ((totalBits / 8)>>>0) + 1;
+        const estimatedAllBytes = totalBytes + brotliStringsSize;
+
+        const gzipBetter =
+            roundN(totalBytes / gzipData.length, 10000);
+        const brotliBetter =
+            roundN(totalBytes / brotliData.length, 10000);
+
+        logger.log(`   [BinAST=${totalBytes} --> ${estimatedAllBytes}]` +
+                   ` [gzip=${gzipData.length} // ${gzipBetter}]` +
+                   ` [brotli=${brotliData.length} // ${brotliBetter}]`);
+
         for (let label of labels) {
+            if (label.replace(/[^\/]/g, '').length > 1) {
+                continue;
+            }
             const bits = handler.bitsEmitted.get(label);
             const syms = handler.symsEmitted.get(label);
             const bitsPerSym = (bits / syms);
@@ -84,8 +125,8 @@ export class EntropyCodeAnalysis
 
             logger.log(
                 `Encoded ${label} - ${syms} symbols` +
-                ` in ${rBits} bits =` +
-                ` ${rBitsPerSym} bits/symbol`);
+                ` in ${rBits} bits`);
+            logger.log(` ${rBitsPerSym} bits/symbol`);
         }
     }
 }
@@ -102,6 +143,7 @@ class EntropyCodeHandler
     readonly identModel: StringModel;
     readonly propModel: StringModel;
     readonly rawModel: StringModel;
+    readonly globalStrings: Map<string, number>;
     readonly stringTable: StringTable;
 
     constructor(root: S.Instance,
@@ -115,7 +157,8 @@ class EntropyCodeHandler
         this.identModel = analysis.identModel;
         this.propModel = analysis.propModel;
         this.rawModel = analysis.rawModel;
-        this.stringTable = analysis.stringTable;
+        this.globalStrings = analysis.globalStrings;
+        this.stringTable = new StringTable();
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
@@ -169,7 +212,7 @@ class EntropyCodeHandler
         const {typeSet, ty} = shape;
         const tyStr = ty.prettyString();
 
-        logger.log(`Skip implicit type ${tyStr}`);
+        //logger.log(`Skip implicit type ${tyStr}`);
         if (typeSet.tys.length == 1) {
             // Trivially skip encodings for types coming
             // from a singleton typeset.
@@ -183,7 +226,7 @@ class EntropyCodeHandler
         const probTable = this.probTableMap.get(pathKey);
         assert(probTable, "Failed to get ProbTable.");
 
-        logger.log(`Emit type ${tyStr}`);
+        //logger.log(`Emit type ${tyStr}`);
         this.encodeWith(probTable, shape.index,
                         ['type', tyStr]);
     }
@@ -248,7 +291,7 @@ class EntropyCodeHandler
         const probTable = this.probTableMap.get(pathStr);
         assert(probTable);
 
-        logger.log(`Emit value ${tyStr}`);
+        //logger.log(`Emit value ${tyStr}`);
         this.encodeWith(probTable, index, ['value', tyStr]);
     }
 
@@ -259,7 +302,8 @@ class EntropyCodeHandler
         assert(lookup < (table.numEntries - 1));
         const idx = (lookup < 0) ? table.numEntries - 1
                                  : lookup;
-        logger.log(`Emit string ${lookup} - ${model.kind}`);
+        // logger.log(`Emit string ${lookup} -` +
+        //            ` ${model.kind}`);
         this.encodeWith(table, idx, ['string', model.kind]);
 
         // Handle a miss by emitting a raw string ref.
@@ -271,16 +315,23 @@ class EntropyCodeHandler
     private emitRawStringRef(model: StringModel,
                              val: string)
     {
-        const idx = this.stringTable.indexOf(val);
+        let idx: number = 0;
+        if (this.globalStrings.has(val)) {
+            idx = this.globalStrings.get(val);
+        } else {
+            idx = this.stringTable.indexOf(val) +
+                    this.globalStrings.size;
+        }
         const {kind} = model;
         
-        logger.log(`Emit escape string ${idx} - ${kind}`);
+        // logger.log(`Emit escape string ${idx}` +
+        //            ` - ${kind}`);
         this.encodeVarUint(idx, ['string', 'escape', kind]);
     }
 
     private emitF64(val: number) {
         assert(typeof(val) === 'number');
-        logger.log(`Emit escape f64`);
+        // logger.log(`Emit escape f64`);
         this.encodeRaw64(val, ['value', 'f64']);
     }
 
@@ -302,17 +353,17 @@ class EntropyCodeHandler
         const bits = Math.log(1/prob) / Math.log(2);
         const rbits = roundN(bits, 1000 * 1000 * 1000);
 
-        logger.log(`    pct=${pct}% bits=${rbits}`);
+        // logger.log(`    pct=${pct}% bits=${rbits}`);
         this.noteEmittedSym(category, bits);
-        logger.log(``);
+        // logger.log(``);
     }
 
     private encodeRaw64(value: number,
                         category: Array<string>)
     {
-        logger.log(`    raw64 bits=64`);
+        // logger.log(`    raw64 bits=64`);
         this.noteEmittedSym(category, 64);
-        logger.log(``);
+        // logger.log(``);
     }
 
     private encodeVarUint(value: number,
@@ -331,9 +382,9 @@ class EntropyCodeHandler
             throw new Error('Unhandled uint size');
         }
 
-        logger.log(`    varuint bits=${bits}`);
+        // logger.log(`    varuint bits=${bits}`);
         this.noteEmittedSym(category, bits);
-        logger.log(``);
+        // logger.log(``);
     }
 
     private noteEmittedSym(name: Array<string>,
@@ -384,6 +435,42 @@ class StringTable {
         this.strings.push(str);
         this.indexMap.set(str, idx);
         return idx;
+    }
+
+    get numEntries(): number {
+        return this.strings.length;
+    }
+
+    get totalSize(): number {
+        let size: number = 0;
+        for (let s of this.strings) {
+            size += s.length;
+            if (s.length < (1 << 7)) {
+                size += 1;
+            } else if (s.length < (1 << 14)) {
+                size += 2;
+            } else if (s.length < (1 << 21)) {
+                size += 3;
+            } else if (s.length < (1 << 28)) {
+                size += 4;
+            } else {
+                throw new Error(
+                    "Don't put >256-meg long literal " +
+                    "strings in your code.");
+            }
+        }
+        return size;
+    }
+
+    encodedData(): Uint8Array {
+        const b = new Array<number>();
+        for (let s of this.strings) {
+            for (let n of jsStringToWtf8Bytes(s)) {
+                b.push(n);
+            }
+        }
+        b.push(("\n").charCodeAt(0));
+        return new Uint8Array(b);
     }
 }
 
@@ -474,9 +561,10 @@ class ProbTable {
         let total: number = 0;
         for (let i = 0; i < this.probs.length; i++) {
             const oldProb = this.probs[i];
-            const newProb = (oldProb * scale)>>>0;
-            if (oldProb > 0) {
-                assert(newProb > 0, "Probability too fine!");
+            let newProb = (oldProb * scale)>>>0;
+            if ((oldProb > 0) && (newProb == 0)) {
+                // assert(newProb > 0, "Probability too fine!");
+                newProb = 1;
             }
             total += newProb;
             this.probAccum[i] = total;
@@ -530,7 +618,7 @@ class ProbTable {
             assert(typeof(freq['hits']) === 'number');
         }
 
-        // Order by priority.
+        // Order by index.
         freqs.sort((a, b) => (a.index - b.index));
 
         const probs = new Uint32Array(
