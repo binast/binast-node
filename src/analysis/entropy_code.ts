@@ -7,6 +7,7 @@ import * as logger from '../logger';
 import {Analysis} from '../analysis';
 import {FileStore} from '../file_store';
 import {StringCache} from '../string_cache';
+import {RangeCoder} from '../range_coder';
 import {brotliBytes} from '../the_competition';
 import {jsStringToWtf8Bytes} from '../wtf8';
 
@@ -68,6 +69,9 @@ export class EntropyCodeAnalysis
     {
         const fileSize =
             this.scriptStore.sizeOfFile(subpath);
+        if (fileSize < 100_000) {
+            return;
+        }
 
         const handler = new EntropyCodeHandler(
                                         script, this);
@@ -78,8 +82,16 @@ export class EntropyCodeAnalysis
         });
         visitor.visit();
 
-        const {bitsEmitted, symsEmitted, stringTable} =
-            handler;
+        const {bitsEmitted, symsEmitted, stringTable,
+               rangeCoder} = handler;
+        rangeCoder.encodeFinish();
+        const compressedBytes =
+            new Uint8Array(handler.compressedBytes);
+
+        const packfile = subpath.replace(/.js$/, '.TSC');
+        const packpath =
+            this.dataPath(`${packfile}`);
+        this.resultStore.writeBytes(packpath, compressedBytes);
 
         const labels = Array.from(bitsEmitted.keys()).sort(
         (a, b) => {
@@ -113,9 +125,6 @@ export class EntropyCodeAnalysis
                    ` [brotli=${brotliData.length} // ${brotliBetter}]`);
 
         for (let label of labels) {
-            if (label.replace(/[^\/]/g, '').length > 1) {
-                continue;
-            }
             const bits = handler.bitsEmitted.get(label);
             const syms = handler.symsEmitted.get(label);
             const bitsPerSym = (bits / syms);
@@ -145,6 +154,8 @@ class EntropyCodeHandler
     readonly rawModel: StringModel;
     readonly globalStrings: Map<string, number>;
     readonly stringTable: StringTable;
+    readonly compressedBytes: Array<number>;
+    readonly rangeCoder: any;
 
     constructor(root: S.Instance,
                 analysis: EntropyCodeAnalysis)
@@ -159,11 +170,26 @@ class EntropyCodeHandler
         this.rawModel = analysis.rawModel;
         this.globalStrings = analysis.globalStrings;
         this.stringTable = new StringTable();
+
+        const compressedBytes = [];
+        this.compressedBytes = compressedBytes;
+        const stream = {
+            writeByte(b) { compressedBytes.push(b); }
+        };
+        this.rangeCoder = new RangeCoder(stream);
+
+        // TODO: The general strategy seems to be pull the
+        // last byte from the compressed sequence and pass
+        // it for the first raw-encoded byte.  I don't know
+        // why this exists really, but for now I'll just
+        // waste it by using a const 0 byte.
+        this.rangeCoder.encodeStart(/* byte = */ 0, 1);
     }
 
     begin(schema: S.TreeSchema, loc: S.TreeLocation) {
         const {key, shape, bound, value} = loc;
-        // logger.log(`BEGIN ${shape.ty.prettyString()} ${key}`);
+        // logger.log(`BEGIN ${shape.ty.prettyString()}` +
+        //            ` ${key}`);
 
         // Try to find a match from longest path suffix to
         // shortest.
@@ -355,7 +381,7 @@ class EntropyCodeHandler
 
         // logger.log(`    pct=${pct}% bits=${rbits}`);
         this.noteEmittedSym(category, bits);
-        // logger.log(``);
+        this.rangeCoder.encodeFreq(size, offset, total);
     }
 
     private encodeRaw64(value: number,
@@ -363,6 +389,12 @@ class EntropyCodeHandler
     {
         // logger.log(`    raw64 bits=64`);
         this.noteEmittedSym(category, 64);
+        // TODO: Actually encode the float64 raw bits!
+        // TODO: Predict float64s by component: sign,
+        //       exponent (debiased), and mantissa.
+        for (let i = 0; i < 8; i++) {
+            this.rangeCoder.encodeByte(0x00);
+        }
         // logger.log(``);
     }
 
@@ -380,6 +412,12 @@ class EntropyCodeHandler
             bits = 28;
         } else {
             throw new Error('Unhandled uint size');
+        }
+        // TODO: Actually encode the uint raw bits!
+        // TODO: Predict uints by both size and
+        //       byte location within.
+        for (let i = 0; i < bits; i += 8) {
+            this.rangeCoder.encodeByte(0x00);
         }
 
         // logger.log(`    varuint bits=${bits}`);
